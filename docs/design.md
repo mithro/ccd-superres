@@ -330,7 +330,7 @@ What each kind of removal leaves:
 | Removed | What remains on the sensor face | Evidence |
 |---|---|---|
 | Module lens only (the lens barrel and its holder) | Microlenses, passivation, colour filter, sub-lens and wire grid, all intact | The microlenses are bonded to the chip and are separate from the module lens [R3]. The holder is glued down with a thin layer of epoxy [R4]. |
-| Module lens and microlenses | Colour filter is gone too. Sub-lens, wire grid and some residue remain. | The microlenses sit on top of the colour filter [R2], so nothing reaches them without passing the filter layer's neighbours, and every reported method removes both together: laser ablation "removes those as well" [R5]; photoresist remover or scraping strips the filter layer [R4]. |
+| Module lens and microlenses | Colour filter is gone too. Sub-lens, wire grid and some residue remain. | The microlenses sit directly on top of the colour filter [R2], and every reported method removes both together: laser ablation "removes those as well" [R5]; photoresist remover or scraping strips the filter layer [R4]. |
 
 So the answer to "does the colour filter survive" is: yes if only the module
 lens comes off, no if the microlenses come off.
