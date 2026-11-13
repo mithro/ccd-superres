@@ -24,7 +24,7 @@ The simulator has two jobs:
 
 | Decision | Value |
 |---|---|
-| Optics | Lensless. The module lens and the on-chip lenses are removed. |
+| Optics | Lensless. The lenses on top of the sensor are removed. |
 | What is reconstructed | Surface reflectance first. Height is wanted too. Lighting is undecided. |
 | Feature scale | Nanometre scale, both laterally and in height. |
 | Motion | Constant rate, parallel to the surface. |
@@ -35,14 +35,17 @@ The simulator has two jobs:
 
 ### Assumptions made here that need confirming
 
-- "Lenses removed" is read as the module lens plus the on-chip microlens
-  array. Scraping microlenses off these sensors normally takes the Bayer
-  colour filter layer with them, so the baseline models bare monochrome
-  pixels. If the colour filters stay, the model treats them as a known
-  per-pixel gain pattern (section 5.3).
-- The sensor's cover glass is also removed. With it in place the gap to the
-  surface cannot go below roughly half a millimetre, which section 4 shows is
-  far too large.
+- "Lenses removed" has two possible meanings, and section 5.3 works through
+  both from the sensor's layer structure. Removing only the module lens leaves
+  the on-chip microlenses and the colour filter in place. Removing the
+  microlenses as well takes the colour filter with them. The simulator
+  supports both, and the baseline is the first, because it needs no
+  destructive processing of the die.
+- No cover glass sits between the sensor face and the surface. Whether the
+  Camera Module 2 has one under its lens holder is not confirmed by the
+  sources found so far (section 5.3). If it does, it must come off: with glass
+  in place the gap cannot go below a fraction of a millimetre, which section 4
+  shows is far too large.
 - The surface behaves as a diffuse reflector: each point re-emits light in
   proportion to its reflectance, with no fixed phase relation to its
   neighbours. Section 4.4 covers what changes if the lighting is coherent.
@@ -265,16 +268,27 @@ lighting.
 
 ### 5.1 Sensor
 
-The baseline is the Sony IMX219 used in the Raspberry Pi Camera Module 2. The
-figures below are nominal values recalled from public specifications and must
-be checked against the datasheet before they are relied on.
+The baseline is the Sony IMX219 used in the Raspberry Pi Camera Module 2.
+Figures are from the Raspberry Pi camera hardware documentation [R1].
 
-| Sensor | Module | Pixels | Pitch | Shutter | Raw depth |
-|---|---|---|---|---|---|
-| IMX219 (baseline) | Camera Module 2 | 3280 × 2464 | 1.12 µm | Rolling | 10 bit |
-| IMX477 | HQ Camera | 4056 × 3040 | 1.55 µm | Rolling | 12 bit |
-| IMX708 | Camera Module 3 | 4608 × 2592 | 1.4 µm | Rolling | 10 bit |
-| IMX296 | Global Shutter Camera | 1456 × 1088 | 3.45 µm | Global | 10 bit |
+| Sensor | Module | Pixels | Pitch | Image area | Shutter | Fastest listed modes |
+|---|---|---|---|---|---|---|
+| IMX219 (baseline) | Camera Module 2 | 3280 × 2464 | 1.12 µm | 3.68 × 2.76 mm | Rolling | 1640 × 1232 at 41, 640 × 480 at 206 frames per second |
+| IMX708 | Camera Module 3 | 4608 × 2592 | 1.4 µm | 6.45 × 3.63 mm | Rolling | 2304 × 1296 at 56, 1536 × 864 at 120 |
+| IMX477 | HQ Camera | 4056 × 3040 | 1.55 µm | 6.287 × 4.712 mm | Rolling | 2028 × 1520 at 40, 1332 × 990 at 120 |
+| IMX296 | Global Shutter Camera | 1456 × 1088 | 3.45 µm | 6.3 mm diagonal | Global | 1456 × 1088 at 60 |
+
+Notes:
+
+- The documentation states the shutter type only for the Global Shutter
+  Camera. "Rolling" for the other three is general knowledge of these sensors,
+  not a quoted figure.
+- The documentation reportedly lists the Camera Module 2 sensor as "Sony
+  IMX219 (or IMX355 from November 2026)". This was read second-hand and should
+  be checked before buying hardware, since a different sensor means a
+  different stack.
+- The faster modes combine neighbouring pixels, which changes the effective
+  pixel size. The simulator treats binning as a larger pixel.
 
 Starting values for quantities that are not in public specifications, to be
 replaced by measurement: full well 4500 electrons, read noise 3 electrons,
@@ -284,31 +298,94 @@ gain variation 1 percent, edge softness 0.3 µm.
 
 | Parameter | Starting value | Reason |
 |---|---|---|
-| Frame rate `f` | 30 frames per second | Full-resolution raw readout rate of this sensor class |
+| Frame rate `f` | 30 frames per second | Conservative full-resolution rate; faster binned modes are listed in 5.1 |
 | Step `d` | 0.28 µm (a quarter pixel) | Fine along-scan sampling with modest motion smear |
 | Velocity `v = d·f` | 8.4 µm/s | Follows from the two above |
 | Tilt `θ` | tan θ = 1/16 | Track spacing of 70 nm from a 1.12 µm pitch |
 | Gap `z₀` | Swept from 20 nm to 0.5 mm | The main unknown of the instrument |
 
-### 5.3 Properties of this sensor class that affect the concept
+### 5.3 The sensor stack, and what removing the lenses leaves
+
+![Layers of the sensor before and after removing the microlenses](diagrams/sensor-stack.svg)
+
+A published electron-microscope cross-section of the IMX219 [R2] gives the
+layer order on the light-facing side, from the outside in:
+
+1. Main microlens, one per pixel.
+2. Passivation layer.
+3. Bayer colour filter.
+4. A smaller sub-lens sitting between the bars of a metal wire grid that
+   separates neighbouring pixels.
+5. The photodiode. The sensor is back-illuminated, so the wiring is behind the
+   photodiodes and out of the light path.
+
+The source gives no thickness for the microlens, passivation or filter
+layers. The diagram is therefore a schematic of the order only. For scale, the
+photodiode region is reported as about 0.9 µm deep under a 1.12 µm pixel, so a
+stack of the order of a micrometre or two is a reasonable expectation, to be
+measured.
+
+What each kind of removal leaves:
+
+| Removed | What remains on the sensor face | Evidence |
+|---|---|---|
+| Module lens only (the lens barrel and its holder) | Microlenses, passivation, colour filter, sub-lens and wire grid, all intact | The microlenses are bonded to the chip and are separate from the module lens [R3]. The holder is glued down with a thin layer of epoxy [R4]. |
+| Module lens and microlenses | Colour filter is gone too. Sub-lens, wire grid and some residue remain. | The microlenses sit on top of the colour filter [R2], so nothing reaches them without passing the filter layer's neighbours, and every reported method removes both together: laser ablation "removes those as well" [R5]; photoresist remover or scraping strips the filter layer [R4]. |
+
+So the answer to "does the colour filter survive" is: yes if only the module
+lens comes off, no if the microlenses come off.
+
+Reported practical hazards of stripping the die: the bond wires around the
+edge of the sensor are extremely fine and one builder lost four cameras before
+succeeding [R4]; solvents alone did not work in two independent attempts
+[R4, R5]; the surface afterwards carries residue and exposed wire grid
+[R2, R4].
+
+Cover glass: on the first-generation module (OV5647) a glass cover over the
+die is reported, and was removed with a scalpel [R5]. No source found so far
+says whether the IMX219 module has one. This needs checking on a real module.
+
+#### Consequences for the model
+
+| Property | Module lens removed only (baseline) | Microlenses and filter removed |
+|---|---|---|
+| Colour response | Red, green and blue pixels in the Bayer pattern. With single-colour light this is a known gain pattern and pixels of the other colours contribute little. | Monochrome, all pixels alike. |
+| Acceptance angle | Narrowed by the microlens. | Wide. |
+| Pointing | Microlenses near the edge of the array are shifted towards the centre to suit the original lens [R3]. With a surface close above, edge pixels look slightly sideways, which displaces their footprint by an amount proportional to the gap. Modelled as a known position-dependent offset. | Straight down. |
+| Minimum effective gap | Air gap plus the full stack. | Air gap plus the sub-lens layer, less by the stack thickness. |
+| Pixel response shape | Set by the microlens, smooth. | Set by the wire grid opening and sub-lens, with unknown residue. |
+| Risk | Low. | High, and the result varies from die to die. |
+
+Other properties of this sensor class that the model includes:
 
 - **Rolling shutter.** Rows are exposed in sequence. Under constant motion this
   is a known per-row shift and is included in the sample positions. It adds
   variety to the sampling phases, which is harmless or mildly helpful.
-- **Colour filters.** If they remain, red, green and blue pixels respond
-  differently to the light source. With single-colour light this is a fixed
-  gain pattern, and pixels of the wrong colour contribute little.
-- **Microlenses.** Assumed removed. If present they narrow each pixel's
-  acceptance angle and add a few micrometres to the minimum gap.
-- **Cover glass and bond wires.** The glass must come off. The bond wires
-  around the die stand above its face, so a flat sample larger than the
-  active area cannot approach closely. The sample must be smaller than the
-  die or raised on a pedestal.
-- **Raw data.** Reconstruction needs unprocessed sensor data, with the
-  camera's built-in denoising, sharpening and shading correction switched off.
+- **Bond wires.** They stand above the sensor face around its edge, so a flat
+  sample larger than the active area cannot approach closely. The sample must
+  be smaller than the die or raised on a pedestal.
+- **Raw data.** Reconstruction needs unprocessed sensor data. The camera's
+  normal pipeline applies lens shading correction and other processing tuned
+  for the original lens [R3], all of which must be bypassed.
 - **Illumination.** With the sensor covering the surface, light has to enter
   from the side through the gap, through the sample from behind, or through
   the sensor. This is unresolved and is listed in section 10.
+
+Sources for this section:
+
+- [R1] Raspberry Pi, "Camera" hardware documentation.
+  <https://www.raspberrypi.com/documentation/accessories/camera.html>
+- [R2] Matthews et al., "Laser de-Bayering of low cost image sensors"
+  (electron-microscope cross-section of the IMX219PQ), arXiv:1901.03807.
+  <https://arxiv.org/abs/1901.03807>
+- [R3] Bowman et al., "Flat-field and colour correction for the Raspberry Pi
+  camera module", arXiv:1911.13295. <https://arxiv.org/abs/1911.13295>
+- [R4] E. Orbach, "Debayering Raspberry Pi camera", 2016 (first-generation
+  module).
+  <https://eladorbach.blogspot.com/2016/05/debayering-raspberry-pi-camera.html>
+- [R5] Hackaday, "Using a laser to blast away a Bayer array", 2021, with the
+  builder's replies in the comments (first-generation module, OV5647).
+  <https://hackaday.com/2021/08/09/using-a-laser-to-blast-away-a-bayer-array>
 
 ## 6. Reconstruction
 
@@ -519,7 +596,9 @@ Open questions for Tim:
 1. Is the conclusion in section 4.1 acceptable: the first hardware validates
    the method at micrometre scale, and the simulator is used to specify what a
    nanometre instrument would need?
-2. Are the colour filters removed along with the microlenses?
+2. Section 5.3 concludes that removing only the module lens keeps the colour
+   filter, and removing the microlenses loses it. The baseline assumes only
+   the module lens is removed. Is that the intended first setup?
 3. Is there any constraint on lighting (side, through the sample, single
    colour) that should be fixed now? It decides which height mechanism in
    section 4.4 is worth modelling.

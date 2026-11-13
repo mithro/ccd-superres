@@ -176,7 +176,7 @@ def cross_section():
                 color=INK2, fontsize=9)
     # Bare die face: module lens, microlenses and colour filters removed
     ap = p - 0.5
-    ax.text(12.15, 2.05, "bare die face (module lens, microlenses\nand colour filters removed)",
+    ax.text(12.15, 2.05, "sensor face (module lens removed;\nsee the sensor stack diagram)",
             va="center", color=INK2, fontsize=9)
 
     # Surface with height features and reflectance patches
@@ -372,10 +372,96 @@ def gap_requirement():
     save(fig, "gap-requirement")
 
 
+# --------------------------------------------------------------------------
+# 6. Sensor stack of a Raspberry Pi camera module (schematic, not to scale)
+# --------------------------------------------------------------------------
+def sensor_stack():
+    """Layer order follows the SEM cross-section of the IMX219 in
+    Matthews et al., arXiv:1901.03807. Thicknesses are not to scale."""
+    cfa = {"R": "#d9655f", "G": "#6fb36a", "B": "#5b86d6"}
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5.2), sharey=True)
+    titles = ["Module lens removed only",
+              "Microlenses and colour filter also removed"]
+    w = 2.0
+    for ax, title, stripped in zip(axes, titles, [False, True]):
+        ax.axis("off")
+        ax.set_title(title, loc="left", fontsize=11, color=INK)
+        # Wiring and carrier (back-illuminated: wiring is behind the photodiodes)
+        ax.add_patch(Rectangle((0, 0), 3 * w, 0.8, fc="#a9a8a2", ec=INK2, lw=0.8))
+        ax.text(3 * w / 2, 0.4, "wiring layers and carrier", ha="center",
+                va="center", fontsize=9)
+        # Silicon with photodiodes
+        ax.add_patch(Rectangle((0, 0.8), 3 * w, 1.2, fc=SILICON, ec=INK2, lw=0.8))
+        for i in range(3):
+            ax.add_patch(Rectangle((i * w + 0.25, 0.95), w - 0.5, 0.9, fc="#ffffff",
+                                   ec=INK2, lw=0.8))
+            ax.text(i * w + w / 2, 1.4, "photodiode", ha="center", va="center",
+                    fontsize=8, color=INK2)
+        # Wire grid with sub-lenses
+        tt = np.linspace(0, np.pi, 30)
+        for i in range(4):
+            ax.add_patch(Rectangle((i * w - 0.09 if i else 0, 2.0),
+                                   0.18 if 0 < i < 3 else 0.09, 0.45, fc=MASK,
+                                   ec="none") if i < 3 else
+                         Rectangle((3 * w - 0.09, 2.0), 0.09, 0.45, fc=MASK, ec="none"))
+        for i in range(3):
+            xc = i * w + w / 2
+            ax.fill(xc + 0.7 * np.cos(tt), 2.0 + 0.3 * np.sin(tt), fc="#ffffff",
+                    ec=INK2, lw=0.7)
+        top = 2.45
+        if not stripped:
+            for i, c in enumerate("GRG"):
+                ax.add_patch(Rectangle((i * w, 2.45), w, 0.55, fc=cfa[c], ec=SURFACE,
+                                       lw=1.5))
+                ax.text(i * w + w / 2, 2.72, {"R": "red", "G": "green"}[c],
+                        ha="center", va="center", fontsize=9, color="#ffffff")
+            ax.add_patch(Rectangle((0, 3.0), 3 * w, 0.16, fc=YELLOW, alpha=0.5,
+                                   ec="none"))
+            for i in range(3):
+                xc = i * w + w / 2
+                ax.fill(xc + (w / 2 - 0.06) * np.cos(tt), 3.16 + 0.55 * np.sin(tt),
+                        fc="#ffffff", ec=INK2, lw=0.9)
+            top = 3.71
+        else:
+            xs = np.linspace(0, 3 * w, 300)
+            rng = np.random.default_rng(3)
+            rough = 2.45 + 0.05 * np.abs(np.convolve(rng.normal(size=300),
+                                                      np.ones(9) / 9, "same")) * 4
+            ax.plot(xs, rough, color=ORANGE, lw=1.2)
+        # Surface under test above the sensor
+        ax.add_patch(Rectangle((0, top + 0.8), 3 * w, 0.5, fc=SAMPLE, ec=INK2, lw=0.8))
+        ax.text(3 * w / 2, top + 1.05, "surface under test", ha="center", va="center",
+                fontsize=9)
+        arrow(ax, (3 * w + 0.25, top), (3 * w + 0.25, top + 0.8), style="<|-|>", lw=1,
+              scale=7)
+        ax.text(3 * w + 0.4, top + 0.4, "air gap", va="center", fontsize=9)
+        arrow(ax, (-0.3, 1.4), (-0.3, top + 0.8), style="<|-|>", lw=1, scale=7,
+              color=BLUE)
+        ax.text(-0.45, (1.4 + top + 0.8) / 2, "effective gap:\nphotodiode to surface",
+                rotation=90, ha="right", va="center", fontsize=9, color=INK)
+        ax.set_xlim(-1.3, 3 * w + 3.6)
+        ax.set_ylim(-0.1, 5.6)
+
+    ax = axes[0]
+    x = 3 * w + 0.25
+    for y, label in [(3.4, "microlens, one per pixel"), (3.08, "passivation layer"),
+                     (2.72, "colour filter (Bayer pattern)"),
+                     (2.2, "wire grid with sub-lens"), (1.4, "silicon"),]:
+        ax.plot([3 * w, x - 0.05], [y, y], color=INK2, lw=0.6)
+        ax.text(x, y, label, va="center", fontsize=9, color=INK)
+    axes[1].text(3.0, 2.62, "residue and exposed wire grid", fontsize=9, color=INK,
+                 ha="center", va="bottom")
+    fig.suptitle("Layers on the light-facing side of the sensor (schematic, not to "
+                 "scale)", x=0.02, ha="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "sensor-stack")
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
     sampling_pattern()
     resolution_budget()
     gap_requirement()
+    sensor_stack()
     print("wrote diagrams to", OUT)
