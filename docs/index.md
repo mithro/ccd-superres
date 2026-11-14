@@ -19,6 +19,7 @@ increasing accuracy that are checked against each other.
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
+| [Glossary](glossary.md) | Plain-language meanings of the terms used across the documentation | Kept current |
 | [Python reference](api.md) | Functions and classes of the `ccdsr` package | Implemented parts only |
 
 Each simulation level will get its own page as it is built, with its method,
@@ -36,5 +37,6 @@ reconstruction-methods
 calculator
 explorer
 diagrams
+glossary
 api
 ```

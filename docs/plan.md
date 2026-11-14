@@ -25,6 +25,22 @@ State marks: **Done** means merged into the main branch. **In progress**
 means work exists on a branch or in another page under review. **Not
 started** means nothing exists yet.
 
+## In plain words
+
+The project wants to photograph the fine wiring of silicon chips with a
+bare camera sensor and a great deal of computing. Nobody knows yet which way
+of doing that works best, so the plan is in this order:
+
+1. **Read and collect first.** Study what radar, astronomy, microscopy and
+   other fields already know about getting sharp pictures from blurry,
+   moving measurements, look for ideas nobody has suggested yet, and gather
+   real data about sensors, materials and chips.
+2. **Simulate many approaches.** Build a simulator in which every part of
+   the instrument can be swapped, and compare the candidate approaches
+   fairly on the same test pictures.
+3. **Only then build hardware,** and only for approaches the simulation has
+   shown to work, judged against conditions written down in advance.
+
 ## Order of work
 
 ```mermaid
@@ -242,6 +258,40 @@ Nothing in this section starts before G4.
 | H1 | Measure the pixel response of the real sensor (stage 0 on hardware) and rerun the gate with the measured value | Not started |
 | H2 | Build and run stages 1 to 4 of the approaches that passed, each compared against its simulation | Not started |
 | H3 | Feed measured behaviour back into the simulator as the reference model of the instrument | Not started |
+
+## Documentation standard
+
+Tim's requirement is that everything is explained in plain English that a
+non-expert can understand. Every page in the documentation, and every
+research write-up, follows these rules, and a pull request is not merged
+until its pages do.
+
+- **Open with a plain-language summary.** Each page starts with a section
+  "In plain words" that says what the page is about and what it concludes,
+  with no equations and no unexplained terms. A reader who stops there
+  should still know the main result.
+- **Explain every technical term** where it first appears on the page, or
+  link it to the shared [glossary](glossary.md). New terms are added to the
+  glossary in the same pull request.
+- **Follow every equation with what it means in words.** The text must make
+  sense with the equations skipped.
+- **Give every figure a caption that stands alone**: what is plotted, how to
+  read it, and what it shows.
+- **Keep the technical detail.** Plain does not mean vague. Numbers,
+  assumptions and sources stay, and anything not verified is marked as
+  such.
+- **Say what a result means for the project**, not only what it is.
+- **Use everyday comparisons for sizes**, at least once per page: a
+  wavelength of light, the width of a hair, the size of a pixel.
+
+| Page | Meets the standard |
+|---|---|
+| [Project plan](plan.md) | Yes |
+| [Design](design.md) | Summary, equations and figure captions done. The denser sections (3.2, 5.3, 6.3) still to be gone through term by term. |
+| [Simulation chain](simulation-chain.md) | Summary and figure caption done. Tables still to be gone through term by term. |
+| [Glossary](glossary.md) | Yes |
+| [Optical elements](optical-elements.md), [reconstruction methods](reconstruction-methods.md) | To be checked by their authors |
+| [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked |
 
 ## How the plan is kept
 
