@@ -2181,15 +2181,28 @@ z
     </g>
    </g>
    <g id="legend_1">
+    <g id="patch_7">
+     <path d="M 260.125469 246.292 
+L 455.965469 246.292 
+Q 457.565469 246.292 457.565469 244.692 
+L 457.565469 186.28575 
+Q 457.565469 184.68575 455.965469 184.68575 
+L 260.125469 184.68575 
+Q 258.525469 184.68575 258.525469 186.28575 
+L 258.525469 244.692 
+Q 258.525469 246.292 260.125469 246.292 
+z
+" style="fill: #fcfcfb; stroke: #dddcd6; stroke-linejoin: miter"/>
+    </g>
     <g id="line2d_79">
-     <path d="M 249.235469 187.469031 
-L 257.735469 187.469031 
-L 266.235469 187.469031 
+     <path d="M 261.725469 191.1645 
+L 269.725469 191.1645 
+L 277.725469 191.1645 
 " style="fill: none; stroke: #2a78d6; stroke-width: 1.6; stroke-linecap: square"/>
     </g>
     <g id="text_17">
      <!-- pixel sensitive over its full width -->
-     <g style="fill: #0b0b0b" transform="translate(273.035469 190.444031) scale(0.085 -0.085)">
+     <g style="fill: #0b0b0b" transform="translate(284.125469 193.9645) scale(0.08 -0.08)">
       <defs>
        <path id="DejaVuSans-59" d="M 191 3500 
 L 800 3500 
@@ -2262,14 +2275,14 @@ z
      </g>
     </g>
     <g id="line2d_80">
-     <path d="M 249.235469 200.219695 
-L 257.735469 200.219695 
-L 266.235469 200.219695 
+     <path d="M 261.725469 203.165125 
+L 269.725469 203.165125 
+L 277.725469 203.165125 
 " style="fill: none; stroke: #1baf7a; stroke-width: 1.6; stroke-linecap: square"/>
     </g>
     <g id="text_18">
      <!-- pixel sensitive over half its width -->
-     <g style="fill: #0b0b0b" transform="translate(273.035469 203.194695) scale(0.085 -0.085)">
+     <g style="fill: #0b0b0b" transform="translate(284.125469 205.965125) scale(0.08 -0.08)">
       <use xlink:href="#DejaVuSans-53"/>
       <use xlink:href="#DejaVuSans-4c" transform="translate(63.484375 0)"/>
       <use xlink:href="#DejaVuSans-5b" transform="translate(91.265625 0)"/>
@@ -2308,14 +2321,14 @@ L 266.235469 200.219695
      </g>
     </g>
     <g id="line2d_81">
-     <path d="M 249.235469 212.970359 
-L 257.735469 212.970359 
-L 266.235469 212.970359 
+     <path d="M 261.725469 215.16575 
+L 269.725469 215.16575 
+L 277.725469 215.16575 
 " style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #52514e"/>
     </g>
     <g id="text_19">
      <!-- trend for the full-width pixel -->
-     <g style="fill: #0b0b0b" transform="translate(273.035469 215.945359) scale(0.085 -0.085)">
+     <g style="fill: #0b0b0b" transform="translate(284.125469 217.96575) scale(0.08 -0.08)">
       <use xlink:href="#DejaVuSans-57"/>
       <use xlink:href="#DejaVuSans-55" transform="translate(39.203125 0)"/>
       <use xlink:href="#DejaVuSans-48" transform="translate(78.109375 0)"/>
@@ -2348,17 +2361,17 @@ L 266.235469 212.970359
       <use xlink:href="#DejaVuSans-4f" transform="translate(1369.984375 0)"/>
      </g>
     </g>
-    <g id="patch_7">
-     <path d="M 249.235469 235.669012 
-L 266.235469 235.669012 
-L 266.235469 229.719012 
-L 249.235469 229.719012 
+    <g id="patch_8">
+     <path d="M 261.725469 236.529187 
+L 277.725469 236.529187 
+L 277.725469 230.929187 
+L 261.725469 230.929187 
 z
 " style="fill: #eda100; opacity: 0.13"/>
     </g>
     <g id="text_20">
      <!-- detail recovered by the published systems -->
-     <g style="fill: #0b0b0b" transform="translate(273.035469 229.546854) scale(0.085 -0.085)">
+     <g style="fill: #0b0b0b" transform="translate(284.125469 230.767156) scale(0.08 -0.08)">
       <use xlink:href="#DejaVuSans-47"/>
       <use xlink:href="#DejaVuSans-48" transform="translate(63.484375 0)"/>
       <use xlink:href="#DejaVuSans-57" transform="translate(125.015625 0)"/>
@@ -2402,7 +2415,7 @@ z
       <use xlink:href="#DejaVuSans-56" transform="translate(2075.90625 0)"/>
      </g>
      <!-- of table 3.2 (sampling 2 to 3 times finer) -->
-     <g style="fill: #0b0b0b" transform="translate(273.035469 239.749178) scale(0.085 -0.085)">
+     <g style="fill: #0b0b0b" transform="translate(284.125469 240.369344) scale(0.08 -0.08)">
       <use xlink:href="#DejaVuSans-52"/>
       <use xlink:href="#DejaVuSans-49" transform="translate(61.1875 0)"/>
       <use xlink:href="#DejaVuSans-3" transform="translate(96.390625 0)"/>

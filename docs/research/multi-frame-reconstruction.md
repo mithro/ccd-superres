@@ -604,7 +604,8 @@ fourth says what kind of figure it is: a measured error, an upper limit
 *Figure 8: the figures of table 5.1 on one scale. Each bar is a published
 position error, in pixels of the instrument concerned. The label converts
 it to nanometres for a 1.12 µm pixel. Blue bars are satellite work and
-green bars astronomy. Bars marked "upper limit" are reported as "under"
+green bars astronomy. The dark bar at the top is an error before any
+correction. Bars marked "upper limit" are reported as "under"
 that value. The grey bar is a floor set by photon noise that the
 instrument did not reach. The orange line is what this project needs,
 about 10 nm, which is one tenth of a 100 nm feature (**estimate**). From
@@ -698,7 +699,7 @@ recovery based on working out potential possible solutions and eliminating
 ones which are physically impossible even without exact positioning
 information", and that "temporal properties of the real world can also be
 used to help eliminate incorrect or impossible solution spaces". This
-field has done both for decades. Sections 5.1 and 5.2 treat position as
+field has methods of both kinds, some of them decades old. Sections 5.1 and 5.2 treat position as
 something to measure first. The methods below treat it as something that
 never needs to be known exactly.
 
@@ -707,17 +708,19 @@ table.
 
 | Way | How it works | What was shown | Source |
 |---|---|---|---|
-| Use quantities that a shift does not change | From each frame compute numbers that stay the same wherever the frame sat: the strength of each fineness of pattern, and the "triple correlation" that ties three finenesses together. Average those numbers over thousands of frames and rebuild the picture from the averages. No frame is ever aligned. | Astronomers rebuild sharp pictures of stars from thousands of short exposures whose position and blur are different every time and never known. Mathematicians studying the same problem show that these numbers hold enough to recover the signal. | [[MF59](#mf59), [MF60](#mf60), [MF63](#mf63)] |
-| Add up over every position a frame could have had | Score a candidate picture by how probable the frames are, summed over all possible positions of each frame, instead of first picking one position per frame | Fitting the positions and the blur while averaging over all possible pictures gave "a significant improvement" over fitting everything at once. Averaging over positions has been used on real video. | [[MF61](#mf61), [MF62](#mf62)] |
+| Use quantities that a shift does not change | From each frame compute numbers that stay the same wherever the frame sat: the strength of each fineness of pattern, and the "triple correlation" that ties three finenesses together. Average those numbers over thousands of frames and rebuild the picture from the averages. No frame is ever aligned. | Astronomers rebuild sharp pictures of stars from thousands of short exposures whose position and blur are different every time and never known (from the titles of the two astronomy sources and from memory, **unverified**). Mathematicians studying a simplified version of the problem, a signal slid by unknown amounts with noise added, show that under mild assumptions these numbers hold enough to recover the signal. | [[MF59](#mf59), [MF60](#mf60), [MF63](#mf63)] |
+| Add up over every position a frame could have had | Score a candidate picture by how probable the frames are, summed over all possible positions of each frame, instead of first picking one position per frame | Shown on real sequences of stills and video | [[MF62](#mf62)] |
+| Add up over every picture there could have been | The reverse: score a set of positions and a blur by how probable the frames are, averaged over all possible pictures, and make the picture last | "A significant improvement" over picking the best picture and positions together | [[MF61](#mf61)] |
 | Propose whole scenes and keep those the data allow | A computer proposes lists of sources, simulates the frame each list would give, and keeps a collection of all lists consistent with the pixels | In a crowded star field it went "more than a magnitude deeper" than the usual method with fewer false detections among bright stars, and it reports which blends it cannot tell apart | [[MF66](#mf66), [MF67](#mf67)] |
-| Solve for scene and blur together under hard physical limits | Many frames share one scene and each has its own unknown blur. Brightness cannot be negative, and a blur must be one that a real opening could produce. Solutions that break either are thrown out. | The standard way to sharpen pictures taken through the atmosphere when no reference star is available. The page's reading of how the limits are imposed is from titles and is **unverified**. | [[MF30](#mf30), [MF29](#mf29), [MF68](#mf68)] |
+| Solve for scene and blur together under hard physical limits | Many frames share one scene and each has its own unknown blur. Brightness cannot be negative, and a blur must be one that a real opening could produce. Solutions that break either are thrown out. | Used to sharpen pictures taken through the atmosphere when no reference star is available. The page's reading of how the limits are imposed is from titles and is **unverified**. | [[MF30](#mf30), [MF29](#mf29), [MF68](#mf68)] |
 | Compare with simulations when no formula exists | Run the simulator for many candidate settings and keep the settings whose simulated data resemble the real data | A general method now used across the sciences where "simulations provide high-fidelity models" but cannot be run backwards | [[MF73](#mf73)] |
 
 Two warnings come with these methods.
 
-- **Not measuring positions costs frames.** When noise is low, the number
-  of frames needed grows in proportion to the noise power, the same as
-  when positions are known. When noise is high it grows with the cube of
+- **Not measuring positions costs frames.** For a typical signal, when
+  noise is low the number of frames needed grows in proportion to the
+  noise power, which is also how plain averaging behaves when positions
+  are known (the comparison is **derived here**). When noise is high it grows with the cube of
   the noise power [[MF63](#mf63), [MF64](#mf64)]. In words: ten times more
   noise power needs a thousand times more frames, not ten. The special
   case of a signal with only two levels, which is close to a chip with two
@@ -727,28 +730,37 @@ Two warnings come with these methods.
   photograph, the single best joint guess of picture and blur tends to be
   "no blur and a blurred scene". Averaging over the possible pictures
   first avoids it. This is attributed to [[MF69](#mf69)] from memory and is
-  **unverified**. It is the reason the second row of the table averages
-  and does not pick.
+  **unverified**. It is the reasoning behind the third row of the table.
 
 **How time is used to rule things out.** A text table.
 
 | What is known about time | How it is used | Source |
 |---|---|---|
-| A camera cannot jump | Gaia never solves a free position for each observation. Its pointing is a smooth curve with one adjustable point every 30 s or so, fitted to all observations together. Any solution that needs the spacecraft to jerk is not on the list. | [[MF4](#mf4)] |
+| A camera cannot jump | Gaia never solves a free position for each observation. Its pointing is a smooth curve with one adjustable point every 30 s or so, fitted to all observations together. A smooth curve alone proved too rigid, because the spacecraft does make sudden small jumps ("micro-clanks" and hits by dust). These are measured separately at a finer time step and subtracted first. The lesson is a smoothness rule plus an explicit model of the exceptions. | [[MF4](#mf4)] |
 | Real objects move the way physics says | A faint asteroid must cross the frames in a straight line at a steady speed. Searching only over such paths finds objects that no single frame shows. | [[MF51](#mf51)] |
 | The scene stays and the faults come and go | Something present in one frame and absent from the others at the same place is a cosmic-ray hit, not a star, and is masked | [[MF17](#mf17)] |
 | Instrument trouble follows the instrument's motion | The Kepler telescope, after losing two of its steering wheels, drifted for about six hours and was then pushed back by thrusters, again and again. Brightness changes that follow that drift belong to the pixels, not the star, and are removed. | [[MF71](#mf71)] |
-| Slow drift lives in time and the scene lives in space | A scanning detector's zero level wanders slowly. The sky does not change. Where two scans cross, the same sky is seen at two different times, and the difference is drift. | [[MF54](#mf54), [MF72](#mf72)] |
+| Slow drift lives in time and the scene lives in space | A scanning detector's zero level wanders slowly. The sky does not change. Where two scans cross, the same sky is seen at two different times, and the difference is drift. From the abstract of one source and the title of the other, **unverified**. | [[MF54](#mf54), [MF72](#mf72)] |
 | The disturbance itself moves steadily | Turbulent air mostly drifts across the telescope with the wind, so the blur in one frame predicts the next and far fewer unknowns are needed. Read from the title only, **unverified**. | [[MF70](#mf70)] |
 
 **A small calculation of the idea.** The surface is a ring of 12 cells,
-each one of two materials. Every frame shows the ring slid round by an
-unknown number of cells, with noise 1.5 times the contrast between the
-materials, so that no single frame can be aligned. All 4096 two-material
-patterns start as candidates. A candidate is scored by how probable the
-frames are under it, summed over every position each frame could have had,
-and it is struck off when it becomes a thousand times less probable than
-the best. No position is ever estimated.
+each one of two materials, drawn from the patterns that obey a layout
+rule (every line and space at least two cells wide). Every frame shows the
+ring slid round by an unknown whole number of cells, with noise 1.5 times
+the contrast between the materials. All 4096 two-material patterns start
+as candidates. A candidate is scored by how probable all the frames so far
+are under it, summed over every position each frame could have had. It is
+set aside while it is a thousand times less probable than the best
+candidate, and can come back if later frames favour it. No position is
+ever estimated.
+
+The toy is generous in three ways that the real instrument is not
+(**assumptions**). Positions are whole cells. The "steady speed" case
+means exactly steady, a whole number of cells per frame with no wobble at
+all, so the entire path is one of only 144 possibilities. And being "a
+thousand times less probable" is a statistical cut, not physical
+impossibility: in 1 of the 20 trials the true pattern itself fell below
+the cut at 20 frames and returned later (the script prints these cases).
 
 ![Candidates left against frames used, for three levels of knowledge about position](../diagrams/mf-candidate-elimination.svg)
 
@@ -760,12 +772,15 @@ of frames used. Orange: nothing known about position. Dashed orange: the
 same with the layout rule. Blue: the positions are known to follow a
 steady speed from an unknown start, but neither is given. Dotted grey:
 positions known exactly, for comparison. The grey line at 12 is the true
-pattern and its eleven slid copies, which no amount of data can tell apart
-without a reference mark. Toy calculation, median of 20 trials, derived
-here, function `candidate_elimination`.*
+pattern and its slid copies (12 for most patterns, fewer for one that
+repeats), which no amount of data can tell apart without a reference
+mark. Whole-cell positions and an exactly steady speed. Toy calculation,
+median of 20 trials, derived here, function `candidate_elimination`.*
 
-**Table 5.3: candidates still possible, out of 4096.** Derived here,
-function `candidate_elimination`, median of 20 trials.
+**Table 5.3: candidates still possible.** The start is 4096, or 322 with
+the layout rule. Derived here, function `candidate_elimination`, median of
+20 trials. Single trials scatter by a factor of about three either way
+around these medians, and the steps in frame count are coarse.
 
 | Frames used | Position unknown | Position unknown, with layout rule | Steady unknown speed | Position known exactly |
 |--:|--:|--:|--:|--:|
@@ -783,13 +798,15 @@ What the calculation shows, all **derived here** for this toy only:
 - Recovery without any position information works. It needed several
   times more frames than with exact positions (about 800 against about
   100; the table's steps are coarse).
-- Knowing only that the motion is steady, with speed and start both
+- Knowing that the motion is exactly steady, with speed and start both
   unknown, removed that penalty: about 100 frames, the same step of the
-  table as with exact positions. This is Tim's second point, and it is the largest single gain
-  in the table.
+  table as with exact positions. This is Tim's second point. It is the
+  best case. How much of the gain survives when the motion is only nearly
+  steady was not tested, and is the first thing the simulator should
+  measure.
 - The layout rule removed 92% of the candidates before any data and halved
   the frames needed when positions were unknown (about 400 against about
-  800).
+  800, within the scatter between trials).
 - One thing is never ruled out: where the pattern sits as a whole. That
   needs a reference mark on the sample, which the
   [calibration plan](../calibration-and-test.md#44-wavelength-colour-purity-gap-and-the-anchors)
@@ -800,12 +817,12 @@ of **judgements**.
 
 | Point | Reasoning |
 |---|---|
-| It fits the project's resources | The cost is frames and computation. One pass gives about 13 000 readings per pixel-sized patch, and Tim prefers computation to hardware. |
+| It fits the project's resources | The cost is frames and computation. One pass gives about 13 000 readings per pixel-sized patch ([design, section 4.2](../design.md#42-what-a-huge-number-of-samples-buys-and-what-it-does-not)), and the [plan](../plan.md) records Tim's preference for computation over hardware. |
 | Listing candidates only works for small tiles | Twelve two-material cells have 4096 candidates. A patch of 10 by 10 cells has more than 10^30. Real use has to work on small tiles and stitch them, or search with a sampler or a fit that is steered by the same score, as the catalogue methods do. |
 | The simulator is the scoring engine | Each candidate is scored by simulating the frames it would give. A fast simulation level does the bulk and a slower, more exact level re-checks the survivors ([simulation chain](../simulation-chain.md)). |
 | Constraints that are true help, and ones that are slightly false mislead with confidence | A layout rule that the chip does not obey removes the right answer. Each constraint needs a test with a scene that breaks it, as the [tests against invented detail](../calibration-and-test.md#7-tests-that-catch-invented-detail) already require. |
-| Time constraints are cheap and strong here | The stage has mass and cannot jump between rows 18.9 µs apart. The surface does not change during a scan. Dust and glints come and go. Pixel faults stay with the pixel while the surface moves past. Each is a rule that discards candidates at no cost in hardware. |
-| Other fields do the same under other names | Radar autofocus (study B1) and position-correcting ptychography (study B4) also recover the picture and the path together. The few-materials prior of the [reconstruction methods survey](../reconstruction-methods.md) is the same kind of physical rule. |
+| Time constraints are cheap here, and their strength is untested | The stage has mass and should not jump between rows 18.9 µs apart. The surface does not change during a scan. Dust and glints come and go. Pixel faults stay with the pixel while the surface moves past. Each is a rule that discards candidates at no cost in hardware. Gaia's experience is the warning: real mechanisms do make small sudden jumps (a sticking slide, a knock), so the rule needs a model of its exceptions. |
+| Other fields do the same under other names | Radar autofocus ([study B1](synthetic-aperture-radar.md)) and position-correcting ptychography (study B4) also recover the picture and the path together. The few-materials prior of the [reconstruction methods survey](../reconstruction-methods.md) is the same kind of physical rule. |
 
 Adding this to the design belongs to the simulator thread. This section is
 the evidence from one field.

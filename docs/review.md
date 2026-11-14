@@ -216,6 +216,27 @@ not the author's reasoning.
 
 - Sources marked "abstract" or "existence only" on the page were not read
   further. Section 9 of the page lists them.
-- Section 5.3 of the page, on recovery without measured positions, and its
-  figure were written after this review and have not been independently
-  reviewed.
+- Full texts of the sources that section 5.3 of the page marks "existence
+  only" or "unverified" were not read.
+
+### Second pass: section 5.3 and the fixes
+
+Section 5.3 of the page, on recovery without measured positions, was
+written after the first pass. A second reviewer checked it, its toy
+calculation, the five redrawn figures and the changed tables on the same
+day, before merging.
+
+| Check | Coverage | Result |
+|---|---|---|
+| Toy calculation re-implemented independently | All of table 5.3 | Every number reproduced. The count of 322 patterns that obey the layout rule was confirmed by a separate method. |
+| Changed tables recomputed | Samples from tables 3.4, 3.5, 5.1 and 5.2 | All correct |
+| Claims of section 5.3 compared with sources | All with a text or abstract available | 13 findings, the main ones below |
+| Reference entries MF60 to MF73 against Crossref | 13 of 14 | All correct. MF59 has no DOI and stays marked unverified. |
+
+| Finding | What was done |
+|---|---|
+| The page said Gaia's smooth pointing model rules out jerks. The source says the spacecraft does make sudden small jumps, and the smooth model works only after they are measured and subtracted. | Row rewritten, and the same caution added to the point about the stage |
+| The "steady speed" case of the toy is exactly steady and in whole cells, so its near-perfect result is a best case | Assumptions stated beside the calculation and in the caption, and the conclusion limited |
+| "Struck off" was not what the script does, and the true pattern fell below the cut in 1 of 20 trials at 20 frames | Wording corrected, the case reported on the page, and the script now prints such cases |
+| Several rows stated things from titles or memory without saying so | Marked unverified |
+| One table row mixed two different methods | Split into two rows |

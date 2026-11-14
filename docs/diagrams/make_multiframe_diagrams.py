@@ -305,8 +305,9 @@ def pixel_cost():
     ax.set_ylim(1, 1e6)
     ax.set_xlabel("how many times finer than the pixel grid the detail is")
     ax.set_ylabel("extra readings needed to bring the\nnoise back to where it was")
-    ax.legend(frameon=False, fontsize=8.5, loc="lower right")
     tidy(ax)
+    ax.legend(frameon=True, framealpha=1.0, facecolor=SURFACE,
+              edgecolor=GRID, fontsize=8, loc="lower right")
     save(fig, "pixel-cost")
     print("Contrast kept by a full-width pixel, and extra readings needed:")
     # Along a pixel axis the contrast is |sinc(g/2)|. For a pattern running
@@ -335,7 +336,7 @@ ACCURACY = [
     ("Drizzle test: star positions after combining", 0.018, AQUA),
     ("Digital time-delay integration: fitted motion (upper limit)",
      0.01, BLUE),
-    ("Gaia: scatter actually found, one bright star on one detector",
+    ("Gaia: extra scatter actually found, one bright star, one detector",
      0.3 / 58.9, AQUA),
     ("Hubble: pixel-phase error left after solving (upper limit)",
      0.002, AQUA),
@@ -545,6 +546,7 @@ def candidate_elimination(cells=12, sigma=1.5, trials=20, seed=5):
     keep = np.log(1000.0)
     names = ("none", "steady", "exact", "none + rule")
     counts = {k: np.zeros((trials, marks.size)) for k in names}
+    truth_out = []  # (frames, case) where the true pattern fell below the cut
     s0v = np.array([(a, v) for a in range(n) for v in range(n)])
     for t in range(trials):
         truth = rng.choice(allowed)
@@ -566,6 +568,8 @@ def candidate_elimination(cells=12, sigma=1.5, trials=20, seed=5):
                 for name, ll in (("none", ll_none), ("steady", lp),
                                  ("exact", ll_exact)):
                     counts[name][t, m] = (ll >= ll.max() - keep).sum()
+                    if ll[truth] < ll.max() - keep:
+                        truth_out.append((int(k + 1), name))
                 la = ll_none[allowed]
                 counts["none + rule"][t, m] = (la >= la.max() - keep).sum()
     med = {k: np.median(v, axis=0) for k, v in counts.items()}
@@ -612,6 +616,7 @@ def candidate_elimination(cells=12, sigma=1.5, trials=20, seed=5):
     print("  frames  " + "  ".join(f"{k:>12s}" for k in names))
     for m, k in enumerate(marks):
         print(f"  {k:6d}  " + "  ".join(f"{med[q][m]:12.0f}" for q in names))
+    print(f"  true pattern below the cut (frames, case): {truth_out}")
 
 
 def main():
