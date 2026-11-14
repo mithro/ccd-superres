@@ -1348,15 +1348,20 @@ it. Both scales step by factors of ten. The thick curves are upper limits
 and the thin curves the exact result, which drops to zero wherever a whole
 number of stripes fits the pixel. The dotted line on the left marks the
 200 nm period of the target detail, where a pixel records between 6 percent
-and almost nothing. The dotted line on the right marks the 3300 nm beat
-pattern made by lighting with a beam pair, which the pixel records almost
-in full whatever its edges are like. **Estimate**, by the function
+and almost nothing. The dotted line on the right marks the beat pattern of
+about 4000 nm made by lighting with a beam pair (the example below), which
+the pixel records largely whatever its edges are like. **Estimate**, by the function
 `pixel_fringe_response` of the diagram script.*
 
 *Sources: **Derived here**. A pixel adds up the light across its width, and
 the contrast left in a stripe pattern averaged over a box of that width is
 the sinc function of width divided by period (textbook, [[O35](#ref-o35)]). The edge
-softness values and the Gaussian model of soft edges are **Assumptions**. The limit was raised by the
+softness values and the Gaussian model of soft edges are **Assumptions**.
+Edge softness here is the full width at half height of the Gaussian blur of
+the pixel's edges. The [reconstruction methods](reconstruction-methods.md)
+and [calibration and test](calibration-and-test.md) pages quote the same
+blur by its standard deviation (sigma), which is the full width divided by
+2.355, so "100 nm" on those pages is a softer edge than "100 nm" here. The limit was raised by the
 [design, section 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips).*
 
 The edge sharpness of the IMX219 is unknown. So the collection angles assumed
@@ -1373,12 +1378,25 @@ depend on the pixel edges.
    4.3). Fine detail then beats against those fringes and appears at the
    sensor as a coarse pattern. The table after this list gives an example:
    405 nm beams from opposite sides at
-   72° make fringes of 213 nm period, and chip detail of 200 nm period beats
-   against them with a period of about 3 µm (two patterns of nearly equal
+   72° make fringes of 213 nm period, and chip detail of 225 nm period beats
+   against them with a period of about 4 µm (two patterns of nearly equal
    spacing overlap into a broad one, the moiré effect), which the pixels
-   read at nearly full contrast. These figures are **Derived here**: the
-   fringe period is wavelength / (2 × sin 72°), and the beat period is
-   1 / (1/200 − 1/213) nm. This is the standard remedy when the detector is coarser
+   can read whatever their edges are like. These figures are **Derived
+   here**: the fringe period is wavelength / (2 × sin 72°), and the beat
+   period is 1 / (1/213 − 1/225) nm.
+
+   In wave terms, the detail deflects part of one beam into a new direction
+   (58° from straight ahead in this example), and that deflected light meets
+   the mirror reflection of the other beam at the sensor, where the two make
+   the coarse pattern. Two conditions follow. The deflected light has to be
+   light that can travel across the gap, which is the limit of section 9.2:
+   a 225 nm period is the finest that a 72° beam and a ±58° collection angle
+   allow, and a 200 nm period (lines and spaces of exactly 100 nm) is just
+   beyond what 405 nm light can carry in air at any angle (the limit is
+   203 nm). And the pixels have to respond to both steep beams. An earlier
+   version of this page used 200 nm detail in this example, which the simple
+   multiply-the-brightnesses picture allows but the wave limit does not; it
+   was corrected in the [review](review.md). This is the standard remedy when the detector is coarser
    than the detail [[O14](#ref-o14)]. It needs both beams on together. Lighting from one
    direction at a time does not do it.
 2. **Where the scattered light lands.** Across a gap of about a millimetre,
@@ -1398,16 +1416,19 @@ The example of mechanism 1, calculated and then in numbers:
 
 *Figure: how a beam pair lets coarse pixels record fine detail,
 calculated. Position on the chip runs across all four charts, in
-nanometres. First chart: the chip detail, lines and spaces of 100 nm.
+nanometres. First chart: the chip detail, lines and spaces of 112 nm (a
+period of 225 nm).
 Second chart: the stripes of light made by two 405 nm beams slanted at 72°
 from opposite sides, with a period of 213 nm. Third chart: the light leaving
 the chip, which is the first two multiplied together. Its fine wiggles are
-overlaid by a broad rise and fall every 3300 nm. Fourth chart: what pixels
+overlaid by a broad rise and fall about every 4000 nm. Fourth chart: what pixels
 1120 nm wide record. In even light (grey bars) every pixel reads nearly the
 same and the lines are invisible. In stripe light (orange bars) the readings
 rise and fall with the broad pattern, so the presence and position of the
 fine lines is recorded. This is a simplified picture that multiplies
-brightnesses. The full wave calculation belongs to the simulator. **Derived
+brightnesses. It gives the right beat period only for detail that the light
+can carry across the gap (a period of about 225 nm or more here); the full
+wave calculation belongs to the simulator. **Derived
 here**, by the function `beam_pair_beat` of the diagram script.*
 
 | Quantity | Value | Unit | How it is found |
@@ -1415,10 +1436,10 @@ here**, by the function `beam_pair_beat` of the diagram script.*
 | Wavelength of the two beams | 405 | nm | Chosen: a violet laser diode |
 | Slant of each beam from straight ahead | 72 | degrees | Assumption |
 | Period of the light fringes on the chip | 213 | nm | Wavelength / (2 × sin 72°) |
-| Period of the chip detail | 200 | nm | Lines and spaces of 100 nm |
-| Period of the beat pattern at the sensor | 3300 | nm | 1 / (1/200 − 1/213) |
+| Period of the chip detail | 225 | nm | Lines and spaces of 112 nm, the finest a 72° beam and ±58° collection allow |
+| Period of the beat pattern at the sensor | 3970 | nm | 1 / (1/213 − 1/225) |
 | Width of one pixel | 1120 | nm | IMX219 |
-| Pixels per beat period | 2.9 | pixels | 3300 / 1120 |
+| Pixels per beat period | 3.5 | pixels | 3970 / 1120 |
 
 Consequences for this page:
 
@@ -1576,7 +1597,8 @@ pixel of travel (orange) they spread over all positions, which is what the
 reconstruction needs. Middle: a speckle pattern, the random grainy light
 that a 405 nm laser makes after frosted glass, drawn over a square 4000 nm
 on a side. The white bar is the width of one pixel. The grains are about
-225 nm across, fine enough to make broad beat patterns with 100 nm detail.
+225 nm across, fine enough to make broad beat patterns with detail near
+the 110 nm line width that section 9.2 gives as the limit.
 Right: dither. The true signal (dashed) rises smoothly from 0 to 3 counts.
 A sensor that rounds to whole counts and has no noise (grey) reports steps,
 however many readings are averaged. With noise of half a count (orange) the

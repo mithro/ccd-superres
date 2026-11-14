@@ -1,7 +1,9 @@
 # Scanning lensless sensor super-resolution simulator: design
 
 Status: draft for review. The scan sampling calculator (section 5.4) and the
-trade-off explorer (section 5.6) are implemented. The simulator is not.
+trade-off explorer (section 5.6) are implemented, and so is the first
+simulator ([level 1](level1.md), in one and two dimensions). Levels 2 to 4
+are not.
 The stated goal is features of about 100 nm on silicon chips; section 4.6
 works out what that demands and section 4.7 sets out the stages towards a
 picture at that scale.
@@ -537,7 +539,8 @@ What this means for the target:
   detail itself, 200 nm for the target, and a 1.12 µm pixel spans more than
   five of them. It sees them only through the sharpness of its edges: about
   6% of the contrast for ideally sharp edges, about 2% when the edges are
-  soft over 100 nm (table 4.6b), and nothing useful at 300 nm. This is the same quantity the optical elements
+  soft over 100 nm, measured as full width at half height (table 4.6b), and
+  nothing useful at 300 nm. This is the same quantity the optical elements
   study calls the collection angle, seen from the other side: a pixel that
   responds to light out to ±58 degrees is a pixel that responds to stripes
   down to about 240 nm at 405 nm. Neither figure is known for this sensor.
@@ -564,9 +567,12 @@ What this means for the target:
   9.3 there) lists two ways for fine detail to reach coarse pixels without
   relying on edge sharpness. Lighting the chip with two slanted beams from
   one laser at once lays light stripes of about 213 nm period on it (405 nm
-  at 72 degrees). A 200 nm pattern beats against those stripes into a
-  pattern of about 3.3 µm period, which the pixels read at nearly full
-  contrast. The other is to read the map of brightness of the scattered
+  at 72 degrees). A pattern of 225 nm period beats against those stripes
+  into a pattern of about 4 µm period, which the pixels can read whatever
+  their edges are like, provided they respond to both steep beams. A 200 nm
+  period is just beyond this at 405 nm in air: the formula above gives
+  203 nm at best, so exactly 100 nm lines and spaces need shorter light or
+  liquid in the gap, as stated above. The other is to read the map of brightness of the scattered
   light, which at a gap of about a millimetre lands hundreds of micrometres
   from the mirror reflection. That one is unproven in this geometry and is a
   question for levels 3 and 4. The proposed first measurement on real
@@ -577,11 +583,13 @@ What this means for the target:
   sensor (3.67 mm divided by 213 nm). Stripes stay clear only where the two
   beams' paths differ by less than the distance over which the laser stays
   in step with itself, and for an ordinary laser diode that leaves a strip
-  well under 0.1 mm wide. This finding and four ways round it are in
+  roughly 0.04 to 0.16 mm wide. This finding and four ways round it are in
   [calibration and test, section 3.3](calibration-and-test.md). The
   arithmetic was rechecked here and holds: a diode with a spread of 1 to
   2 nm in wavelength stays in step over about 0.08 to 0.16 mm, which gives a
-  strip of 0.04 to 0.09 mm at that slant. Every beam-pair approach in the
+  strip of 0.04 to 0.09 mm at that slant, and 0.16 mm for a spread of
+  0.5 nm. The spread of the actual diode is an **Assumption** until it is
+  measured (plan item R10). Every beam-pair approach in the
   simulator therefore carries the source's colour purity as a parameter.
 - **Isolated features do better than dense ones.** In the best case, with
   laser light from all directions, an isolated pair of 100 nm lines 100 nm
@@ -723,7 +731,7 @@ detail size the smear lets through:
 |---|---|---|
 | On throughout | At most $\Lambda / (\pi L)$, and exactly zero wherever $L$ is a whole number of periods | Reversible, but fine detail arrives very weak. At $L$ = 73.5 µm a 200 nm period keeps 1/1154 of its contrast. Detail across the scan is untouched. |
 | Short pulse, light on for a share $1/N$ of the frame | Everything, down to the pulse's own smear $L/N$ | Nothing to reverse. Collects $1/N$ of the light unless the source is bright enough to make up for it. |
-| Coded: $N$ slots, on in a random half of them | About $1/\sqrt{N/2}$ at every period down to one slot $L/N$, with no zeros | Reversible with a known, even loss. Collects half the light. |
+| Coded: $N$ slots, on in a random half of them | About $1/\sqrt{N}$ at every period down to one slot $L/N$, with no zeros | Reversible with a known, even loss. Collects half the light. |
 
 Smallest recoverable period for the worked example with a 6.25% tilt, a
 100 nm gap and a matt surface, where the smear is the only thing that
@@ -859,7 +867,9 @@ Notes:
 
 Starting values for quantities that are not in public specifications, to be
 replaced by measurement: full well 4500 electrons, read noise 3 electrons,
-gain variation 1 percent, edge softness 0.3 µm.
+gain variation 1 percent, edge softness 0.3 µm full width at half height
+(a standard deviation of about 0.13 µm, which is the form the code takes as
+`edge_sigma_nm`).
 
 ### 5.2 Scan
 

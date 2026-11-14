@@ -42,7 +42,8 @@ The main conclusions:
 - **A new finding: the colour of the laser has to be very pure.** The
   leading approach lights the chip with two laser beams that form fine
   stripes. With an ordinary laser diode the stripes are only visible in a
-  strip about a sixth of a millimetre wide. A purer laser, or some extra
+  strip between about 0.04 and 0.16 mm wide, depending on the diode. A
+  purer laser, or some extra
   computation and a slower scan, gets around it.
 - **Sharpness is measured by comparing the result with the truth.** In the
   simulator the truth is known. On hardware it is replaced by test patterns
@@ -539,6 +540,12 @@ values, **Estimate**).
 | 290 | 44 | 8.2 | 6.7 | 4.6 | 0.8 |
 | 213 | 72 | 6.0 | 4.1 | 2.0 | 0.1 |
 | 203 | 86 | 5.8 | 3.8 | 1.7 | 0.1 |
+
+"Soft over" in this table is the standard deviation $\sigma$ of the
+Gaussian blur of the pixel's edges, as in the formula of section 2.3. The
+[design, table 4.6b](design.md#46-the-target-100-nm-features-on-silicon-chips)
+quotes the same blur by its full width at half height, which is 2.355 times
+larger, so its "100 nm" row is a sharper pixel than the last column here.
 
 In words: between "sharp" and "soft over 100 nm" the signal at the target
 period changes about sixtyfold. That is why this one measurement decides so
