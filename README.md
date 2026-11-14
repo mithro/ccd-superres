@@ -1,5 +1,9 @@
 # ccd-superres
 
+[![Documentation Status](https://readthedocs.org/projects/ccd-superres/badge/?version=latest)](https://ccd-superres.readthedocs.io/en/latest/)
+
+Read the documentation online at <https://ccd-superres.readthedocs.io/en/latest/>.
+
 Simulation of a lensless image sensor that is moved at a constant rate over a
 surface, with super-resolution reconstruction of the surface from the
 continuously captured pixel data.
@@ -35,8 +39,10 @@ are implemented; the simulator and reconstruction are not written yet.
 
 ## Documentation site
 
-The `docs/` folder is a Sphinx site configured for Read the Docs
-(`.readthedocs.yaml`). To build it locally:
+The `docs/` folder is a Sphinx site published on Read the Docs at
+<https://ccd-superres.readthedocs.io/en/latest/>. Read the Docs rebuilds it on
+every push to `main` and on every pull request, using `.readthedocs.yaml`. To
+build it locally:
 
 ```
 pip install -r docs/requirements.txt -e .
