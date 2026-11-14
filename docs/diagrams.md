@@ -33,6 +33,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `level1-reconstruction` | True bars, one raw frame and three reconstructions | Level 1 simulator, seed 1 |
 | `level1-crosscheck` | Level 1 blur and noise against the level 0 formulas | Level 1 simulator and analytic model |
 | `level1-2d` | Two-dimensional reconstructions with and without tilt, and contrast against tilt | Level 1 simulator, seed 1 |
+| `level1-motion` | Scan position errors: estimated against true, reconstructions, and contrast against error size | Level 1 simulator, five seeds |
 
 ## Optical elements figures
 

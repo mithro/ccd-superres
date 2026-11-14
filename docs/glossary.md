@@ -27,6 +27,7 @@ link here the first time they use a term that is not explained on the spot.
 | Collection angle | The widest angle, away from straight ahead, at which a pixel still responds to light. |
 | Collimated light | A beam whose rays are all parallel. |
 | Collimator | A plate of tubes or holes that lets through only light travelling nearly straight along them. |
+| Conjugate gradients | A standard step-by-step method for solving very large sets of linear equations without ever writing the full set down. Each step improves the answer, and it stops when the answer no longer changes. |
 | Contrast | How much brighter the bright parts of a pattern are than the dark parts. Blur lowers contrast. When it falls below the noise, the pattern is lost. |
 | Convolution | The mathematical name for smearing: every point of a picture is replaced by a copy of the blur kernel, and the copies are added up. |
 | Cramér-Rao bound | The smallest error that any method could reach when estimating a quantity from noisy data. It is worked out from how strongly the data change when the quantity changes. |
@@ -47,6 +48,7 @@ link here the first time they use a term that is not explained on the spot.
 | Footprint (patch) | The area of surface that one pixel sees, and how strongly it sees each part of it. Another name for the blur kernel seen from the pixel. |
 | Forward model | The calculation that predicts what the sensor would record for a given surface. Reconstruction runs it backwards. |
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
+| Fourier transform | A calculation that splits a picture into regular wave patterns of every size and direction, and says how much of each is present. Blur is simple to describe this way: it weakens the fine patterns. |
 | Frame | One complete readout of the sensor. |
 | Fringes | The regular bright and dark stripes formed where two coherent beams overlap. |
 | Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow, but accurate for detail smaller than the wavelength. |
@@ -108,6 +110,7 @@ link here the first time they use a term that is not explained on the spot.
 | Registration | Working out how far one picture is shifted relative to another. |
 | Regularisation | Adding a mild preference, such as smoothness, so that a reconstruction does not amplify noise into false detail. |
 | Resolution | The finest detail that can be told apart. |
+| Rms (root mean square) | The usual measure of the typical size of an error or of noise: square every value, average, and take the square root. |
 | Rolling shutter | A sensor that exposes and reads its rows one after another, so each row sees a slightly later moment. |
 | Sample | One reading from one pixel at one moment. |
 | Scatterometry | Measuring the dimensions of a regular pattern that is too fine to see, by fitting a model to how it reflects light at different colours and angles. |
@@ -118,6 +121,7 @@ link here the first time they use a term that is not explained on the spot.
 | Sidelobes | Faint false copies or halos beside each bright point of a reconstructed picture, caused by the abrupt edge of the range of detail that was recorded. |
 | Signal-to-noise | How large the wanted signal is compared with the noise. Higher is better. |
 | Sinc | The mathematical shape that describes how much of each detail size a box-shaped smear lets through. It falls steadily and touches zero at certain sizes. |
+| Sinusoid | A smooth, regular wave. A sinusoidal pattern of brightness rises and falls evenly, with no sharp edges. |
 | Sparse | Made of few, well-separated features. |
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |

@@ -104,7 +104,7 @@ is the one worth knowing about.
 
 | Not checked | Why | What it means |
 |---|---|---|
-| Most cited sources against the claims made from them | Six abstracts were compared and all six supported their claims. The service used to look papers up reached its daily limit before the other 210 or so could be compared. | The page authors record that each source was checked to exist. Whether each one supports its claim is confirmed for six only. |
+| Most cited sources against the claims made from them | Done later the same day: see [review 2](#review-2-cited-sources-against-their-abstracts). | |
 | Full texts of any paper | Only abstracts were available. | Figures taken from a paper's body, not its abstract, rest on the author's reading. |
 | The reference list of reconstruction methods from entry M19 on | Time. | Entries may have errors of form. |
 | The explorer's JavaScript, the figure scripts and the tests, line by line | Time. They were checked through their outputs: the parity test, the recomputed tables and the figures viewed. | A fault that does not show in those outputs would not have been found. |
@@ -120,3 +120,59 @@ These are the first items for the next review.
 | Beam-pair stripes stay visible only in a strip 0.04 to 0.16 mm wide with an ordinary laser diode | [Calibration and test 3.3](calibration-and-test.md) | Formula and arithmetic rederived | A Gaussian spectrum 0.5 to 2 nm wide. Real diodes vary, and some run in a single colour at some currents. Plan item R10 measures it. |
 | A pixel passes about 2% of the contrast of 200 nm stripes if its edges are soft over 100 nm (full width at half height) | [Design, table 4.6b](design.md#46-the-target-100-nm-features-on-silicon-chips) | Recomputed from the code | A Gaussian model of the pixel's edges. The real response of the sensor is unknown until hardware. |
 | Lines of 110 to 145 nm are the limit at 405 nm in air | [Design 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips), [optical elements 9.2](optical-elements.md) | Formula and arithmetic rederived | The collection angle of the bare pixel (±30° to ±58°), which is an assumption. |
+
+## Review 2: cited sources against their abstracts
+
+Review 1 compared only six cited papers with their abstracts. This review
+did the rest on 14 November 2026, against commit
+[`3111a7f`](https://github.com/mithro/ccd-superres/commit/3111a7f) of the
+main branch. Level 1 and the research studies under `docs/research/` are
+again left to their own threads.
+
+For each paper with a DOI (the permanent identifier of a published paper),
+the title, first author, year and abstract were fetched from the open index
+[OpenAlex](https://openalex.org). Every sentence and table row on the page
+that cites the paper was then read beside the abstract. A claim counts as
+supported if the abstract states it or is plainly about the same thing. A
+specific number counts as confirmed only if the abstract contains it.
+
+### What was compared
+
+| Page | Sources cited | Found in the index | Have an abstract and were compared | No abstract in the index | No DOI (books, reports, web pages) | Claims contradicted | Specific figures not in the abstract |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| [Optical elements](optical-elements.md#14-references) | 67 | 65 | 51 | 14 | 2 | 1 | 1 |
+| [Reconstruction methods](reconstruction-methods.md#11-references) | 129 | 124 | 104 | 20 | 5 | 0 | 1 |
+| [Calibration and test](calibration-and-test.md#14-references) | 52 | 43 | 29 | 14 | 9 | 0 | 0 |
+| [References](references.md) and [design, section 9](design.md#9-related-work) | 14 | 14 | 10 | 4 | 0 | 0 | 0 |
+| All pages | 262 | 246 | 194 | 52 | 16 | 1 | 2 |
+
+The same paper is often cited on more than one page under different keys,
+so the 246 entries are 216 different papers, of which 177 have an abstract
+in the index. All 216 identifiers resolve to a paper whose title, first
+author and year match the entry, and none is marked as retracted.
+
+### Findings
+
+| No. | Where | Severity | What was found | What was done |
+|--:|---|---|---|---|
+| 10 | [Optical elements 9.4](optical-elements.md), sources O48 and O49 | Error | The page gave 13.5 nm as the wavelength of both extreme-ultraviolet instruments. The abstract of O48 says 29.5 nm; only O49 used 13.5 nm. The same sentence called these the wavelengths "chip factories themselves use", but all four sources are research instruments. | Sentence corrected. |
+| 11 | [Optical elements 3](optical-elements.md), source O13 | Gap | "300 µm thick collimator made by X-ray lithography": the abstract confirms deep X-ray lithography and a thickness well under 1 mm, but not 300 µm. | Figure labelled Unverified. |
+| 12 | [Reconstruction methods](reconstruction-methods.md), sources M94 and M95 | Gap | "100 nm features reconstructed at a wavelength of 532 nm" is cited to both. The abstract of M94 supports the method but gives neither number, and M95 has no abstract in the index. | Recorded here. To be checked against the full text of M95. |
+
+Everything else that could be compared was supported. Specific figures that
+were confirmed in an abstract include 225 nm lines, 250 nm at 700 nm,
+308 nm lines and 240 mm² in 15 s, 0.78 µm, 660 nm, 80 nm lines at 193 nm,
+±18° acceptance, particles of 70 to 200 nm, 20 nm defects, 20 µm sonar
+micronavigation, image distortion reduced from 0.2 to under 0.08 pixels,
+star positions to 0.02 pixels, and resolution better than a third of a
+wavelength with elastic waves.
+
+### Still not checked after review 2
+
+| Not checked | Keys | Why |
+|---|---|---|
+| Sources with no abstract in the index | Optical elements: O1, O3, O15, O25, O42, O45, O49, O50, O52, O57, O58, O61, O65, O66. Reconstruction methods: M4, M10, M20, M35, M37, M38, M51, M53, M60, M62, M63, M72, M74, M75, M89, M95, M97, M103, M115, M125. Calibration and test: T13, T15, T16, T25, T26, T27, T29, T30, T31, T34, T38, T39, T40, T44. References: HarwitSloane, vanHeel2005, Maiden2009, Zheng2013. | Mostly Nature-family, Elsevier and book publishers, which do not release abstracts to the index. Each needs the publisher's page or the paper. |
+| Figures that rest on those sources | 14.6 nm for X-ray imaging of a processor (M74, M75), 12.6 nm at 13.5 nm (M72), the regular-scan weakness of ptychography (O61, M103, T15) | Same reason. The pages already say the first two are from publishers' summaries. |
+| Sources with no DOI | O35, O67, M18, M26, M76, M101, M121, T2, T42, T46 to T52 | Textbooks, reports and web pages. The pages already mark the web sources as read in summary. |
+| Full texts | All | Only abstracts were read, so a claim taken from the body of a paper is supported only as far as the abstract goes. |
+
