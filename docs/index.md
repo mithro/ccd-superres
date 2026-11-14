@@ -11,6 +11,7 @@ increasing accuracy that are checked against each other.
 
 | Page | What it covers | State |
 |---|---|---|
+| [Project plan](plan.md) | Every item of work in order, with deep research ahead of the build stages, and the state of each | Kept current |
 | [Design](design.md) | The problem, the measurement model, what limits resolution, noise, the sensor, reconstruction | Draft for review |
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
 | [Filters, gratings and other optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
@@ -27,6 +28,7 @@ its assumptions, worked examples, and the results of its cross-checks.
 :maxdepth: 2
 :hidden:
 
+plan
 design
 simulation-chain
 optical-elements
