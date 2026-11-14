@@ -1,7 +1,7 @@
 # Scanning lensless sensor super-resolution simulator: design
 
-Status: draft for review. Only the scan sampling calculator (section 5.4) has
-been implemented so far.
+Status: draft for review. The scan sampling calculator (section 5.4) and the
+trade-off explorer (section 5.6) are implemented. The simulator is not.
 Numbers marked "illustrative" come from the analytic model in section 4, not
 from simulation runs.
 
@@ -422,7 +422,7 @@ Other properties of this sensor class that the model includes:
   for the original lens [R3], all of which must be bypassed.
 - **Illumination.** With the sensor covering the surface, light has to enter
   from the side through the gap, through the sample from behind, or through
-  the sensor. This is unresolved and is listed in section 10.
+  the sensor. This is unresolved and is listed in section 11.
 
 Sources for this section:
 
@@ -529,6 +529,47 @@ Limits to keep in view:
   noise floor of section 4.
 - Small jitter is not enough. With 0.1 pixels of random error the largest hole
   is still 0.38 pixels, because the regular 5-position pattern dominates.
+
+### 5.6 Trade-off explorer
+
+Speed, frame rate, exposure, samples per point, sub-pixel coverage, motion
+blur, gap and recoverable resolution all depend on each other, and Tim wants
+to explore those trade-offs easily and quickly. The tool for that is a single
+web page, [`explorer/index.html`](../explorer/index.html), which opens straight
+from the repository in any browser with nothing to install.
+
+Why a web page rather than a notebook: it needs no Python environment, it
+responds on every slider movement, and it can be opened on any device or
+shared as a link. A notebook would tie exploration to a running kernel.
+
+What it does:
+
+- **Controls:** sensor model, speed, frame rate, exposure or light pulse
+  length, tilt, random position error, number of passes, gap, pixel edge
+  softness, single-sample signal-to-noise and feature contrast. Exposure is a
+  free parameter from continuous down to a hundred-thousandth of the frame
+  period, because the choice between a short exposure, a light pulse, a slow
+  scan or modelling the smear has not been made.
+- **Figures, updated instantly:** smallest recoverable feature period and
+  which effect limits it, samples per point, shift per frame, motion blur,
+  distinct sub-pixel positions, area rate and data rate.
+- **Plots:** where the samples of one point fall inside a pixel; the contrast
+  passed by the gap, the pixel area and motion blur against feature size, with
+  the level needed to beat the noise; and the recoverable feature size swept
+  against any one setting with the rest held fixed.
+- **Presets** for the settings discussed so far, including the 20% per second
+  at 10 frames per second example.
+
+It is built on the analytic model only (sections 3.1, 4.2 and 5.4), so it
+answers in milliseconds and runs no simulation. The same formulas exist in
+Python as `ccdsr/sampling.py` and `ccdsr/resolution.py`, and a test runs the
+page's JavaScript model against the Python one so the two cannot drift apart.
+
+The estimate it reports is the larger of two limits: the period at which the
+attenuated signal equals the averaged noise, and the period that the sample
+positions can represent (twice the effective sample spacing). It carries the
+simplifications of the analytic model. The full simulator of section 11 is
+what will confirm or correct it.
 
 ## 6. Reconstruction
 
@@ -671,6 +712,8 @@ docs/
   diagrams/               diagram sources (Python) and rendered SVG and PNG
 ccdsr/                    the package, one file per module above
   sampling.py             scan sampling calculator (implemented)
+  resolution.py           analytic resolution model (implemented)
+explorer/                 trade-off explorer web page (implemented)
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study
 results/                  committed figures and summary tables
@@ -729,7 +772,69 @@ Checks, in build order:
   [doi:10.1109/tip.2004.834669](https://doi.org/10.1109/tip.2004.834669).
   Regularised multi-frame reconstruction.
 
-## 10. Build stages and open questions
+## 10. Ray tracing simulation (later stage)
+
+Tim wants an eventual ray-tracing simulation that can demonstrate feature
+sizes and pixel sampling schemes. It is planned as a second forward model
+beside the linear one, not a replacement.
+
+```mermaid
+flowchart LR
+    S["Surface<br/>height and reflectance"] --> L["Linear model<br/>blur then sample<br/>(sections 3 and 6)"]
+    S --> RT["Ray tracer<br/>light source, surface facets,<br/>sensor stack geometry"]
+    L --> F["Raw frames"]
+    RT --> F
+    F --> REC["Same reconstruction"]
+    RT -. "measured blur kernel per pixel" .-> L
+```
+
+What the ray tracer adds that the linear model cannot do:
+
+- **Real three-dimensional surface shape.** Shadowing, occlusion by raised
+  features, slope-dependent brightness and light bouncing between surface and
+  sensor. The linear model treats the surface as a flat brightness map.
+- **The actual lighting geometry.** Light entering from the side of the gap,
+  from behind, or through the sensor, instead of an assumed uniform glow.
+- **The sensor stack.** Microlenses, colour filters, the wire grid and the
+  acceptance angle of each pixel traced as geometry, including edge pixels
+  that look sideways (section 5.3).
+- **Pixel sampling schemes.** Any layout of sensitive areas, masks, tilts or
+  scan paths can be drawn and traced, and the picture of which rays reach
+  which pixel is itself the demonstration.
+- **Blur kernels for the linear model.** Tracing a point source gives the
+  true footprint of each pixel, which replaces the analytic gap formula in
+  the fast model and in the explorer.
+
+How it fits: it produces raw frames in the same format as the linear model,
+so the reconstruction and the metrics are shared. The linear model stays the
+workhorse for large parameter sweeps because it is thousands of times faster.
+
+### Where ray tracing is valid
+
+Ray tracing treats light as straight lines and ignores its wave nature. That
+is accurate only while every relevant dimension is much larger than the
+wavelength, which for visible light is about 0.4 to 0.7 µm.
+
+| Situation | Ray tracing | Reason |
+|---|---|---|
+| Features and gap of tens of micrometres or more | Valid | Everything is many wavelengths across |
+| Features or gap of a few micrometres | Approximate | Diffraction starts to soften shadows and spread light; treat results as indicative |
+| Features, gap or pixel structures near or below a micrometre | Not valid | Diffraction dominates; rays predict sharp shadows that do not exist |
+| Nanometre height read through interference (section 4.5) | Not valid | Interference is a wave effect that rays do not have |
+| Nanometre gaps | Not valid | Light couples through near-field effects, not along rays |
+
+This matters here because the pixels are 1.12 µm, about two wavelengths, and
+the project's target is nanometre features. The ray tracer will therefore be
+honest for the first hardware at micrometre scale and for demonstrating
+sampling schemes, and it will be wrong in exactly the regime the project
+ultimately cares about. For that regime the plan is a wave-optics model
+(scalar diffraction for the gap, and a full electromagnetic solver for the
+pixel structures if needed). The design keeps the forward model behind one
+interface so that rays, waves and the linear approximation are
+interchangeable and can be checked against each other where their ranges of
+validity overlap.
+
+## 11. Build stages and open questions
 
 | Stage | Content | Outcome |
 |---|---|---|
@@ -739,6 +844,8 @@ Checks, in build order:
 | 4 | Limit study across gap, noise, sampling and motion | Resolution map of the instrument |
 | 5 | Height: blur-width model, two-gap reconstruction | Whether height is recoverable without interference |
 | 6 | Interference model for height, if lighting allows | Nanometre height sensitivity study |
+| 7 | Ray-tracing forward model (section 10): surface shape, lighting geometry, sensor stack, sampling schemes | Demonstrations of feature sizes and sampling schemes at micrometre scale; measured blur kernels for the fast model |
+| 8 | Wave-optics forward model for sub-micrometre features and gaps | Results valid in the nanometre regime |
 
 Open questions for Tim:
 
