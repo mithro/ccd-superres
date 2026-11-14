@@ -18,6 +18,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 from matplotlib.patches import FancyArrowPatch, Polygon, Rectangle
 from scipy.special import k1
@@ -637,6 +638,55 @@ def height_signal():
     save(fig, "height-signal")
 
 
+# --------------------------------------------------------------------------
+# 9. What it takes to resolve 100 nm lines
+# --------------------------------------------------------------------------
+def hundred_nm():
+    """Smallest resolvable line width against wavelength.
+
+    Coherent imaging with slanted light resolves a period of
+    wavelength / (NA_light + NA_collected); the line width is half of that.
+    """
+    fig, ax = plt.subplots(figsize=(10, 5.4))
+    lam = np.linspace(180, 700, 300)
+    cases = [
+        (0.5, INK2, "light straight down, sensor collects ±30°  (sum 0.5)"),
+        (1.4, BLUE, "light slanted at 65°, sensor collects ±30°  (sum 1.4)"),
+        (1.8, AQUA, "light at 72°, bare sensor collects ±58°  (sum 1.8)"),
+        (2.4, ORANGE, "same as green, with water in the gap  (sum 2.4)"),
+    ]
+    for na, col, name in cases:
+        ax.plot(lam, lam / (2 * na), color=col, lw=2, label=name)
+    ax.axhline(100, color=INK, lw=1.2, ls=(0, (5, 3)))
+    ax.text(695, 104, "target: 100 nm lines", ha="right", fontsize=9.5)
+
+    for x, name in [(193, "193 nm\nchip-factory\nlaser"), (266, "266 nm\ndeep UV"),
+                    (365, "365 nm\nUV LED"), (405, "405 nm\nlaser diode"),
+                    (520, "520 nm\ngreen")]:
+        ax.axvline(x, color=GRID, lw=1)
+        ax.text(x + 3, 690, name, fontsize=8.3, color=INK2, va="top")
+    ax.axvspan(400, 700, ymin=0, ymax=0.045, color=AQUA, alpha=0.6, lw=0)
+    ax.axvspan(300, 400, ymin=0, ymax=0.045, color=YELLOW, alpha=0.7, lw=0)
+    ax.axvspan(180, 300, ymin=0, ymax=0.045, color=ORANGE, alpha=0.7, lw=0)
+    ax.text(550, 26, "sensor as sold", ha="center", va="center", fontsize=8.5)
+    ax.text(350, 26, "filter stripped?", ha="center", va="center", fontsize=8.5)
+    ax.text(240, 26, "special sensor", ha="center", va="center", fontsize=8.5)
+
+    ax.set_yscale("log")
+    ax.set_ylim(20, 800)
+    ax.set_xlim(180, 700)
+    ax.set_yticks([20, 50, 100, 200, 400, 800])
+    ax.set_yticklabels(["20", "50", "100", "200", "400", "800"])
+    ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.set_xlabel("wavelength of the light (nm)")
+    ax.set_ylabel("smallest resolvable line width (nm)")
+    ax.set_title("Resolving lines and spaces: wavelength and angles needed", loc="left",
+                 fontsize=11)
+    ax.legend(frameon=False, fontsize=8.8, loc="upper left", bbox_to_anchor=(0.0, 0.86))
+    tidy(ax)
+    save(fig, "hundred-nm")
+
+
 def main():
     element_positions()
     tube_geometry()
@@ -646,6 +696,7 @@ def main():
     illumination_geometries()
     demo = fringe_demo()
     height_signal()
+    hundred_nm()
 
     lam = WAVELENGTH_UM
     print("Best tube width and patch width (slit model, tube depth 10 x gap):")

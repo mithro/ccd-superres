@@ -4,12 +4,18 @@ Status: exploration for review. Nothing here is implemented in the simulator.
 The numbers come from the analytic model of the design document, from a small
 one-dimensional diffraction calculation in
 [`diagrams/make_optics_diagrams.py`](diagrams/make_optics_diagrams.py), and
-from the published literature. Each is labelled with which. Section 12 lists
+from the published literature. Each is labelled with which. Section 13 lists
 what these estimates leave out.
+
+Sections 2 to 8 survey the options in general. Tim has since stated the
+target: features of about 100 nm on silicon chips, with a strong preference
+for more computation over more hardware, and all processing done offline on
+powerful computers with graphics cards. Section 9 works out what that target
+takes, and the summary and the ranking in section 10 are written for it.
 
 This page answers one question: what could be added to the scanning lensless
 sensor, in the light, in the gap or on the sensor face, to improve the result?
-It is written to be read after the [design document](design.md), and section 10
+It is written to be read after the [design document](design.md), and section 11
 gives the parameters that would carry the recommended options into the
 simulator.
 
@@ -33,28 +39,44 @@ than the particular element does:
 
 ![Smallest feature period against gap for each family](diagrams/optics-resolution-vs-gap.svg)
 
-Ranked recommendation, explained in section 9:
+### For the stated target: 100 nm features on silicon chips
 
-1. **Pulse the light.** Nearly free, and it removes the motion-blur limit on
-   scan speed. Adopt regardless of everything else.
-2. **A collimator array: one absorbing tube per small group of pixels.** This
-   is Tim's tube idea in the form that works. It keeps plain reflectance and
-   the linear reconstruction, and improves resolution about tenfold at a 30 µm
-   gap. It costs 99 percent or more of the light.
-3. **Collimated single-colour light with interference-based reconstruction.**
-   The only family that reaches below the pixel pitch at a gap that can
-   actually be built, and it measures height to nanometres. It needs a smooth
-   surface and a way to get the light in.
-4. **Fringe or speckle lighting that travels with the sensor.**
-5. **A coded mask or thin diffuser on the sensor.**
+A silicon chip is smooth, mirror-like and patterned, so it belongs to the
+interference family, and tubes drop out (they suit matt surfaces and reach
+micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
+"about one wavelength". Section 9 gives the details. The short version:
 
-Not recommended: one tube around the whole sensor as a way to sharpen the
-image (it does not), louvre films, Talbot self-imaging as a way to carry the
-image across the gap, and near-field metamaterial lenses.
+- **The gap stops being the hard part.** With interference methods a gap of
+  about a millimetre is fine. Wavelength and the angles of the light take its
+  place as the limit.
+- **Resolving 100 nm lines and spaces needs slanted light and a short
+  wavelength.** With a 405 nm laser diode and steeply slanted light the limit
+  is about 110 to 145 nm lines. Reaching 100 nm needs ultraviolet light of
+  about 365 nm or shorter, or water in the gap. Neither has been demonstrated
+  with a lensless sensor looking at an opaque surface.
+- **Much can be measured at 100 nm without resolving it**, and this is where
+  computation substitutes for hardware: finding and locating isolated
+  features, measuring the line width of regular arrays from colour and
+  polarisation, and fitting a known chip layout to the data.
+- **The hardware stays simple.** A laser diode or three, switched in pulses,
+  and the sensor as sold. Almost all the difficulty moves into
+  reconstruction, which matches Tim's preference.
 
-One open question decides between options 2 and 3, and only Tim can answer it:
-whether the surfaces of interest are rough and matt, or smooth and mirror-like
-(section 11).
+Ranked recommendation for this target, explained in section 10:
+
+1. **Pulsed single-colour laser light, slanted, from several directions, with
+   ptychographic reconstruction** that also solves for the scan positions.
+   Start at 405 nm.
+2. **Several colours**, separated by the sensor's own colour filter.
+3. **Known-structure fitting**: chip layout rules as prior knowledge, and
+   measurement of features that are detected but not resolved.
+4. **A thin scattering layer on the sensor** (coded ptychography).
+5. **Shorter wavelength or water in the gap**, the only steps that truly
+   resolve 100 nm lines, and the only ones that need real hardware work.
+
+Not recommended for this target: tubes and collimator arrays, one tube around
+the sensor as a way to sharpen the image, sub-pixel openings, near-field gaps,
+and Talbot self-imaging as a way to carry the image across the gap.
 
 ## 2. What an added element can and cannot do
 
@@ -569,7 +591,125 @@ may be the realistic route to "nanometre features" with this hardware, and
 suggests replacing build stage 5 (blur-width height) with one of the
 interference mechanisms.
 
-## 9. Ranked recommendation
+## 9. The target: 100 nm features on silicon chips
+
+Tim's target is features of about 100 nm on silicon chips. This section takes
+"100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
+that width repeat every 200 nm. An isolated 100 nm line or dot is a different
+and easier problem (section 9.4).
+
+### 9.1 What changes
+
+- **The surface is smooth and mirror-like.** That selects the interference
+  family of section 2. The reflected light keeps its phase, so the detail
+  crosses the gap intact and is recovered by computation.
+- **The gap is no longer the hard part.** A gap of about a millimetre is
+  acceptable, and is in fact needed to let slanted light in (arrangement B of
+  section 12). The limit that replaces it is the wavelength.
+- **The limit is below what sections 2 to 8 assumed.** "About one wavelength"
+  is 500 nm of period. The target is 200 nm.
+
+### 9.2 The limit: wavelength and angles
+
+For coherent light, the finest period that can be recovered is
+
+    period = wavelength / (NA of the light + NA collected)
+
+where each NA is the sine of an angle from straight ahead: the slant of the
+light arriving, and the widest angle at which the sensor still collects the
+light the surface sends back. The line width is half the period. Slanting the
+light is what synthetic-aperture and ptychographic methods exploit [O6, O25]:
+light arriving at a steep angle shifts fine detail to angles the sensor can
+collect.
+
+![Smallest resolvable line width against wavelength](diagrams/optics-hundred-nm.svg)
+
+| Light | Straight down, sensor collects ±30° | Slanted 65°, sensor collects ±30° | Slanted 72°, bare sensor collects ±58° | As previous, water in the gap |
+|---|---|---|---|---|
+| 520 nm, green | 520 nm | 186 nm | 144 nm | 108 nm |
+| 405 nm, laser diode | 405 nm | 145 nm | 113 nm | 84 nm |
+| 365 nm, ultraviolet LED | 365 nm | 130 nm | 101 nm | 76 nm |
+| 266 nm, deep ultraviolet | 266 nm | 95 nm | 74 nm | 55 nm |
+
+The entries are smallest line widths from the formula. The collection angles
+are assumptions: ±30° is a guess for a pixel with its microlens in place, and
+±58° for a bare die. The real angular response of the sensor has to be
+measured, and published work found it a real limitation [O6, O22].
+
+Reading the table for the target:
+
+- **Visible light as the sensor is sold reaches about 110 to 150 nm lines**,
+  with a 405 nm laser diode and steeply slanted light. That is close to the
+  target but not at it.
+- **100 nm lines and spaces need about 365 nm or shorter**, or water in the
+  gap, together with steep light and a wide collection angle.
+
+For comparison, the published benchmark for this kind of imaging on opaque
+samples is a microscope with a lens: 80 nm lines resolved in reflection by
+Fourier ptychography with a 193 nm laser [O47]. The lensless results quoted
+earlier (225 nm lines [O7], 250 nm [O6], 308 nm [O22]) were all through
+transparent samples. The only lensless result in reflection found is 2 µm
+[O4]. Reaching even 150 nm lines on an opaque chip without a lens would be new.
+
+### 9.3 The routes to finer detail
+
+| Route | What it gains | Hardware it adds | Computation it adds | With a Raspberry Pi class sensor |
+|---|---|---|---|---|
+| Slanted light from several directions, ptychographic reconstruction | Line width from about 400 nm down to 110 to 145 nm at 405 nm | A few laser diodes at fixed angles around the sensor | Very large: iterative phase recovery over every frame, with scan positions as unknowns | Realistic. The blue pixels respond well at 405 nm. Undemonstrated in reflection. |
+| Near ultraviolet, 365 to 385 nm | A further 10 percent | An ultraviolet LED or laser diode | None extra | Uncertain. The colour filter and microlenses may absorb ultraviolet. A ten-minute test with an ultraviolet LED on an unmodified sensor would settle it. |
+| Deep ultraviolet, 250 to 280 nm | A further 30 to 35 percent: 75 to 95 nm lines | Costly weak sources, eye and skin protection, and a sensor with the filter stripped or a special coating | None extra | Not realistic at first. Ordinary sensors respond poorly below 300 nm (general knowledge, not checked for this sensor). |
+| Water or oil in the gap | A factor of 1.33 to 1.5: about 84 nm lines at 405 nm | A drop of liquid, and a sensor and chip that tolerate it | Small | Possible but messy. Light must enter through the liquid. |
+| Near-field gap | In principle unlimited | A gap below about 100 nm held over millimetres, and openings of about 100 nm on every pixel | None | Not realistic. For 200 nm periods the detail fades to a third within about 35 nm of the surface. Finished chips also carry protective layers thicker than that. |
+
+The wavelengths that chip factories themselves use for this job show where
+the comfortable limits are: 193 nm lasers [O47], extreme ultraviolet at
+13.5 nm [O48, O49] and X-rays [O50], all with ptychographic reconstruction.
+The method is the same as proposed here. Only the wavelength differs.
+
+### 9.4 Measuring 100 nm features without resolving them
+
+A feature does not have to be resolved to be found, counted or measured. This
+is where computation can stand in for hardware, and several published results
+are directly relevant.
+
+| What is wanted | How | Evidence | Hardware | Computation |
+|---|---|---|---|---|
+| Find and locate isolated features: a single line, a particle, a defect | The feature scatters light that interferes with the mirror reflection of the silicon around it. Its position is found to a small fraction of the resolution, and its size from the strength of the signal. | Particles of 70 to 200 nm detected and sized with a wide-field common-path interferometer [O51]; nanoparticles detected with a lensless sensor, helped by liquid nanolenses [O52]; defects 20 nm wide found in patterned wafers with visible laser light [O53] | None beyond route 1 | Moderate |
+| Measure the average line width or height of a regular array | An array finer than the resolution looks like a uniform film whose brightness depends on colour, polarisation and angle. A model of the array is fitted to those readings. This is how chip factories measure line widths (scatterometry) [O54, O55]. | Standard factory practice [O54] | Three colours and a polariser | Large: an electromagnetic solver inside a fitting loop. This is the Meep level of the simulation chain. |
+| Check a chip against a known or assumed layout | Chip patterns obey strict rules: straight edges in two directions, a few materials, fixed pitches. The unknowns are then edge positions and widths, far fewer than free pixels, and they can be estimated below the resolution limit. With a layout file, the expected data can be simulated and compared directly. | Model-based measurement well below the resolution limit is established in optical metrology [O55, O56] | None | Very large |
+
+The limit on the third row must be stated plainly. Prior knowledge lets
+computation measure the parameters of a structure of a known kind. It does not
+reveal arbitrary unknown structure below the limit of section 9.2, and if the
+assumed kind of structure is wrong the answer will be wrong but look
+confident. The reconstruction should report how much of each result comes from
+the data and how much from the assumption.
+
+### 9.5 What is realistic
+
+| Goal | Verdict with a Raspberry Pi class sensor |
+|---|---|
+| Detect and locate isolated 100 nm features | Realistic. |
+| Measure height and film thickness to nanometres at micrometre lateral scale | Realistic (section 8). |
+| Measure the average line width of regular 100 nm arrays | Plausible. Needs the electromagnetic model. |
+| Compare a chip against a known layout at 100 nm | Plausible. A research problem in computation, with little hardware. |
+| Image unknown structure with 150 to 200 nm lines | Plausible with 405 nm slanted light. Would be a new result for lensless reflection. |
+| Image unknown 100 nm lines and spaces | At the edge. Needs ultraviolet or liquid as well, and probably a stripped sensor. |
+| Image unknown structure well below 100 nm | Not with light this sensor can detect. This is the territory of extreme ultraviolet, X-ray and electron instruments [O48, O50]. |
+
+Three practical points apply to all of these:
+
+- **Positions must be known to a few tens of nanometres.** No affordable
+  stage provides that, and none is needed: ptychography recovers positions
+  from the data [O23, O34]. This is the same use of natural misalignment that
+  the design document already plans, at a finer scale.
+- **Vibration during one exposure cannot be computed away.** It washes out the
+  interference pattern. Short pulses solve it, and laser diodes pulse easily.
+- **Both the chip and the sensor are mirrors.** Light bounces between them and
+  adds its own interference. It has to be modelled, or avoided by tilting the
+  sensor slightly.
+
+## 10. Ranked recommendation
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -589,38 +729,54 @@ spacer is involved.
 | Fibre-optic plate | Mechanics | None by itself | Most | Bonded plate | Unchanged | Yes |
 | Polarisers, filters, liquid | Contrast, coherence | Up to 1.5 times (liquid) | 10 to 50 % | Trivial | Unchanged | Yes |
 
-The ranking:
+That table is the general comparison. For Tim's target and preferences the
+ranking below replaces the general one. The preferences, as stated: features of
+about 100 nm on silicon chips; significantly more computation in preference to
+more hardware; all processing offline on powerful computers with graphics
+cards. Computation is therefore treated as nearly free, and hardware as
+expensive.
 
-1. **Pulse the light.** It costs nothing, changes nothing else, and removes
-   the conflict between scan speed and sharpness. Model the coded version too,
-   since it is one small change to the motion term.
-2. **Tube per pixel group.** The best next step if the surface is rough or
-   matt, and the natural first addition to the simulator because it only swaps
-   the blur kernel. It makes a gap of tens of micrometres useful, which is what
-   the first hardware can reach. Expect features of a few micrometres. That is
-   still above the 1.12 µm pixel, so this option alone does not demonstrate
-   sub-pixel recovery.
-3. **Collimated single-colour light**, in the linear form, with three colours
-   through the Bayer filter. This is the route to the project's actual goals:
-   detail below the pixel pitch at a buildable gap, and nanometre height. It
-   needs a smooth surface and the lighting question answered (section 11). It
-   is also the cheapest hardware on the list.
-4. **Fringe lighting fixed to the sensor.** Attractive because the scan does
-   the work, and it keeps plain reflectance. Second to option 3 because the
-   optics are more delicate and each fringe period opens only one window.
-5. **Coded mask or diffuser with coherent light.** The best published
-   performance and the closest published relative of this project. Ranked
-   last of the five only because its reconstruction departs furthest from the
-   design's solver. Worth a dedicated study once the coherent forward model
-   exists.
+| Rank | Option | Hardware added | Computation added | What it delivers for 100 nm features |
+|---|---|---|---|---|
+| 1 | Pulsed, slanted, single-colour laser light from several directions, with ptychographic reconstruction that also solves for positions (sections 4.1, 4.2, 4.4, 9.3) | Small: a few laser diodes and a pulse driver. Sensor as sold, gap about 1 mm. | Very large | Images down to about 110 to 145 nm lines at 405 nm. Height to nanometres. Everything below builds on it. |
+| 2 | Several colours through the Bayer filter (sections 4.5, 5.3) | Trivial: two more diodes | Moderate | Removes ambiguities in phase and height. Supplies the colour data that rank 3 needs. |
+| 3 | Known-structure fitting and measurement without resolving (section 9.4) | None, or one polariser | Very large, including an electromagnetic solver | Locates isolated 100 nm features, measures line widths of regular arrays, checks against a layout. The main way to reach 100 nm with visible light. |
+| 4 | Thin scattering layer on the sensor, coded ptychography (section 5.2) | One passive layer, calibrated once | Very large | Better-conditioned reconstruction, slow height changes recovered, positions recovered more robustly. Does not change the wavelength limit. |
+| 5 | Near ultraviolet, then liquid in the gap, then deep ultraviolet (section 9.3) | Growing: ultraviolet sources, possibly a stripped sensor, liquid handling | None extra | The only steps that truly resolve 100 nm lines and spaces. Take them only if ranks 1 to 4 fall short. |
 
-The suggested order of work in the simulator follows the same list. Items 1
-and 2 fit the existing linear model and can be added to the analytic model and
-the trade-off explorer straight away. Item 3 needs the wave-optics forward
-model, which argues for bringing that stage forward in the design's build
-plan instead of leaving it last.
+Adopt regardless: one tube around the whole assembly as a stray light baffle.
 
-## 10. Parameters for the simulator
+Dropped for this target, with reasons:
+
+- **Tubes and collimator arrays.** They sharpen diffuse light from matt
+  surfaces and reach a few micrometres. A silicon chip is a mirror, and the
+  target is 20 times finer.
+- **Fringe lighting as a separate option.** For a mirror-like surface a pair
+  of slanted beams is the same thing as rank 1, so it is folded into it.
+- **Sub-pixel openings and near-field gaps.** Hardware-heavy, and section 9.3
+  shows the gap needed is not buildable over a chip.
+
+Why this order. Rank 1 is the foundation: it is the cheapest hardware on the
+whole list and it converts the problem into computation, which is what Tim
+asked for. Ranks 2 and 3 add almost no hardware and are where a large
+computing budget buys the most, because they bring in information (colour,
+polarisation, layout rules) that the wavelength limit does not restrict.
+Rank 4 costs one passive part and makes the computation more reliable. Rank 5
+is last because it is the only one that spends on hardware, even though it is
+the only one that moves the physical limit.
+
+Order of work in the simulator. The wave-optics forward model moves to the
+front of the build plan, since every ranked option depends on it. For 100 nm
+features on silicon the surface cannot be treated as a flat sheet that merely
+dims and delays the light: the features are smaller than the wavelength and
+have depth, so the light's interaction with the surface needs the
+electromagnetic solver level of the simulation chain. A sensible sequence is:
+scalar wave model with slanted light and ptychographic reconstruction on
+synthetic layouts; then the electromagnetic solver to generate the surface
+response; then known-structure fitting. Pulsed light and the tube kernel
+remain cheap additions to the linear model for anyone studying matt surfaces.
+
+## 11. Parameters for the simulator
 
 Proposed additions to the design's configuration, so the recommended options
 become settings and not separate programs. Names are suggestions.
@@ -640,6 +796,10 @@ become settings and not separate programs. Names are suggestions.
 | Sensor | `mask` | Complex transmission of a layer at the sensor plane, and its height above the pixels | 5.2 | 4 |
 | Gap | `reference_reflectance` | Reflectance of a reference flat or of the sensor face | 6.2 | 3 |
 | Gap | `refractive_index` | Of the medium in the gap | 6.3 | 3 |
+| Light | `pulse_length_s` | Length of each light pulse, for vibration and motion blur | 9.5 | 3 |
+| Sensor | `pixel_angular_response` | Response of a pixel against arrival angle, measured or assumed | 9.2 | 3 |
+| Surface | `layout_prior` | Rules or a layout file describing allowed structure: edge directions, materials, pitches | 9.4 | Reconstruction |
+| Surface | `surface_model` | Thin sheet (reflectance and height maps) or full three-dimensional structure solved electromagnetically | 9, 10 | 3, 4, solver |
 | Surface | `specular_fraction` | Share of mirror-like reflection, which polarisers select or reject | 7 | 1 |
 
 Model levels, in increasing cost. Each is a forward model behind the single
@@ -663,7 +823,7 @@ Level 1 additions also belong in the analytic model (`ccdsr/resolution.py`)
 and the trade-off explorer: tube width and depth as two more controls, with
 the light lost feeding the signal-to-noise control.
 
-## 11. Getting light in, and the questions that decide the choice
+## 12. Getting light in, and the questions that decide the choice
 
 With an opaque surface and a sensor covering it, the light has few ways in.
 The choice of method and the choice of lighting constrain each other.
@@ -682,23 +842,23 @@ sharp images with open pixels in diffuse light is too small to let the light
 in. Tubes, and all the interference methods, resolve this by making larger
 gaps usable.
 
-Questions for Tim that this exploration raises:
+Questions for Tim. The first of the original four is answered (smooth silicon
+chips), and the target raises new ones:
 
-1. **Is the surface rough and matt, or smooth and mirror-like?** Rough favours
-   tubes with diffuse light. Smooth favours collimated single-colour light,
-   which is the stronger method. Examples of the intended samples would
-   settle it.
-2. **Is any sample transparent?** If so, arrangement D applies and the
-   published methods can be followed closely.
-3. **Is a bought or custom collimator plate acceptable for the first
-   hardware?** It is the one part of the tube option that cannot be improvised
-   at micrometre scale.
-4. **Is "plain reflectance preferred" a firm constraint, or a preference for
-   simplicity?** The strongest options measure reflectance and height together
-   through interference. The model stays linear for weak surfaces, but it is
-   no longer plain reflectance.
+1. **Must unknown structure be imaged at 100 nm, or is it enough to detect,
+   locate and measure features of that size?** The second is realistic with
+   simple hardware. The first probably needs ultraviolet light (section 9.5).
+2. **Are the 100 nm features dense lines and spaces, or isolated?** Isolated
+   features are far easier.
+3. **Is the layout known, or are its rules known?** A layout file or design
+   rules make the known-structure fitting of section 9.4 possible.
+4. **Which layer carries the features, and what lies above it?** Finished
+   chips have protective and wiring layers over the finest features. Light
+   has to reach them and return.
+5. **Is ultraviolet light, a stripped sensor or liquid on the chip acceptable
+   if visible light falls short?**
 
-## 12. Limits of these estimates
+## 13. Limits of these estimates
 
 - The tube diffraction calculation is one-dimensional (a slit, not a square
   or round bore), assumes small angles, and treats the walls as perfect
@@ -719,11 +879,22 @@ Questions for Tim that this exploration raises:
 - Typical dimensions quoted for capillary plates, fibre-optic plates and
   louvre films are general catalogue knowledge and were not checked against
   specific datasheets.
+- The line widths in section 9.2 are the theoretical limit for the stated
+  angles. The collection angles of the sensor are assumed, not measured, and
+  noise, stray reflections and imperfect coherence all cost resolution in
+  practice. Published systems typically reach somewhat less than the formula.
+- Statements about the sensor's response to ultraviolet light are general
+  knowledge about silicon sensors with polymer colour filters, not
+  measurements of the IMX219.
+- Section 9 treats the chip surface with simple formulas. Features smaller
+  than the wavelength with real depth and several materials need a rigorous
+  electromagnetic calculation, which may change the achievable figures in
+  either direction.
 - Fixing fringes to the sensor so that the scan provides the phase steps
   (section 4.3) is a consequence of the design's model worked out here. No
   publication was found for exactly this arrangement.
 
-## 13. References
+## 14. References
 
 Titles and identifiers were checked against the OpenAlex index. Figures quoted
 from a paper are from its abstract.
@@ -890,3 +1061,39 @@ Height, contact imaging and other elements:
 - [O46] Takeda and Mutoh, "Fourier transform profilometry for the automatic
   measurement of 3-D object shapes", Applied Optics, 1983.
   [doi:10.1364/ao.22.003977](https://doi.org/10.1364/ao.22.003977)
+
+The 100 nm target:
+
+- [O47] Park, Bae, Choi and Sohn, "High numerical aperture reflective deep
+  ultraviolet Fourier ptychographic microscopy for nanofeature imaging", APL
+  Photonics, 2022.
+  [doi:10.1063/5.0102413](https://doi.org/10.1063/5.0102413)
+- [O48] Seaberg et al., "Tabletop nanometer extreme ultraviolet imaging in an
+  extended reflection mode using coherent Fresnel ptychography", Optica, 2014.
+  [doi:10.1364/optica.1.000039](https://doi.org/10.1364/optica.1.000039)
+- [O49] Gardner et al., "Subwavelength coherent imaging of periodic samples
+  using a 13.5 nm tabletop high-harmonic light source", Nature Photonics, 2017.
+  [doi:10.1038/nphoton.2017.33](https://doi.org/10.1038/nphoton.2017.33)
+- [O50] Holler et al., "High-resolution non-destructive three-dimensional
+  imaging of integrated circuits", Nature, 2017.
+  [doi:10.1038/nature21698](https://doi.org/10.1038/nature21698)
+- [O51] Daaboul et al., "High-throughput detection and sizing of individual
+  low-index nanoparticles and viruses for pathogen identification", Nano
+  Letters, 2010.
+  [doi:10.1021/nl103210p](https://doi.org/10.1021/nl103210p)
+- [O52] Mudanyali et al., "Wide-field optical detection of nanoparticles using
+  on-chip microscopy and self-assembled nanolenses", Nature Photonics, 2013.
+  [doi:10.1038/nphoton.2012.337](https://doi.org/10.1038/nphoton.2012.337)
+- [O53] Zhou, Edwards, Arbabi, Popescu and Goddard, "Detecting 20 nm wide
+  defects in large area nanopatterns using optical interferometric
+  microscopy", Nano Letters, 2013.
+  [doi:10.1021/nl401622b](https://doi.org/10.1021/nl401622b)
+- [O54] Diebold, Antonelli and Keller, "Perspective: Optical measurement of
+  feature dimensions and shapes by scatterometry", APL Materials, 2018.
+  [doi:10.1063/1.5018310](https://doi.org/10.1063/1.5018310)
+- [O55] Orji et al., "Metrology for the next generation of semiconductor
+  devices", Nature Electronics, 2018.
+  [doi:10.1038/s41928-018-0150-9](https://doi.org/10.1038/s41928-018-0150-9)
+- [O56] Attota, Germer and Silver, "Through-focus scanning-optical-microscope
+  imaging method for nanoscale dimensional analysis", Optics Letters, 2008.
+  [doi:10.1364/ol.33.001990](https://doi.org/10.1364/ol.33.001990)
