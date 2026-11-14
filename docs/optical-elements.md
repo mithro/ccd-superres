@@ -645,6 +645,19 @@ The design document found that a fast scan smears the image. Its example:
 
 A light pulse of 0.4 ms does the same job as a short exposure, and an LED
 can be switched far faster than that from a Raspberry Pi output pin.
+
+![Light against time for three ways of lighting one frame](diagrams/optics-pulse-timing.svg)
+
+*Figure: three ways of lighting one frame, using the scan example in the
+table above. Each row is one way. The left chart shows when the light is on
+during the 100 milliseconds of the frame. The right chart shows where one
+point of the surface lands on the sensor during that time, in pixels, which
+is the smear it leaves. Top: light on throughout smears the point over 65.6
+pixels. Middle: one flash of 0.4 milliseconds leaves a smear of a quarter of
+a pixel but uses 0.4 percent of the light. Bottom: a known irregular pattern
+of flashes leaves a smear with a known shape, which computation can undo,
+and uses nearly half the light. The pattern drawn is an example made by
+the diagram script, not an optimised code.*
 *Sources: the shift per frame and the exposure needed are from the
 [design, section 4.8](design.md#48-motion-blur-cause-model-and-reversal). That an LED can be switched faster than 0.4 ms from an output
 pin is **Unverified** general knowledge.*
@@ -671,6 +684,21 @@ In plain words: light a smooth surface with a tidy beam of one colour and
 the sensor records a pattern of ripples in place of a blur. The ripples
 contain the fine detail, and also the heights of the surface, and a
 computer can work back from them to the surface.
+
+![A surface with height steps and a dark mark, and the ripples it makes on the sensor](diagrams/optics-hologram-demo.svg)
+
+*Figure: a calculated example of what a parallel beam of one colour
+records. Position along the surface runs across all four charts, in
+micrometres. First chart: the height of a test surface in nanometres, with
+one raised line 4 µm wide and two 1 µm wide, all 5 nm high. Second chart:
+how much light the surface reflects, with one mark that reflects 10 percent
+less. Third chart: the brightness right at the surface. The mark shows, and
+the raised lines are invisible, because height changes only the timing of
+the wave. Fourth chart: the brightness 100 µm away, where the sensor is.
+Every feature, including the 5 nm lines, has spread into ripples of several
+percent. These ripples are what the sensor records, and the reconstruction
+works back from them to the first two charts. **Derived here**, by the
+function `hologram_demo` of the diagram script, for green light.*
 
 Light a smooth surface with a parallel (collimated) beam of one colour and
 the reflected light crosses the gap as a wave that keeps its fine detail.
@@ -863,6 +891,17 @@ distance is 0.4 mm. The verdicts in the table rest on the sources cited
 in each row. That only a periodic pattern images itself is the content of
 the Talbot effect [[O17](#ref-o17)]. Three possible uses, with different verdicts:
 
+
+![Brightness of the light behind a grating, against distance](diagrams/optics-talbot-carpet.svg)
+
+*Figure: the light behind a grating, calculated. Distance behind the
+grating runs across, in micrometres, and position across the grating runs
+up. Brighter colours are brighter light. The grating has lines 10 µm apart
+and is lit from the left by a parallel beam of green light. Its pattern of
+bright bands blurs, then re-forms shifted by half a period at 200 µm, and
+re-forms as a sharp copy at 400 µm, the Talbot distance. **Derived here**,
+by the function `talbot_carpet` of the diagram script.*
+
 | Use | Verdict |
 |---|---|
 | Carry the image of the surface across the gap | Does not work. Only a periodic pattern images itself. An arbitrary surface does not. |
@@ -877,6 +916,16 @@ helps if the sensor nearly touches the surface. A rough or finely patterned
 layer scrambles the light in a way that keeps fine detail, and is the basis
 of the published work closest to this project. And the colour filter already
 on the sensor can be put to use.*
+
+![Three things that can sit on the sensor face](diagrams/optics-sensor-face.svg)
+
+*Figure: side views of three things that can sit on the face of the
+sensor, each drawn over four pixels of 1.12 µm. The surface is below and
+light travels upward. The gap is not drawn to scale. Left: the sensor as
+sold, with a colour filter and a tiny lens on each pixel. Middle: a dark
+layer with one small hole per pixel, so that each pixel sees only the light
+passing its hole. Right: a rough scattering layer, which sends light from
+each point of the surface to many pixels in a detailed pattern.*
 
 ### 5.1 Sub-pixel openings
 
@@ -968,6 +1017,17 @@ does not sharpen it. A part-reflecting flat plate turns height into
 brightness. A liquid shortens the light's waves, which sharpens everything a
 little. Special layered "lenses" from research are not practical here.*
 
+![Three things that can sit in the gap](diagrams/optics-gap-elements.svg)
+
+*Figure: side views of three things that can sit in the gap, with the
+sensor above and the surface below. Not to scale. Left: a fibre-optic plate
+carries light straight up its fibres to the sensor, so only the short
+distance below the plate blurs the picture. Middle: a part-reflecting flat
+plate. Light reflected by the plate and light reflected by the surface reach
+the same pixel and interfere, so the brightness depends on the small
+distance between plate and surface. Right: the same light wave in air and in
+water, where its wavelength is 1.33 times shorter.*
+
 ### 6.1 Fibre-optic plates
 
 A fibre-optic plate is a block of fused glass fibres that carries an image
@@ -1031,6 +1091,17 @@ the other methods work with.*
 
 Neither changes the gap law. Both improve the quality of the signal that the
 other methods work with.
+
+
+![Parallel and crossed polarisers between the light, the surface and the sensor](diagrams/optics-polarisers.svg)
+
+*Figure: how two polarisers separate two kinds of reflected light. In
+both drawings light passes a first polariser, reflects from the surface, and
+passes a second polariser before the sensor. Left: with the second polariser
+set the same way as the first, the mirror-like reflection passes. Right:
+with the second turned by 90°, the mirror-like reflection is blocked, and
+only light that was scattered inside the surface, which loses its
+polarisation, gets through. Not to scale.*
 
 | Element | What it does | Verdict |
 |---|---|---|
@@ -1202,6 +1273,22 @@ Reading the table for the target:
 - **100 nm lines and spaces need about 365 nm or shorter**, or water in the
   gap, together with steep light and a wide collection angle.
 
+
+![Which fineness of detail each lighting arrangement brings within reach](diagrams/optics-frequency-coverage.svg)
+
+*Figure: why slanted light reaches finer detail, for 405 nm light and the
+four arrangements A to D of the table above. Each chart is a map of
+fineness of detail, in repeats per micrometre, across the chip
+(horizontal) and along it (vertical). The centre is coarse detail, and
+further out is finer. Each blue disc is the detail that one direction of
+light brings within the sensor's reach. With light straight down there is
+one small disc at the centre. Slanted light moves the disc outward, and
+eight directions of light give eight discs. The orange circle is the limit
+reached, and the dashed circle is the target, lines and spaces of 100 nm.
+Only arrangement D, with water in the gap, covers the target. **Derived
+here**, by the function `frequency_coverage` of the diagram script, with
+the assumed angles of the table.*
+
 Published results quoted on this page, for comparison with those limits:
 
 | Source | Finest detail reported (nm) | Stated as | Lens | Sample | Method |
@@ -1239,18 +1326,37 @@ detail itself: about 200 nm for the target. A 1.12 µm pixel covers more than
 five such fringes and averages them. What survives depends on how sharp the
 edges of the pixel's sensitive area are:
 
-| Edges of the pixel's sensitive area | Contrast left in fringes of 200 nm period (percent) |
+| Edges of the pixel's sensitive area | Contrast left in fringes of 200 nm period, at most (percent) |
 |---|---:|
-| Perfectly sharp | 6 |
-| Soft over 100 nm or more | 0 |
+| Perfectly sharp | 5.7 |
+| Soft over about 100 nm | 2.3 |
+| Soft over about 300 nm | 0.002 |
 
-The 6 percent is the fringe period divided by π times the pixel width:
-200 nm / (3.14 × 1120 nm).
+The 5.7 percent is the fringe period divided by π times the pixel width:
+200 nm / (3.14 × 1120 nm). Soft edges are modelled as a smooth (Gaussian)
+blur of the stated full width at half height, which multiplies the contrast
+by a further factor. These are upper limits: at some exact periods a
+sharp-edged pixel records nothing at all.
+
+![Share of stripe contrast a pixel records, against the period of the stripes](diagrams/optics-pixel-fringe-response.svg)
+
+*Figure: how well a pixel 1120 nm wide records stripes of light, for
+three assumptions about how sharp the edges of its sensitive area are.
+Across is the period of the stripes in nanometres, finer to the left. Up is
+the share of the stripes' contrast that the pixel records, where 1 is all of
+it. Both scales step by factors of ten. The thick curves are upper limits
+and the thin curves the exact result, which drops to zero wherever a whole
+number of stripes fits the pixel. The dotted line on the left marks the
+200 nm period of the target detail, where a pixel records between 6 percent
+and almost nothing. The dotted line on the right marks the 3300 nm beat
+pattern made by lighting with a beam pair, which the pixel records almost
+in full whatever its edges are like. **Estimate**, by the function
+`pixel_fringe_response` of the diagram script.*
 
 *Sources: **Derived here**. A pixel adds up the light across its width, and
 the contrast left in a stripe pattern averaged over a box of that width is
 the sinc function of width divided by period (textbook, [[O35](#ref-o35)]). The edge
-softness values are **Assumptions**. The limit was raised by the
+softness values and the Gaussian model of soft edges are **Assumptions**. The limit was raised by the
 [design, section 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips).*
 
 The edge sharpness of the IMX219 is unknown. So the collection angles assumed
@@ -1286,7 +1392,23 @@ depend on the pixel edges.
    is recoverable by averaging, as the design document describes for
    sub-pixel detail in general.
 
-The example of mechanism 1 in numbers:
+The example of mechanism 1, calculated and then in numbers:
+
+![Fine chip detail, fine stripes of light, the broad pattern they make, and what the pixels record](diagrams/optics-beam-pair-beat.svg)
+
+*Figure: how a beam pair lets coarse pixels record fine detail,
+calculated. Position on the chip runs across all four charts, in
+nanometres. First chart: the chip detail, lines and spaces of 100 nm.
+Second chart: the stripes of light made by two 405 nm beams slanted at 72°
+from opposite sides, with a period of 213 nm. Third chart: the light leaving
+the chip, which is the first two multiplied together. Its fine wiggles are
+overlaid by a broad rise and fall every 3300 nm. Fourth chart: what pixels
+1120 nm wide record. In even light (grey bars) every pixel reads nearly the
+same and the lines are invisible. In stripe light (orange bars) the readings
+rise and fall with the broad pattern, so the presence and position of the
+fine lines is recorded. This is a simplified picture that multiplies
+brightnesses. The full wave calculation belongs to the simulator. **Derived
+here**, by the function `beam_pair_beat` of the diagram script.*
 
 | Quantity | Value | Unit | How it is found |
 |---|---:|---|---|
@@ -1346,6 +1468,19 @@ In plain words: a star is far too small for a telescope to show its shape,
 yet it is easy to see that it is there, exactly where it is, and how bright
 it is. In the same way a 100 nm feature can be found, located and measured
 without a picture that shows its shape.
+
+![Blurred signals from narrow lines of different widths and positions](diagrams/optics-locate-without-resolving.svg)
+
+*Figure: why a feature can be measured without being resolved,
+calculated for a blur 400 nm wide. Left: the signal from single lines 50,
+100 and 150 nm wide. Position runs across in nanometres. All three look the
+same shape, which is the shape of the blur, so the picture cannot show their
+widths. But the strength of the signal is in proportion to the width, so the
+width can be read from the strength. Right: the same 100 nm line at two
+positions 40 nm apart. The two signals differ clearly (dashed curve,
+enlarged 4 times), so the position can be found far more finely than the
+blur. **Derived here**, by the function `locate_without_resolving` of the
+diagram script, with a Gaussian blur as an **Assumption**.*
 
 A feature does not have to be resolved to be found, counted or measured. This
 is where computation can stand in for hardware, and several published results
@@ -1429,6 +1564,24 @@ One rule sorts the useful kinds from the costly ones:
   position, a brightness and a gap per frame are a few numbers against a
   million pixel readings. A whole new unknown light pattern per frame is not,
   so a moving diffuser is not recommended.
+
+
+![Three demonstrations of useful randomness](diagrams/optics-randomness-demo.svg)
+
+*Figure: three calculated examples of randomness helping. Left: where
+200 successive frames fall within the width of one pixel, for the scan
+example of section 4.1. With evenly timed flashes (grey) the frames land on
+only five positions. With flash times varied at random by up to half a
+pixel of travel (orange) they spread over all positions, which is what the
+reconstruction needs. Middle: a speckle pattern, the random grainy light
+that a 405 nm laser makes after frosted glass, drawn over a square 4000 nm
+on a side. The white bar is the width of one pixel. The grains are about
+225 nm across, fine enough to make broad beat patterns with 100 nm detail.
+Right: dither. The true signal (dashed) rises smoothly from 0 to 3 counts.
+A sensor that rounds to whole counts and has no noise (grey) reports steps,
+however many readings are averaged. With noise of half a count (orange) the
+average of 2000 readings follows the true signal. **Derived here**, by the
+function `randomness_demo` of the diagram script.*
 
 Randomness added on purpose:
 
