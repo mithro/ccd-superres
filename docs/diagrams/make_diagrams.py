@@ -1017,6 +1017,78 @@ def level1_crosscheck():
     return periods, measured_t, measured_err, predicted_err
 
 
+def level1_2d():
+    """Two-dimensional level 1: pictures with and without tilt, and a tilt sweep."""
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr import level1_2d as l2
+
+    dx, shape = 70.0, (256, 512)
+    periods = [1960, 1400, 980, 700]
+    picture, groups = l2.line_groups(periods, dx, shape)
+    optics = l2.Optics(gap_nm=300)
+    best = float(np.rad2deg(np.arcsin(1 / 16)))
+
+    def run(tilt):
+        frames = l2.simulate(picture, dx, optics, l2.Scan2D(n_frames=300, tilt_deg=tilt), seed=1)
+        plain, weight = l2.shift_and_add(frames)
+        lsq, steps = l2.least_squares(frames)
+        return frames, plain, weight, lsq, steps
+
+    f0, p0, w0, l0, s0 = run(0.0)
+    f1, p1, w1, l1_, s1 = run(best)
+    tilts = np.array([0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3, best, 4, 5, 6, 8, 10])
+    pick = {d: [g for g in groups if g[1] == d and g[0] == 1400.0][0] for d in ("along", "across")}
+    sweep = {"along": [], "across": []}
+    for t in tilts:
+        est = l0 if t == 0 else l1_ if t == best else run(float(t))[3]
+        for d in sweep:
+            sweep[d].append(l2.group_contrast(est, pick[d], dx))
+
+    ext = [0, shape[1] * dx / 1e3, shape[0] * dx / 1e3, 0]
+    fig, axes = plt.subplots(2, 3, figsize=(12.4, 6.6))
+    panels = [(axes[0, 0], picture, "the true surface"),
+              (axes[0, 2], p1, f"tilt {best:.1f}°: all frames averaged in place"),
+              (axes[1, 0], l0, "no tilt: best fit to all readings"),
+              (axes[1, 1], l1_, f"tilt {best:.1f}°: best fit to all readings")]
+    for ax, img, name in panels:
+        ax.imshow(img, cmap="gray", vmin=0, vmax=1.2, extent=ext, interpolation="nearest")
+        ax.set_title(name, loc="left", fontsize=10)
+        ax.set_xlabel("along the scan (µm)")
+        ax.set_ylabel("across the scan (µm)")
+    top = axes[0, 0].secondary_xaxis("top")
+    top.set_xticks([(g[4] + g[5]) / 2 * dx / 1e3 for g in groups if g[1] == "along"])
+    top.set_xticklabels([f"{g[0] / 1e3:g} µm" for g in groups if g[1] == "along"], fontsize=8.5)
+    top.tick_params(length=0, pad=2)
+    side = axes[0, 0].secondary_yaxis("right")
+    side.set_yticks([shape[0] * dx / 1e3 * 0.25, shape[0] * dx / 1e3 * 0.75])
+    side.set_yticklabels(["crossed by\nthe scan", "lying along\nthe scan"], fontsize=8.5)
+    side.tick_params(length=0, pad=3)
+    axes[0, 0].set_title("the true surface (repeat distance above each group)", loc="left", fontsize=10,
+                         pad=18)
+    ax = axes[0, 1]
+    ax.imshow(f1.readings[40] / f1.truth["light"], cmap="gray", vmin=0, vmax=1.2, interpolation="nearest")
+    ax.set_title("one raw frame: 16 × 16 pixel readings", loc="left", fontsize=10)
+    ax.set_xlabel("pixel column")
+    ax.set_ylabel("pixel row")
+    ax = axes[1, 2]
+    ax.plot(tilts, sweep["along"], "o-", color=BLUE, ms=4.5, lw=1.4, label="lines crossed by the scan")
+    ax.plot(tilts, sweep["across"], "s-", color=ORANGE, ms=4.5, lw=1.4, label="lines lying along the scan")
+    ax.axhline(l2.group_contrast(picture, pick["across"], dx), color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.text(10, 0.87, "true contrast", ha="right", fontsize=8.5, color=INK2)
+    ax.set_ylim(0, 1.0)
+    ax.set_xlabel("sensor tilt (degrees)")
+    ax.set_ylabel("recovered contrast of 1.4 µm lines")
+    ax.set_title("effect of tilt, 16 × 16 pixel sensor", loc="left", fontsize=10)
+    ax.legend(frameon=False, fontsize=8.5, loc="lower right")
+    _clean(ax)
+    fig.tight_layout()
+    save(fig, "level1-2d")
+    return dict(groups=groups, picture=picture, runs={0.0: (p0, w0, l0, s0), best: (p1, w1, l1_, s1)},
+                tilts=tilts, sweep=sweep, dx=dx, best=best)
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -1036,4 +1108,5 @@ if __name__ == "__main__":
     plan_status()
     level1_reconstruction()
     level1_crosscheck()
+    level1_2d()
     print("wrote diagrams to", OUT)

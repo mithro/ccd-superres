@@ -30,6 +30,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
 | `level1-reconstruction` | True bars, one raw frame and three reconstructions | Level 1 simulator, seed 1 |
 | `level1-crosscheck` | Level 1 blur and noise against the level 0 formulas | Level 1 simulator and analytic model |
+| `level1-2d` | Two-dimensional reconstructions with and without tilt, and contrast against tilt | Level 1 simulator, seed 1 |
 
 ## Reconstruction methods figures
 
