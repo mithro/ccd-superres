@@ -1,28 +1,5 @@
 # Reconstruction methods from radar, astronomy and other imaging fields
 
-Status: research survey for review. Nothing here is implemented in the
-simulator. Every number is either cited to a source or labelled as worked
-out in this project, as explained under
-[How claims are marked](#how-claims-are-marked). Section 10 lists what the
-estimates leave out.
-
-This page answers one question: which reconstruction ideas from radar, sonar,
-radio astronomy, satellite imaging, tomography, ptychography, seismic imaging
-and compressed sensing could be applied to the scanning lensless sensor, and
-how far could they take it towards 100 nm features on silicon chips? It is
-written to be read after the [design document](design.md) and the page on
-[optical elements](optical-elements.md). Section 7 gives a ranked shortlist,
-a staged reconstruction plan, and says how each item would appear in the
-simulator and the reconstruction.
-
-Three directions from Tim shape the page. The goal is to reconstruct a
-picture of an unknown layout, and that may be done in several stages (section
-7.2). Deliberately introducing randomness, and modelling the randomness that
-is already there, is in scope (section 3.12). And the two-dimensional nature
-of the sensor should be used to get more detail (section 3.13).
-
-## In plain words
-
 The instrument is a camera chip with its lens taken off, slid slowly across
 the surface of a silicon chip while it takes thousands of pictures. With no
 lens, each picture is a blur. The plan is for a computer to combine the
@@ -70,7 +47,28 @@ The answers, in order of importance:
 
 The rest of the page gives the evidence for each of these, field by field,
 with the technical detail kept. Technical terms are explained where they
-first appear and collected in the next section.
+first appear and collected under "Terms used on this page" below.
+
+Status: research survey for review. Nothing here is implemented in the
+simulator. Every number is either cited to a source or labelled as worked
+out in this project, as explained under
+[How claims are marked](#how-claims-are-marked). Section 10 lists what the
+estimates leave out.
+
+This page answers one question: which reconstruction ideas from radar, sonar,
+radio astronomy, satellite imaging, tomography, ptychography, seismic imaging
+and compressed sensing could be applied to the scanning lensless sensor, and
+how far could they take it towards 100 nm features on silicon chips? It is
+written to be read after the [design document](design.md) and the page on
+[optical elements](optical-elements.md). Section 7 gives a ranked shortlist,
+a staged reconstruction plan, and says how each item would appear in the
+simulator and the reconstruction.
+
+Three directions from Tim shape the page. The goal is to reconstruct a
+picture of an unknown layout, and that may be done in several stages (section
+7.2). Deliberately introducing randomness, and modelling the randomness that
+is already there, is in scope (section 3.12). And the two-dimensional nature
+of the sensor should be used to get more detail (section 3.13).
 
 ## Terms used on this page
 
@@ -362,7 +360,7 @@ that made them. A 1.12 µm pixel averages over five and a half periods of a
 200 nm fringe. How much of the fringe survives the averaging depends on how
 sharp the edges of the pixel's sensitive area are:
 
-| Softness of the pixel's edges (µm) | Share of a 200 nm fringe that the pixel passes (%) |
+| Softness of the pixel's edges, standard deviation (µm) | Share of a 200 nm fringe that the pixel passes (%) |
 |---:|---:|
 | 0.00 | 5.4 |
 | 0.05 | 1.6 |
@@ -372,8 +370,12 @@ sharp the edges of the pixel's sensitive area are:
 *Table: how much of a fringe with a 200 nm period a 1.12 µm pixel records,
 for four values of edge softness. Derived here (function `numbers`) from the
 design document's pixel model: a box as wide as the pixel, blurred by a
-bell curve of the stated width. The softness is an assumption. The design's
-starting value is 0.30 µm, and the true value for this sensor is not known.*
+bell curve whose standard deviation is the stated width. The softness is an
+assumption. The [design](design.md#46-the-target-100-nm-features-on-silicon-chips)
+quotes softness as full width at half height, which is 2.355 times the
+standard deviation: its starting value of 0.30 µm is a standard deviation of
+0.13 µm and passes about 0.002 % of a 200 nm fringe (design table 4.6b). The
+true value for this sensor is not known.*
 
 A pixel with perfectly sharp edges still passes 5 % of the fringe, which
 thousands of sub-pixel samples can recover. With the design's starting
@@ -381,7 +383,9 @@ softness it passes nothing measurable. In coherent light the gap stops
 being the wall and the pixel becomes the wall. Published lensless work
 agrees: sub-pixel sampling improved the collected range of angles about
 threefold on two very different sensors, and resolved 225 nm lines with
-1.12 µm pixels and an ultraviolet LED [[M104](#m104)]. Section 4.3 gives the way
+an ultraviolet LED [[M104](#m104)]. (The abstract confirms the line width, the
+LED and the threefold gain. The 1.12 µm pixel size of one of the two sensors
+is from memory of the full text and is **Unverified**.) Section 4.3 gives the way
 round this.
 
 **The information is finite.** An imaging system passes a fixed number of
@@ -1665,6 +1669,15 @@ Seismic imaging formalised this as fitting long wavelengths first and adding
 shorter ones in steps [[M85](#m85)]. Radio astronomy alternates imaging and
 calibration, each pass starting from the last [[M28](#m28)]. Fourier ptychography
 starts from the low-resolution picture and widens the band outwards.
+
+The stage numbers below are steps of the reconstruction calculation, 0 to
+5. They are not the instrument stages 0 to 4 of the
+[design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+which count what the instrument delivers. Roughly, reconstruction stages 0
+and 1 here make the design's stage 1 (the coarse picture), stages 2 and 3
+here make the design's stage 2 (the true picture), and stages 4 and 5 here
+are the calculation behind the design's stages 3 and 4. The design's stage 0
+(measuring the pixels) is a measurement and has no counterpart here.
 
 *Diagram: the stages in order from top to bottom. Each box names what the
 stage does and the finest detail it reaches. Solid arrows pass the picture

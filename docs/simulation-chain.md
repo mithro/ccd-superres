@@ -1,9 +1,5 @@
 # The simulation chain
 
-Status: plan for review. Level 0 is implemented. Levels 1 to 4 are not.
-
-## In plain words
-
 A simulation is only useful if it can be believed. A fast, simple simulation
 can be wrong without anyone noticing, and an accurate one is too slow to use
 every day. So the project builds five simulations of the same instrument,
@@ -28,6 +24,10 @@ The five, from simplest to most exact:
   real materials. Exact, but only affordable for tiny patches.
 
 Terms are collected in the [glossary](glossary.md).
+
+Status: plan for review. Level 0 is implemented, and so is
+[level 1](level1.md) in one and two dimensions with known scan positions.
+Levels 2 to 4 are not.
 
 ## Overview
 
@@ -167,7 +167,7 @@ published in the documentation.
 |---|---|---|
 | 1 | Level 0: calculator and explorer | Done |
 | 2 | Shared scene description, raw frame format, metrics | The interface every level uses |
-| 3 | Level 1 in one dimension, then two, with reconstruction | First surface reconstructions |
+| 3 | Level 1 in one dimension, then two, with reconstruction | Done for known scan positions: [level 1](level1.md) |
 | 4 | Checks between levels 0 and 1 | Analytic estimates confirmed or corrected |
 | 5 | Motion errors and motion estimation at level 1 | Tolerances for the mechanics |
 | 6 | Level 2: ray tracing | Height, lighting geometry, sensor stack, sampling schemes |
