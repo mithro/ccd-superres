@@ -5,9 +5,9 @@ rate parallel to a surface. Every pixel captures continuously, and the many
 slightly offset samples of each surface point are combined to reconstruct the
 surface at a scale finer than the pixel pitch.
 
-The project is at the design stage. The scan calculator and the trade-off
-explorer work today. The simulators are planned as a chain of five levels of
-increasing accuracy that are checked against each other.
+The scan calculator, the trade-off explorer and the first simulator (level 1,
+in one and two dimensions) work today. The simulators are a chain of five levels of
+increasing accuracy that are checked against each other; the rest are planned.
 
 | Page | What it covers | State |
 |---|---|---|
@@ -17,9 +17,12 @@ increasing accuracy that are checked against each other.
 | [Filters, gratings and other optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
 | [Reconstruction methods](reconstruction-methods.md) | Survey of methods from radar, astronomy, ptychography and other fields, what each could reach, a ranked shortlist and a staged reconstruction plan | Survey for review |
 | [Ptychography and lensless coherent imaging](research/ptychography.md) | Deep research item B4: the finest detail anyone has shown without a lens, how coarse pixels have been got round, what the reconstruction needs from the data, and what stage 2 needs | Research study for review |
+| [Radar and synthetic aperture methods](research/synthetic-aperture-radar.md) | Deep study B1: how radar builds a sharp picture from an uncertain path, which autofocus methods work on brightness-only data, how radar modes map onto the instrument, radar's limits on resolution and noise, and the new ideas it suggests | Study for review |
 | [Calibration and test methods](calibration-and-test.md) | What must be known about the instrument and how well, what is solved from the scan and what needs an outside measurement, how resolution is measured, the tests against invented detail, and the common benchmark for every approach | Plan for review |
+| [Review record](review.md) | Which pages, scripts and figures have been independently checked, what was checked, what was found and what is still unchecked | Kept current |
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
+| [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
 | [Glossary](glossary.md) | Plain-language meanings of the terms used across the documentation | Kept current |
 | [References](references.md) | The shared list of sources, and how claims are labelled as sourced, derived, estimated or assumed | Kept current |
@@ -38,11 +41,14 @@ simulation-chain
 optical-elements
 reconstruction-methods
 research/ptychography
+research/synthetic-aperture-radar
 calibration-and-test
 calculator
 explorer
+level1
 diagrams
 glossary
 references
+review
 api
 ```

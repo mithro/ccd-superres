@@ -1,7 +1,5 @@
 # References
 
-## In plain words
-
 This page is the shared list of sources for the documentation. Every fact,
 number and formula in these pages should point to an entry here, or be
 marked as something worked out in this project or assumed. The rules are in
@@ -62,7 +60,7 @@ unless the entry says so.
 
 ## Reference lists of the other pages
 
-Four pages keep their own numbered lists, which are part of this
+Five pages keep their own numbered lists, which are part of this
 bibliography:
 
 - [Optical elements, section 14](optical-elements.md#14-references), keys
@@ -72,6 +70,8 @@ bibliography:
   keys T1 onwards.
 - [Ptychography and lensless coherent imaging, section 13](research/ptychography.md#13-references),
   keys P1 onwards.
+- [Radar and synthetic aperture methods, section 12](research/synthetic-aperture-radar.md#12-references),
+  keys SA1 onwards.
 
 New sources are added here, or to those lists for those pages, in the same
 pull request as the claim that needs them.

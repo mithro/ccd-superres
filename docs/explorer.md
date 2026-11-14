@@ -30,12 +30,12 @@ simulation, only the analytic model, which is why it is instant.
 
 ## Using it without the documentation
 
-The page is `explorer/index.html` in the repository and opens directly in a
+The page is [`explorer/index.html`](https://github.com/mithro/ccd-superres/blob/main/explorer/index.html) in the repository and opens directly in a
 browser. It needs no installation and no server.
 
 ## How it stays correct
 
-The formulas live in `explorer/model.js`. The same formulas exist in Python in
-`ccdsr/sampling.py` and `ccdsr/resolution.py`, and
-`tests/test_explorer_parity.py` runs the JavaScript against the Python on a
+The formulas live in [`explorer/model.js`](https://github.com/mithro/ccd-superres/blob/main/explorer/model.js). The same formulas exist in Python in
+[`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py) and [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), and
+[`tests/test_explorer_parity.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_explorer_parity.py) runs the JavaScript against the Python on a
 set of cases, so the two cannot drift apart unnoticed.

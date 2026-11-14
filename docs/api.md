@@ -16,3 +16,19 @@ adds its modules as it is built.
 .. automodule:: ccdsr.resolution
    :members:
 ```
+
+## Simulation level 1
+
+See the [level 1 page](level1.md) for the method and results. One dimension:
+
+```{eval-rst}
+.. automodule:: ccdsr.level1
+   :members:
+```
+
+Two dimensions:
+
+```{eval-rst}
+.. automodule:: ccdsr.level1_2d
+   :members:
+```

@@ -11,6 +11,7 @@ link here the first time they use a term that is not explained on the spot.
 | Aperture | The opening through which light is collected. A wider opening, or a wider range of angles, lets finer detail through. |
 | Approach | One complete way of building and running the instrument: a choice of light, optical parts, gap, sensor, readout, scan, exposure and reconstruction method. |
 | Artefact | A false feature in a reconstructed picture that comes from the method and not from the surface. |
+| Autofocus | Working out from the recorded data alone how the instrument's assumed path, gap or timing was wrong, and correcting it. The name comes from radar. |
 | Band (cut-off) | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. Detail beyond the cut-off does not reach the sensor. |
 | Bayer filter | The pattern of red, green and blue filters laid over the pixels of a colour sensor, one colour per pixel. |
 | Beam pair | Two beams from the same laser reaching the surface from different sides at the same time. Where they cross they form fringes. |
@@ -18,6 +19,7 @@ link here the first time they use a term that is not explained on the spot.
 | Beat (moiré) | The broad pattern that appears when two fine patterns of nearly the same spacing overlap, as with two net curtains. |
 | Benchmark | A fixed set of test scenes, conditions and scoring rules that every approach is run through, so that their results can be compared fairly. |
 | Birefringent | Said of a crystal that splits a beam of light into two slightly shifted copies. |
+| Blind speed | A scan speed at which successive frames sample the same places inside the pixel grid, so that detail finer than a pixel cannot be rebuilt. Exactly one pixel per frame is the plainest case. |
 | Blur kernel | The shape that a single point of the surface is smeared into by the time it is recorded. A wide kernel means a blurry picture. |
 | Bond wires | The fine wires around the edge of a chip that connect it to its package. They stand higher than the chip surface. |
 | Calibration | Measuring a part of the instrument, such as a mask or the light pattern, so that the reconstruction can allow for it. |
@@ -26,6 +28,7 @@ link here the first time they use a term that is not explained on the spot.
 | Collection angle | The widest angle, away from straight ahead, at which a pixel still responds to light. |
 | Collimated light | A beam whose rays are all parallel. |
 | Collimator | A plate of tubes or holes that lets through only light travelling nearly straight along them. |
+| Conjugate gradients | A standard step-by-step method for solving very large sets of linear equations without ever writing the full set down. Each step improves the answer, and it stops when the answer no longer changes. |
 | Contrast | How much brighter the bright parts of a pattern are than the dark parts. Blur lowers contrast. When it falls below the noise, the pattern is lost. |
 | Convolution | The mathematical name for smearing: every point of a picture is replaced by a copy of the blur kernel, and the copies are added up. |
 | Cramér-Rao bound | The smallest error that any method could reach when estimating a quantity from noisy data. It is worked out from how strongly the data change when the quantity changes. |
@@ -47,6 +50,7 @@ link here the first time they use a term that is not explained on the spot.
 | Footprint (patch) | The area of surface that one pixel sees, and how strongly it sees each part of it. Another name for the blur kernel seen from the pixel. |
 | Forward model | The calculation that predicts what the sensor would record for a given surface. Reconstruction runs it backwards. |
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
+| Fourier transform | A calculation that splits a picture into regular wave patterns of every size and direction, and says how much of each is present. Blur is simple to describe this way: it weakens the fine patterns. |
 | Frame | One complete readout of the sensor. |
 | Fringes | The regular bright and dark stripes formed where two coherent beams overlap. |
 | Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow, but accurate for detail smaller than the wavelength. |
@@ -64,11 +68,13 @@ link here the first time they use a term that is not explained on the spot.
 | Iteration | One round of an improve-and-check loop. Most reconstruction methods repeat such a round tens or hundreds of times. |
 | Iterative | Said of a calculation that guesses an answer, compares it with the data, improves the guess and repeats. |
 | Laser diode | A small electronic light source that gives coherent light of a single colour. |
+| Least squares | Finding the answer whose predicted measurements differ least from the real ones, judged by the sum of the squared differences. |
 | LED | A small electronic light source that gives a band of colour and is not coherent. |
 | Lensless | With no lens between the surface and the sensor. |
 | Line time | The time a sensor takes to read one row of pixels, 18.9 millionths of a second for the IMX219. |
 | Line width | The width of one line of a pattern. With lines and spaces of equal width it is half the period. |
 | Linear | Said of a model in which doubling the cause doubles the reading. Such problems can be solved in one pass. |
+| Map drift | An autofocus method: two pictures are made from two halves of the recording, and the shift between them says how wrong the assumed focus is, and in which direction. |
 | Mask (coded mask) | A layer with a fine pattern of clear and dark, or thick and thin, areas, placed in the light path so that the recorded pattern keeps fine detail. |
 | Maximum likelihood | Fitting that gives each reading the weight it deserves from the known statistics of its noise, instead of treating all readings alike. |
 | Microlens | The tiny lens built on top of each pixel of a sensor to gather light into it. |
@@ -85,6 +91,7 @@ link here the first time they use a term that is not explained on the spot.
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
 | Period | The distance over which a regular pattern repeats. Lines and spaces each 100 nm wide have a period of 200 nm. |
 | Phase | Where a wave is in its cycle. Sensors record brightness only, so phase has to be worked out by computation. |
+| Phase error | The amount by which the assumed timing of a wave is wrong, as a share of its cycle. It comes from not knowing a distance exactly. |
 | Phase recovery | Computing the lost phase of light from brightness readings taken under varied conditions. |
 | Photon noise | Noise from the fact that light arrives as separate particles (photons), so that counts vary by chance. It grows as the square root of the light. |
 | Photon transfer curve | A plot of the noise in a pixel's reading against its brightness. Its slope gives the number of electrons per count, and its floor gives the read noise. |
@@ -106,19 +113,25 @@ link here the first time they use a term that is not explained on the spot.
 | Registration | Working out how far one picture is shifted relative to another. |
 | Regularisation | Adding a mild preference, such as smoothness, so that a reconstruction does not amplify noise into false detail. |
 | Resolution | The finest detail that can be told apart. |
+| Rms (root mean square) | The usual measure of the typical size of an error or of noise: square every value, average, and take the square root. |
 | Rolling shutter | A sensor that exposes and reads its rows one after another, so each row sees a slightly later moment. |
 | Sample | One reading from one pixel at one moment. |
 | Scatterometry | Measuring the dimensions of a regular pattern that is too fine to see, by fitting a model to how it reflects light at different colours and angles. |
 | Self-calibration | Calibration done from the ordinary measurement data, with no separate test. |
 | Sensor | The camera chip: a grid of pixels that turn light into electrical readings. |
+| Sharpness (measure) | A single number that is larger for a crisp picture than for a blurred one, such as the sum of the squares of the brightness. Used to choose between trial settings. |
+| Shift and add | The simplest way to combine many frames: place every reading where its pixel was at that moment, and average the readings that land in the same place. |
+| Sidelobes | Faint false copies or halos beside each bright point of a reconstructed picture, caused by the abrupt edge of the range of detail that was recorded. |
 | Signal-to-noise | How large the wanted signal is compared with the noise. Higher is better. |
 | Sinc | The mathematical shape that describes how much of each detail size a box-shaped smear lets through. It falls steadily and touches zero at certain sizes. |
+| Sinusoid | A smooth, regular wave. A sinusoidal pattern of brightness rises and falls evenly, with no sharp edges. |
 | Sparse | Made of few, well-separated features. |
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Spectral width | The spread of wavelengths in a light source. A narrow spread means a pure colour and a long coherence length. |
 | Specular reflection | The mirror reflection of a beam: the part that leaves a surface at the same angle it arrived. |
 | Stage | Used in two senses: a step of the staged path (stage 0 to stage 4), and the moving platform that carries a sample or the sensor. |
+| Stepped frequency | Measuring distance by combining measurements at many pure tones or colours, in place of timing a short pulse. |
 | Sub-pixel | Smaller than one pixel. |
 | Super-resolution | Recovering detail finer than the pixels by combining many readings taken at slightly different positions. |
 | Synthetic aperture | A large collecting opening built up by computation from many readings taken at different positions or angles. |
