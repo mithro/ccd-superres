@@ -89,3 +89,23 @@ python docs/diagrams/make_calibration_diagrams.py
 | `calib-frc-demo` | A prior that invents detail passes a split-data test and fails against the truth | Two-dimensional toy calculation |
 | `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
 | `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
+
+## Beamforming study figures
+
+The figures on the [beamforming and array processing](research/beamforming.md)
+page come from
+[`docs/diagrams/make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py).
+It also runs the toy calculations and prints every derived number quoted on
+that page:
+
+```
+python docs/diagrams/make_beamforming_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `beam-receiver-map` | What an antenna, a bare pixel and a pixel with a reference beam each record | Illustrative |
+| `beam-array-factor` | Response of a row of pixels used as an array, for one frame and after the scan fills in positions | Scalar plane-wave formula, ideal pixels |
+| `beam-coarray` | Surface detail covered by four choices of laser beam directions | Simple band model, one dimension |
+| `beam-adaptive-demo` | Delay and sum, minimum variance and MUSIC on two close scatterers, with independent and identical shots | Random simulation, fixed seed, perfect array model |
+| `beam-selfcal-demo` | Pixel gains solved from the scan alone, for two scan patterns, and gain error against frames | Random simulation of a 12 × 12 toy sensor, fixed seeds |
