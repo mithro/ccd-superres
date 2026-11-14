@@ -1,17 +1,5 @@
 # Scanning lensless sensor super-resolution simulator: design
 
-Status: draft for review. The scan sampling calculator (section 5.4) and the
-trade-off explorer (section 5.6) are implemented, and so is the first
-simulator ([level 1](level1.md), in one and two dimensions). Levels 2 to 4
-are not.
-The stated goal is features of about 100 nm on silicon chips; section 4.6
-works out what that demands and section 4.7 sets out the stages towards a
-picture at that scale.
-Numbers marked "illustrative" come from the analytic model in section 4, not
-from simulation runs.
-
-## In plain words
-
 The idea is to take an ordinary camera chip, remove its lens, hold it just
 above a silicon chip, and slide it slowly across. Every pixel takes readings
 the whole time. Because the chip moves a tiny amount between readings, each
@@ -42,6 +30,16 @@ The main things this document establishes:
 Terms are explained where they first appear, and all of them are collected
 in the [glossary](glossary.md). Every equation is followed by what it means
 in words, so the equations can be skipped.
+
+Status: draft for review. The scan sampling calculator (section 5.4) and the
+trade-off explorer (section 5.6) are implemented, and so is the first
+simulator ([level 1](level1.md), in one and two dimensions). Levels 2 to 4
+are not.
+The stated goal is features of about 100 nm on silicon chips; section 4.6
+works out what that demands and section 4.7 sets out the stages towards a
+picture at that scale.
+Numbers marked "illustrative" come from the analytic model in section 4, not
+from simulation runs.
 
 ## 1. Purpose
 

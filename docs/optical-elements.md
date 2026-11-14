@@ -1,31 +1,5 @@
 # Filters, gratings and other optical elements
 
-Status: exploration for review. Nothing here is implemented in the simulator.
-The numbers come from the analytic model of the design document, from a small
-one-dimensional diffraction calculation in
-[`diagrams/make_optics_diagrams.py`](diagrams/make_optics_diagrams.py), and
-from the published literature. Each is labelled with which. Section 13 lists
-what these estimates leave out.
-
-Sections 2 to 8 survey the options in general. Tim has since stated the
-target: features of about 100 nm on silicon chips, with a strong preference
-for more computation over more hardware, and all processing done offline on
-powerful computers with graphics cards. The goal is to reconstruct the picture, in
-several stages if need be. Section 9 works out what that target takes, and the
-summary and the staged path in section 10 are written for it.
-
-This page answers one question: what could be added to the scanning lensless
-sensor, in the light, in the gap or on the sensor face, to improve the result?
-It is written to be read after the [design document](design.md), and section 11
-gives the parameters that would carry the recommended options into the
-simulator.
-
-## In plain words
-
-This part is written for a reader with no background in optics. The numbered
-sections after it carry the full technical detail, and each of them opens
-with a short plain-language lead.
-
 **What the project does.** A camera chip (an image sensor) has its lens taken
 off and is slid slowly, very close, over a surface. The chip takes thousands
 of pictures as it moves. Each picture is blurry, but every point on the
@@ -98,8 +72,28 @@ surface at anything close to this scale. The figures on this page are
 estimates from formulas and small calculations, not measurements. Section 13
 lists what they leave out.
 
-*Sources: this summary restates the numbered sections below, where each
+*Sources: this opening restates the numbered sections below, where each
 claim is sourced or labelled.*
+
+Status: exploration for review. Nothing here is implemented in the simulator.
+The numbers come from the analytic model of the design document, from a small
+one-dimensional diffraction calculation in
+[`diagrams/make_optics_diagrams.py`](diagrams/make_optics_diagrams.py), and
+from the published literature. Each is labelled with which. Section 13 lists
+what these estimates leave out.
+
+Sections 2 to 8 survey the options in general. Tim has since stated the
+target: features of about 100 nm on silicon chips, with a strong preference
+for more computation over more hardware, and all processing done offline on
+powerful computers with graphics cards. The goal is to reconstruct the picture, in
+several stages if need be. Section 9 works out what that target takes, and the
+summary and the staged path in section 10 are written for it.
+
+This page answers one question: what could be added to the scanning lensless
+sensor, in the light, in the gap or on the sensor face, to improve the result?
+It is written to be read after the [design document](design.md), and section 11
+gives the parameters that would carry the recommended options into the
+simulator.
 
 ## Words used on this page
 
@@ -268,10 +262,10 @@ gap.
 
 ## 2. What an added element can and cannot do
 
-*In plain words: there are only three places to put something, and four
+There are only three places to put something, and four
 facts of physics decide what it can do there. The short of it is that the
 blur happens while the light crosses the gap, so anything that helps must
-act before or during the crossing.*
+act before or during the crossing.
 
 ![Where each kind of element sits](diagrams/optics-element-positions.svg)
 
@@ -378,12 +372,12 @@ bandwidth of an LED is an **Assumption**, typical of catalogue values.*
 
 ## 3. Angle restriction: tubes and collimators
 
-*In plain words: a dark tube in front of a pixel works like blinkers, so the
+A dark tube in front of a pixel works like blinkers, so the
 pixel sees only what is straight ahead. One big tube around the whole sensor
 does not sharpen anything, because every pixel still looks out through the
 same wide opening. A separate small tube over each group of pixels does
 sharpen the picture, about ten-fold, at the price of nearly all the light.
-The wave nature of light stops the tubes being made too narrow.*
+The wave nature of light stops the tubes being made too narrow.
 
 Tim's suggestion: put the sensor at the bottom of a deep absorbing tube so
 that only light travelling nearly straight up reaches it. The idea is sound.
@@ -625,12 +619,12 @@ tube width.
 
 ## 4. Elements in the light
 
-*In plain words: this section covers changes to the lighting only. Flashing
+This section covers changes to the lighting only. Flashing
 the light freezes the motion of the scan. Using a parallel beam of one pure
 colour turns the blur into a pattern a computer can undo. Lighting in fine
 stripes or random grains lets fine detail show up as broad patterns.
 Lighting from several directions, or in several colours, fills in what one
-alone misses.*
+alone misses.
 
 ### 4.1 Pulsed and coded light
 
@@ -662,7 +656,7 @@ the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagr
 [design, section 4.8](design.md#48-motion-blur-cause-model-and-reversal). That an LED can be switched faster than 0.4 ms from an output
 pin is **Unverified** general knowledge.*
 
-In plain words: a short flash freezes motion, as a camera flash does.
+A short flash freezes motion, as a camera flash does.
 
 A step further is a coded pulse train: switch the light on and off in a known
 irregular pattern during each frame. A single long exposure erases some
@@ -680,7 +674,7 @@ of a fraction of a percent.
 
 ### 4.2 Collimated single-colour light
 
-In plain words: light a smooth surface with a tidy beam of one colour and
+Light a smooth surface with a tidy beam of one colour and
 the sensor records a pattern of ripples in place of a blur. The ripples
 contain the fine detail, and also the heights of the surface, and a
 computer can work back from them to the surface.
@@ -779,7 +773,7 @@ examples are arithmetic from the rules.*
 
 ### 4.3 Fringe and speckle lighting
 
-In plain words: light the surface with fine stripes, and detail too fine to
+Light the surface with fine stripes, and detail too fine to
 cross the gap shows up as broad bands that do cross it, in the way two
 overlapping net curtains show broad moiré bands.
 
@@ -845,7 +839,7 @@ Section 9.7 takes up speckle again for the coherent, slanted lighting of the
 
 ### 4.4 Several light angles
 
-In plain words: lighting from different directions shows different things.
+Lighting from different directions shows different things.
 On a rough surface the shadows reveal slopes. On a smooth one, each
 direction brings a different part of the fine detail within the sensor's
 reach.
@@ -865,7 +859,7 @@ model, and a list of directions for the shading model.
 
 ### 4.5 Several colours
 
-In plain words: each colour gives a different pattern of ripples from the
+Each colour gives a different pattern of ripples from the
 same surface, so several colours give several independent looks for free.
 
 Changing the colour changes the diffraction pattern without moving anything.
@@ -878,7 +872,7 @@ three colours in one frame (section 5.3).
 
 ### 4.6 Gratings and Talbot self-imaging
 
-In plain words: a grating is a plate of fine evenly spaced lines. Lit with a
+A grating is a plate of fine evenly spaced lines. Lit with a
 tidy beam, a sharp copy of its lines appears in mid-air at set distances
 behind it. That can throw a fine pattern of light onto the surface with no
 lens. It cannot carry a picture of the surface back to the sensor.
@@ -910,12 +904,12 @@ by the function `talbot_carpet` of the [diagram script](https://github.com/mithr
 
 ## 5. Elements on the sensor face
 
-*In plain words: three things can sit on the sensor itself. A cover with a
+Three things can sit on the sensor itself. A cover with a
 tiny hole over each pixel makes the pixels effectively smaller, which only
 helps if the sensor nearly touches the surface. A rough or finely patterned
 layer scrambles the light in a way that keeps fine detail, and is the basis
 of the published work closest to this project. And the colour filter already
-on the sensor can be put to use.*
+on the sensor can be put to use.
 
 ![Three things that can sit on the sensor face](diagrams/optics-sensor-face.svg)
 
@@ -1011,11 +1005,11 @@ in place.*
 
 ## 6. Elements in the gap
 
-*In plain words: four things could go between the sensor and the surface. A
+Four things could go between the sensor and the surface. A
 block of glass fibres carries the image and makes the mechanics easier but
 does not sharpen it. A part-reflecting flat plate turns height into
 brightness. A liquid shortens the light's waves, which sharpens everything a
-little. Special layered "lenses" from research are not practical here.*
+little. Special layered "lenses" from research are not practical here.
 
 ![Three things that can sit in the gap](diagrams/optics-gap-elements.svg)
 
@@ -1084,10 +1078,10 @@ entirely.
 
 ## 7. Polarisers and spectral filters
 
-*In plain words: a polariser passes only light vibrating in one direction,
+A polariser passes only light vibrating in one direction,
 as polarising sunglasses do, and a spectral filter passes only a narrow band
 of colour. Neither makes the picture sharper. Both clean up the signal that
-the other methods work with.*
+the other methods work with.
 
 Neither changes the gap law. Both improve the quality of the signal that the
 other methods work with.
@@ -1120,11 +1114,11 @@ the light.
 
 ## 8. Height
 
-*In plain words: the project also wants the height of the surface, in
+The project also wants the height of the surface, in
 nanometres. Height does not show in an ordinary picture. The methods that
 use interference turn a height change of one nanometre into a brightness
 change of about one percent, which is easily measured. Judging height from
-how blurred the picture is gives a signal thirty times weaker or worse.*
+how blurred the picture is gives a signal thirty times weaker or worse.
 
 The design document lists three ways height can reach a pixel. With the
 elements above there are six. The chart compares how much signal one nanometre
@@ -1174,14 +1168,14 @@ interference mechanisms.
 
 ## 9. The target: 100 nm features on silicon chips
 
-*In plain words: this section asks what it takes to see 100 nm features on
+This section asks what it takes to see 100 nm features on
 a silicon chip. The answer has two parts. First, light itself sets a limit
 that depends on its wavelength and on how steeply it arrives and leaves:
 violet laser light gets close to 100 nm, and ultraviolet light or water in
 the gap gets there. Second, the sensor's pixels are much wider than the
 detail, so the detail has to be turned into broad patterns before the pixels
 can read it. A good deal can also be measured about 100 nm features without
-making a picture of them.*
+making a picture of them.
 
 Tim's target is features of about 100 nm on silicon chips. This section takes
 "100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
@@ -1312,7 +1306,7 @@ transparent samples. The only lensless result in reflection found is 2 µm
 
 ### 9.3 What the pixels can actually see
 
-In plain words: a pixel adds up all the light that falls on it. Stripes much
+A pixel adds up all the light that falls on it. Stripes much
 narrower than the pixel average out to an even grey, so the pixel cannot
 tell they are there. Three ways round this are given below.
 
@@ -1485,7 +1479,7 @@ The method is the same as proposed here. Only the wavelength differs.
 
 ### 9.5 Measuring 100 nm features without resolving them
 
-In plain words: a star is far too small for a telescope to show its shape,
+A star is far too small for a telescope to show its shape,
 yet it is easy to see that it is there, exactly where it is, and how bright
 it is. In the same way a 100 nm feature can be found, located and measured
 without a picture that shows its shape.
@@ -1556,7 +1550,7 @@ Three practical points apply to all of these:
 
 ### 9.7 Randomness as a tool
 
-In plain words: a rough, random part costs almost nothing to make, because
+A rough, random part costs almost nothing to make, because
 it needs no precision. The computer can work out what the part is from the
 data, as long as the part stays the same from one frame to the next. So
 randomness is a way to buy with computation what would otherwise need
@@ -1641,10 +1635,10 @@ quoted for each stage.
 
 ## 10. Recommendation: a staged path, the current leading candidate
 
-*In plain words: the first table compares every option on this page. After
+The first table compares every option on this page. After
 it comes the recommended path for 100 nm features on silicon chips, in five
 stages numbered 0 to 4. Each stage gives a useful result and prepares the
-next. All of it is done in simulation first.*
+next. All of it is done in simulation first.
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -1837,9 +1831,9 @@ matt surfaces.
 
 ## 11. Parameters for the simulator
 
-*In plain words: this section is for whoever writes the simulation program.
+This section is for whoever writes the simulation program.
 It lists the settings the program would need so that every option on this
-page can be switched on and tried.*
+page can be switched on and tried.
 
 Proposed additions to the design's configuration, so the recommended options
 become settings and not separate programs. Names are suggestions.
@@ -1907,10 +1901,10 @@ the light lost feeding the signal-to-noise control.
 
 ## 12. Getting light in, and the questions that decide the choice
 
-*In plain words: the sensor sits over the surface like a lid, so getting
+The sensor sits over the surface like a lid, so getting
 light underneath it is a problem in itself. There are four ways to do it,
 and each suits different methods. The section ends with the questions whose
-answers would settle the remaining choices.*
+answers would settle the remaining choices.
 
 With an opaque surface and a sensor covering it, the light has few ways in.
 The choice of method and the choice of lighting constrain each other.
@@ -1959,10 +1953,10 @@ starts.
 
 ## 13. Limits of these estimates
 
-*In plain words: the numbers on this page come from simplified formulas and
+The numbers on this page come from simplified formulas and
 small calculations, not from measurements. This section lists what was
 simplified or assumed, so that no figure is trusted further than it should
-be.*
+be.
 
 - The tube diffraction calculation is one-dimensional (a slit, not a square
   or round bore), assumes small angles, and treats the walls as perfect

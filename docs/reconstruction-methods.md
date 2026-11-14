@@ -1,28 +1,5 @@
 # Reconstruction methods from radar, astronomy and other imaging fields
 
-Status: research survey for review. Nothing here is implemented in the
-simulator. Every number is either cited to a source or labelled as worked
-out in this project, as explained under
-[How claims are marked](#how-claims-are-marked). Section 10 lists what the
-estimates leave out.
-
-This page answers one question: which reconstruction ideas from radar, sonar,
-radio astronomy, satellite imaging, tomography, ptychography, seismic imaging
-and compressed sensing could be applied to the scanning lensless sensor, and
-how far could they take it towards 100 nm features on silicon chips? It is
-written to be read after the [design document](design.md) and the page on
-[optical elements](optical-elements.md). Section 7 gives a ranked shortlist,
-a staged reconstruction plan, and says how each item would appear in the
-simulator and the reconstruction.
-
-Three directions from Tim shape the page. The goal is to reconstruct a
-picture of an unknown layout, and that may be done in several stages (section
-7.2). Deliberately introducing randomness, and modelling the randomness that
-is already there, is in scope (section 3.12). And the two-dimensional nature
-of the sensor should be used to get more detail (section 3.13).
-
-## In plain words
-
 The instrument is a camera chip with its lens taken off, slid slowly across
 the surface of a silicon chip while it takes thousands of pictures. With no
 lens, each picture is a blur. The plan is for a computer to combine the
@@ -70,7 +47,28 @@ The answers, in order of importance:
 
 The rest of the page gives the evidence for each of these, field by field,
 with the technical detail kept. Technical terms are explained where they
-first appear and collected in the next section.
+first appear and collected under "Terms used on this page" below.
+
+Status: research survey for review. Nothing here is implemented in the
+simulator. Every number is either cited to a source or labelled as worked
+out in this project, as explained under
+[How claims are marked](#how-claims-are-marked). Section 10 lists what the
+estimates leave out.
+
+This page answers one question: which reconstruction ideas from radar, sonar,
+radio astronomy, satellite imaging, tomography, ptychography, seismic imaging
+and compressed sensing could be applied to the scanning lensless sensor, and
+how far could they take it towards 100 nm features on silicon chips? It is
+written to be read after the [design document](design.md) and the page on
+[optical elements](optical-elements.md). Section 7 gives a ranked shortlist,
+a staged reconstruction plan, and says how each item would appear in the
+simulator and the reconstruction.
+
+Three directions from Tim shape the page. The goal is to reconstruct a
+picture of an unknown layout, and that may be done in several stages (section
+7.2). Deliberately introducing randomness, and modelling the randomness that
+is already there, is in scope (section 3.12). And the two-dimensional nature
+of the sensor should be used to get more detail (section 3.13).
 
 ## Terms used on this page
 

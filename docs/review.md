@@ -88,7 +88,7 @@ is the one worth knowing about.
 | 6 | [Diagrams page](diagrams.md) | Gap | The page said all figures come from one script and did not list the twenty optical elements figures. | Section added, wording corrected. |
 | 7 | [Reconstruction methods 2.1](reconstruction-methods.md), and the label of one bar in its ladder figure | Gap | "Resolved 225 nm lines with 1.12 µm pixels" cites a paper whose abstract confirms the line width, the light source and the threefold gain, but not the pixel size. | The pixel size is labelled Unverified in the text. The figure label is unchanged and still to be checked against the full paper. |
 | 8 | [Reconstruction methods 7.2](reconstruction-methods.md) | Inconsistent | Its stages 0 to 5 are steps of the calculation and do not match the instrument stages 0 to 4 of the design, and nothing said so. | A note now maps one numbering onto the other. |
-| 9 | All reviewed pages | Gap | Files were named as bare paths and not linked. Pages carried separate "In plain words" sections, which Tim has since asked to be folded into the main text. | Being done in two follow-up pull requests. This row is updated when they merge. |
+| 9 | All reviewed pages | Gap | Files were named as bare paths and not linked. Pages carried separate "In plain words" sections, which Tim has since asked to be folded into the main text ("Don't write 'In plain words' sections, just write the text in plain words from the beginning"). | Every bare path to an existing file is now a link ([pull request 27](https://github.com/mithro/ccd-superres/pull/27)). On the design, simulation chain, optical elements, reconstruction methods, calibration and test, and references pages the plain text now opens the page with no separate heading, and the 21 section leads on the optical elements page lost their label and are the first paragraph of their section. The plan page and level 1 are done by their own thread. |
 
 ### Smaller observations, not changed
 
@@ -108,6 +108,7 @@ is the one worth knowing about.
 | Full texts of any paper | Only abstracts were available. | Figures taken from a paper's body, not its abstract, rest on the author's reading. |
 | The reference list of reconstruction methods from entry M19 on | Time. | Entries may have errors of form. |
 | The explorer's JavaScript, the figure scripts and the tests, line by line | Time. They were checked through their outputs: the parity test, the recomputed tables and the figures viewed. | A fault that does not show in those outputs would not have been found. |
+| A sentence-by-sentence plain-English pass of the technical sections | Time. The openings and section leads are plain. Dense passages remain, and the [plan](plan.md#state-of-each-page) already lists design sections 3.2, 5.3 and 6.3 and the simulation chain tables as still to be gone through. | A non-expert will still find parts of the design and the reference tables hard going. |
 | 59 of the 69 figures against their text | Time. All 69 load on the site; 10 were compared with their captions and numbers. | A figure could disagree with its text unnoticed. |
 
 These are the first items for the next review.
