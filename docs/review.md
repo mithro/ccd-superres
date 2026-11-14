@@ -373,3 +373,35 @@ it cites.
 
 *Table: findings of review 6. Not checked: the studies' own derivations,
 scripts and references.*
+
+## Review 7: approach files and the comparison runner
+
+The [comparison page](comparison.md), the code behind it
+([`ccdsr/approaches.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/approaches.py),
+[`ccdsr/compare.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/compare.py)),
+its tests, the 13 approach files and the committed results were reviewed on
+14 November 2026, before merging. The reviewer was given the code and pages
+and not the author's conclusions, reran the comparison, and changed the code
+on purpose in 16 small ways to see whether the tests would notice.
+
+It confirmed that no reconstruction can see the truth, that the light
+collected scales with the pixel opening, that all approaches start from the
+same readings count, start position and motion errors, and that every number
+in the findings table matched the result tables.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | "A fast scan loses nothing" was an effect of the simulated surface repeating: the fast scan passed over the same strip six times and so took as many readings of it as the slow scan. | The fast scans now cover the same strip once, with a sixth of the readings. The finding is restated, and the repeating surface is listed as a caution and a limit. |
+| 2 | Error | "Position solving repairs it fully" hid runs that failed outright behind a good median (3 of 10 on one scene). | The worst run and the count of lost runs are tabled beside every median, and the finding is reworded. |
+| 3 | Error | Four of the six headline findings were stated more broadly than the tables supported. | All six rewritten against the tables, with the exceptions stated. |
+| 4 | Error | The "finest bar period" measure rewarded noise: a noisy picture could score better than a clean one. | The measure now checks that the bars are in the right place and not stronger than one and a half times the truth, and prints "none" when nothing passes. |
+| 5 | Gap | "Wrong material" was near 5 % for an all-dark answer on a scene that is 5 % bright. | Now averaged over the two materials, so an all-dark answer scores 50 %. |
+| 6 | Gap | The page did not say that the reconstruction is given the exact blur, light level and noise sizes, or that a position readout is exact. | Said under the fairness rules and in the table of limits. |
+| 7 | Gap | The recorded code version was the commit before the code existed; computing times made the tables differ on every run. | The comparison is rerun from committed code, the version is marked if code or inputs had uncommitted changes, and times are kept in a separate file. |
+| 8 | Gap | 10 of 16 deliberate code changes survived the tests. | Tests added for alignment, seeds, options, pooled runs, summaries, table text and rounding. |
+| 9 | Minor | Terms unexplained (TOML, seed), mixed units in one column, Python 3.11 now needed. | Fixed on the page. |
+
+*Table: findings of review 7. Not checked by the reviewer: the rendered
+page, link targets and the internals of the reconstructions, which review 5
+covered. The corrections were checked by the tests and by rerunning the
+comparison, not by a further reviewer.*
