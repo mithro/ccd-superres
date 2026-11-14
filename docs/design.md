@@ -1361,6 +1361,7 @@ ccdsr/                    the package, one file per module above
   resolution.py           analytic resolution model (implemented)
 explorer/                 trade-off explorer web page (implemented)
 approaches/               one file per named approach (section 7.1)
+data/                     collected data, each item with its source and licence
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study
 results/                  committed figures, summary tables and approach comparisons
