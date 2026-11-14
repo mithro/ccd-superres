@@ -20,13 +20,103 @@ It is written to be read after the [design document](design.md), and section 11
 gives the parameters that would carry the recommended options into the
 simulator.
 
+## In plain words
+
+This part is written for a reader with no background in optics. The numbered
+sections after it carry the full technical detail, and each of them opens
+with a short plain-language lead.
+
+**What the project does.** A camera chip (an image sensor) has its lens taken
+off and is slid slowly, very close, over a surface. The chip takes thousands
+of pictures as it moves. Each picture is blurry, but every point on the
+surface is seen many times from slightly different positions, and a computer
+combines all of those readings into one picture that is much sharper than
+any single one. The aim is to see features about 100 nanometres wide on
+silicon chips. A nanometre (nm) is a millionth of a millimetre, so 100 nm is
+roughly a thousandth of the width of a human hair.
+
+**The question on this page.** What could be added to that arrangement to
+make the final picture sharper? The additions considered are of three kinds:
+special lighting, something placed in the space between the sensor and the
+surface, and a layer placed on the sensor itself.
+
+**Why sharpness is hard to get.** With no lens, light leaving one point of
+the surface spreads out before it reaches the sensor, the way the glow of a
+torch spreads on a wall when the torch is held further back. The space the
+light has to cross is called the gap. The bigger the gap, the wider the
+glow, and the blurrier the result. With ordinary lighting, the finest detail
+that can be recovered is about three quarters of the gap, however clever the
+computing.
+
+**The three ways to fight the spreading.**
+
+1. *Narrow each pixel's view.* A pixel is one light-sensing square on the
+   sensor. Put each small group of pixels at the bottom of a tiny dark tube,
+   like blinkers on a horse, and it sees only what is straight ahead. This
+   helps about ten-fold, throws away almost all the light, and works for
+   matt surfaces such as paper. It is not nearly fine enough for chips.
+2. *Use the fact that light is a wave.* Laser light is a single pure colour
+   whose waves all march in step. When such light bounces off a smooth
+   surface, the detail is not lost as the light spreads. It is scrambled
+   into a pattern of ripples, and a computer can unscramble it. The gap then
+   hardly matters. What limits the sharpness is the wavelength, the length
+   of one wave of the light, which is about half a thousandth of a
+   millimetre for visible light.
+3. *Get extremely close.* Closer than one wavelength, detail finer than the
+   wavelength can be picked up. Holding a gap that small over a whole chip
+   is not practical.
+
+**What this means for 100 nm features on silicon chips.** Only the second
+way is fine enough, and it has to be pushed hard. The light must be violet
+laser light, of the kind used in Blu-ray players, arriving at a steep slant
+from several sides. In theory that reaches lines about 110 to 145 nm wide.
+Getting to 100 nm needs ultraviolet light, or a drop of water in the gap,
+which shortens the light's waves.
+
+**A second obstacle, and a way round it.** Each pixel of the sensor is about
+eleven times wider than a 100 nm line, so it cannot see such lines directly.
+The way round is the effect seen when two fine net curtains overlap and
+broad bands appear (a moiré pattern). If the chip is lit with very fine
+stripes of light, the fine detail of the chip and the fine stripes together
+make broad patterns, and the pixels can read those. Whether this works well
+enough with this sensor is the biggest unknown on the page.
+
+**What is recommended.** A path in five stages, numbered 0 to 4, from a
+coarse picture to a true picture at about 100 nm. All of it is tried in
+computer simulation first, and nothing is built until the simulations show
+it works. It is the leading candidate, not a final choice, and other
+approaches are compared against it.
+
+**Rough parts can beat precise parts.** Several useful additions are random
+by nature: a piece of frosted glass in the laser beam, a rough layer on the
+sensor, irregular timing of the light flashes. They are cheap because they
+need no precision. The computer works out what they are from the data. This
+suits the project's rule of spending computation instead of hardware.
+
+**What is not known.** Nobody has published a lensless picture of an opaque
+surface at anything close to this scale. The figures on this page are
+estimates from formulas and small calculations, not measurements. Section 13
+lists what they leave out.
+
+## Words used on this page
+
+Each technical term is explained in the text where it first matters. All of
+them are also in the shared [glossary](glossary.md), which is the place to
+look a word up. Two points of usage on this page: a number in square
+brackets, such as [O7], is a source in the reference list of section 14, and
+"stage" is used both for a step of the recommended path (stage 0 to stage 4)
+and for the moving platform that carries a sample.
+
 ## 1. Summary
 
-The design document found that with diffuse light and open pixels, the gap
-between sensor and surface sets the resolution: the smallest recoverable
-feature period is about 0.75 times the gap, and more samples help only
-logarithmically. Every candidate below is judged on whether it changes that
-law, and what it costs.
+The design document found that with diffuse light (light going in all
+directions) and open pixels (pixels with nothing in front of them), the gap
+between sensor and surface sets the resolution. The smallest feature period
+that can be recovered is about 0.75 times the gap, where the period is the
+distance from one line to the next. More samples help very little: a
+thousand times more readings improve the figure by only a modest fixed
+amount (the gain is logarithmic). Every candidate below is judged on whether
+it changes that law, and what it costs.
 
 The candidates fall into four families, and the family decides the result more
 than the particular element does:
@@ -34,18 +124,35 @@ than the particular element does:
 | Family | Examples | Smallest feature period | What the gap does |
 |---|---|---|---|
 | Nothing added | Open pixels, diffuse light | About 0.75 × gap | Sets the resolution |
-| Angle restriction | One tube per pixel, collimator plates, pinholes, shadow masks | About √(wavelength × gap) | Still matters, but as a square root |
-| Interference | Collimated single-colour light with phase recovery, fringe or speckle lighting, fine coded masks and diffusers | About one wavelength, 0.5 µm | Almost nothing |
-| Near field | Sub-pixel openings, sample in contact | Below a wavelength | Must be far smaller than a wavelength |
+| Angle restriction: each pixel sees only light from nearly straight ahead | One tube per pixel, collimator plates (plates full of fine tubes), pinholes, shadow masks | About √(wavelength × gap): multiply the wavelength by the gap and take the square root. For green light and a 0.1 mm gap that is about 7 µm. | Still matters, but much less. A gap 100 times bigger costs 10 times in sharpness, not 100. |
+| Interference: light waves kept in step, so detail is scrambled and not lost | A parallel beam of one colour with computed unscrambling (phase recovery), lighting in fine stripes (fringes) or random grains (speckle), fine patterned or frosted layers on the sensor (coded masks, diffusers) | About one wavelength, 0.5 µm | Almost nothing |
+| Near field: sensor almost touching the surface | Openings smaller than a pixel, sample in contact | Below a wavelength | Must be far smaller than a wavelength |
 
 ![Smallest feature period against gap for each family](diagrams/optics-resolution-vs-gap.svg)
+
+*Figure: the finest detail each family can recover, for green light. Across
+the bottom is the gap between sensor and surface, and up the side is the
+smallest feature period that can be recovered. Lower is sharper. Both scales
+are in micrometres and each step is a factor of ten. The dark line is the
+plain arrangement, which gets worse in direct proportion to the gap. The
+blue band is angle restriction, which gets worse more slowly. The green band
+is the interference family, which stays near one wavelength whatever the
+gap. The pink corner is the near field, reachable only with a gap far below
+a wavelength. The two dashed lines mark the gaps that are practical: about
+3 µm with the bare chip held close, and about 500 µm with its cover glass
+left on.*
 
 ### For the stated target: 100 nm features on silicon chips
 
 A silicon chip is smooth, mirror-like and patterned, so it belongs to the
 interference family, and tubes drop out (they suit matt surfaces and reach
 micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
-"about one wavelength". Section 9 gives the details. The short version:
+"about one wavelength". Section 9 gives the details. The short version
+follows. Two words in it need explaining. Ptychography is a method in which
+the object is moved under laser-like light, many overlapping views are
+recorded, and a computer finds the single sharp picture that explains them
+all. A beam pair is two beams from the same laser arriving from different
+sides at once, which makes fine stripes of light where they cross.
 
 - **The gap stops being the hard part.** With interference methods a gap of
   about a millimetre is fine. Wavelength and the angles of the light take its
@@ -53,23 +160,27 @@ micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
 - **Resolving 100 nm lines and spaces needs slanted light and a short
   wavelength.** With a 405 nm laser diode and steeply slanted light the limit
   is about 110 to 145 nm lines. Reaching 100 nm needs ultraviolet light of
-  about 365 nm or shorter, or water in the gap. Neither has been demonstrated
-  with a lensless sensor looking at an opaque surface.
+  about 365 nm or shorter, or water in the gap (light has a shorter
+  wavelength in water). Neither has been demonstrated with a lensless sensor
+  looking at an opaque surface.
 - **The pixels are five times wider than the detail**, and may not be able to
   read it directly. Lighting with pairs of beams from one laser turns fine
-  detail into coarse patterns the pixels can read. How the pixels respond to
-  fine fringes is the main unknown. It is carried through the simulations as
+  detail into coarse patterns the pixels can read, as overlapping net
+  curtains show broad bands. How the pixels respond to fine fringes (stripes
+  of light) is the main unknown. It is carried through the simulations as
   an uncertain range, and measured first when hardware is built (section 9.3).
 - **Much can be measured at 100 nm before it can be imaged**: finding and
   locating isolated features, measuring the line width of regular arrays from
-  colour and polarisation, and fitting structure that obeys chip layout
-  rules. These need no extra hardware, only computation, and they prepare the
+  how they reflect different colours and polarisations of light, and fitting
+  structure that obeys chip layout rules. These need no extra hardware, only computation, and they prepare the
   ground for true imaging.
 - **The hardware would stay simple until the last stage.** A laser diode or
   three, switched in pulses, and the sensor as sold. None of it is built
   until the simulations show a method works.
-- **Randomness is used, not fought.** Irregular pulse timing, speckle
-  lighting, a random scattering layer and noise-aware fitting all swap
+- **Randomness is used, not fought.** Irregular timing of the light flashes,
+  speckle lighting (the grainy pattern a laser makes through frosted glass),
+  a rough scattering layer on the sensor, and calculations that allow for
+  the noise in the readings all swap
   precise hardware for computation. They help reach the limits above. They
   do not move them (section 9.7).
 
@@ -86,9 +197,9 @@ the path.
 | Stage | What | Hardware | Result |
 |---|---|---|---|
 | 0 | How the pixels respond to fine fringes and to angle. In simulation this is an uncertain range swept in every run. It is measured on the real sensor only when hardware starts. | One laser diode and a mirror | The two unknowns everything depends on |
-| 1 | A coarse picture at micrometre scale from the linear reconstruction of the design document | A scan and simple lighting | Frame positions, pixel gains and a map of the chip |
-| 2 | Pulsed, slanted 405 nm light in beam pairs, several colours, ptychographic reconstruction that solves for positions | A few laser diodes | A true picture down to about 150 to 200 nm lines, with height |
-| 3 | Detect, locate and fit known structure in the same data | None | A partly inferred picture at about 100 nm, labelled as such, and a starting estimate for stage 4 |
+| 1 | A coarse picture at micrometre scale from the one-pass (linear) reconstruction of the design document | A scan and simple lighting | Frame positions, pixel gains and a map of the chip |
+| 2 | Flashes of slanted violet (405 nm) laser light in beam pairs, several colours, and a ptychographic reconstruction that also works out where the sensor was for each frame | A few laser diodes | A true picture down to about 150 to 200 nm lines, with height |
+| 3 | Detect, locate and fit known structure in the same data: find features and measure them by assuming the kind of pattern chips have | None | A partly inferred picture at about 100 nm, labelled as such, and a starting estimate for stage 4 |
 | 4 | Near ultraviolet light or water in the gap, same reconstruction | The heaviest hardware of the path | A true picture at about 100 nm lines |
 
 The stage numbers match
@@ -98,11 +209,22 @@ that breaks them, so a true picture at 100 nm needs the shorter wavelength.
 
 Not recommended for this target: tubes and collimator arrays, one tube around
 the sensor as a way to sharpen the image, sub-pixel openings, near-field gaps,
-and Talbot self-imaging as a way to carry the image across the gap.
+and Talbot self-imaging (section 4.6) as a way to carry the image across the
+gap.
 
 ## 2. What an added element can and cannot do
 
+*In plain words: there are only three places to put something, and four
+facts of physics decide what it can do there. The short of it is that the
+blur happens while the light crosses the gap, so anything that helps must
+act before or during the crossing.*
+
 ![Where each kind of element sits](diagrams/optics-element-positions.svg)
+
+*Figure: a side view of the arrangement, with the surface below and the
+sensor above it. The three places an added element can sit are marked: in
+the light on its way to the surface, in the gap between surface and sensor,
+and on the face of the sensor. Examples of each kind are labelled.*
 
 An element can sit in three places: in the light before it reaches the
 surface, in the gap, or on the sensor face. Four physical facts govern what
@@ -120,26 +242,27 @@ seeing the whole spot, or put fine structure into what each pixel sees.
 **Restricting angles replaces the gap with the square root of the gap.** If a
 pixel accepts light only from near straight ahead, it sees a small patch
 instead of the whole spot. A narrower angle gives a smaller patch, but light
-passing through a narrow opening spreads by diffraction, by an angle of about
-wavelength divided by opening width. The two effects balance when the patch is
+passing through a narrow opening spreads out again (this is diffraction), by
+an angle of about wavelength divided by opening width. An opening ten
+wavelengths wide spreads the light by about a tenth of a radian, or 6°. The two effects balance when the patch is
 about √(wavelength × gap) across. No arrangement of tubes, pinholes or shadows
 that treats each opening separately does better than this, whatever its
 details. At a 100 µm gap and green light that is about 7 µm instead of 75 µm.
 Close to the surface the benefit vanishes: at a gap of 1 µm both laws give
 about 0.7 µm.
 
-**Interference removes the gap from the resolution.** Light waves that keep a
-fixed phase relation cross the gap without losing fine detail. The detail is
-scrambled into a diffraction pattern rather than attenuated, and it can be
-unscrambled by computation. The limit becomes the wavelength and the range of
+**Interference removes the gap from the resolution.** Light waves that stay
+in step with each other (coherent light) cross the gap without losing fine
+detail. The detail is scrambled into a pattern of ripples (a diffraction
+pattern) and not weakened, and it can be unscrambled by computation. The limit becomes the wavelength and the range of
 angles collected. This needs either lighting that is coherent, or an element
 that makes the light from each surface point interfere with itself (a fine
 mask or diffuser). Published lensless microscopes built this way resolve
 225 nm lines [O7] and about 250 nm [O6] using ordinary image sensor chips.
 
 **Below a wavelength only closeness works.** Detail finer than about half a
-wavelength does not travel at all. It stays within a fraction of a wavelength
-of the surface. Reaching it means a gap of tens of nanometres, as the design
+wavelength does not travel at all. Its trace in the light dies away within a
+fraction of a wavelength of the surface, a region called the near field. Reaching it means a gap of tens of nanometres, as the design
 document already concluded.
 
 Putting numbers on the three families, for green light (0.5 µm). The first two
@@ -151,11 +274,27 @@ rows are formulas, the third is the range reported in the literature:
 | Angle restriction (1 to 2 × √(wavelength × gap)) | 1.2 to 2.4 µm | 2.2 to 4.5 µm | 3.9 to 7.7 µm | 7 to 14 µm | 16 to 32 µm |
 | Interference methods | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm |
 
-The same comparison as transfer curves at one gap. Reading the chart as in the
-design document: a method passes a feature size if its curve is above the
-noise floor there.
+The same comparison as transfer curves at one gap. A transfer curve shows,
+for each feature size, what fraction of its contrast (the difference between
+its bright and dark parts) survives the trip to the pixel. Reading the chart
+as in the design document: a method passes a feature size if its curve is
+above the noise floor there, the level below which a signal is lost in the
+random error of the readings.
 
 ![Contrast passed across a 30 µm gap by each method](diagrams/optics-transfer-functions.svg)
+
+*Figure: how much contrast each method passes across a 30 µm gap. Across the
+bottom is the feature period on the surface in micrometres, finer to the
+left. Up the side is the fraction of contrast that reaches the pixel, where
+1 is all of it, and each step is a factor of ten. The dotted horizontal line
+is an illustrative noise floor of one part in a thousand, and a method can
+recover a feature size only where its curve is above that line. The grey
+curve is the plain arrangement, which fails below a period of about 23 µm.
+The blue curve is a tube over each group of pixels, good down to about
+2.7 µm. The thin green curve is a parallel beam of one colour. It swings up
+and down, and the dashed green curve shows what is reached when several gaps
+or colours are combined, good down to about 0.7 µm. The orange spike is
+lighting in 3 µm stripes, which passes only features near 3 µm.*
 
 At a 30 µm gap the open pixel reaches the illustrative floor at a period of
 23 µm, a 5.6 µm tube at 2.7 µm, and single-colour collimated light at 0.7 µm
@@ -164,11 +303,25 @@ LED with 20 nm bandwidth).
 
 ## 3. Angle restriction: tubes and collimators
 
+*In plain words: a dark tube in front of a pixel works like blinkers, so the
+pixel sees only what is straight ahead. One big tube around the whole sensor
+does not sharpen anything, because every pixel still looks out through the
+same wide opening. A separate small tube over each group of pixels does
+sharpen the picture, about ten-fold, at the price of nearly all the light.
+The wave nature of light stops the tubes being made too narrow.*
+
 Tim's suggestion: put the sensor at the bottom of a deep absorbing tube so
 that only light travelling nearly straight up reaches it. The idea is sound.
 Whether it works depends entirely on whether there is one tube or many.
 
 ![One tube around the sensor compared with one tube per pixel](diagrams/optics-tube-geometry.svg)
+
+*Figure: two side views. On the left, one tube surrounds the whole sensor.
+Every pixel looks out through the full width of the tube, so every pixel
+sees a patch of surface as wide as the tube, and the picture is not
+sharpened. On the right, each pixel has its own narrow tube, so each sees
+only the small patch directly opposite it. W or w is the width of a tube,
+L its depth, and z the distance from the mouth of the tube to the surface.*
 
 ### 3.1 One tube around the whole sensor
 
@@ -179,7 +332,13 @@ about as wide as the tube:
 
     patch width ≈ W · (1 + z / L)
 
-For a tube that fits around the IMX219 that is at least 3.7 mm. Two pixels at
+In words: the patch is as wide as the tube, plus a little more that grows
+with the distance `z` from the mouth of the tube to the surface. A tube held
+its own depth away from the surface sees a patch twice its width. The patch
+is never narrower than the tube.
+
+For a tube that fits around the IMX219 sensor that is at least 3.7 mm, the
+width of the sensor. Two pixels at
 opposite ends of the sensor see almost the same patch. The angle of the light
 has been restricted, but not where it comes from, and the sensor has also been
 moved a distance `L` away from the surface. For resolving surface detail with
@@ -191,8 +350,9 @@ A single tube is still worth having for two other jobs:
   the area of interest off the sensor. Every arrangement in this document
   benefits.
 - **Pinhole camera.** If the mouth is closed down to one small hole, the tube
-  becomes a pinhole camera that projects a magnified image of a small area
-  onto the sensor. The best hole is about √(wavelength × gap) across, the
+  becomes a pinhole camera, the simplest camera there is: a dark box with a
+  small hole, which projects a magnified image of a small area onto the
+  sensor. The best hole is about √(wavelength × gap) across, the
   resolution is the same square-root law as above, the field of view is tiny
   and almost all the light is lost. It is a possible bench experiment, not an
   instrument.
@@ -211,15 +371,29 @@ each side:
 | Transfer function | `sinc(w(1 + z/L) f) · sinc((w z / L) f)` | A box convolved with a box |
 | Light kept, relative to an open pixel | About `(w / L)² / π` | Diffuse surface, square tube |
 
+In words, row by row. The largest accepted angle is set by the shape of the
+tube alone: a tube ten times deeper than it is wide accepts light within
+about 6° of straight ahead. The patch is the tube width plus a little more
+that grows with the gap. The transfer function says how the contrast of
+finer and finer detail falls away: gradually, reaching zero where the
+feature period equals the patch width (`sinc` is the name of the curve that
+describes this, and `f` is the fineness of the detail, the number of periods
+per unit length). The light kept falls with the square of the tube's shape:
+a tube ten times deeper than wide keeps about 0.3 percent, and one twice as
+deep again keeps a quarter of that.
+
 Two consequences matter more than the patch width itself:
 
 - **The gap that counts is now from the tube mouth, not from the sensor.** The
-  tube plate has a flat face that can be larger than the die and can stand
-  proud of the bond wires. It turns the unreachable micrometre gap to the die
+  tube plate has a flat face that can be larger than the die (the bare
+  silicon chip of the sensor) and can stand proud of the bond wires (the
+  fine wires around the edge of the die that connect it). It turns the unreachable micrometre gap to the die
   into a reachable gap to a plate.
-- **The loss of fine detail changes from exponential to gradual.** A patch
-  with definite edges has a transfer function that falls off slowly, like the
-  pixel area in the design document. That is the kind of loss that averaging
+- **The loss of fine detail changes from exponential to gradual.** With open
+  pixels, each halving of the feature size cuts the signal by a large factor
+  again and again, so it is soon beyond recovery. A patch with definite edges
+  has a transfer function that falls off slowly, like the pixel area in the
+  design document. That is the kind of loss that averaging
   thousands of samples can undo, so the huge sample count becomes useful
   again.
 
@@ -227,7 +401,9 @@ Diffraction sets the limits. A tube narrower than about √(wavelength × L)
 stops behaving as a tube: light spreads across it faster than the walls can
 select it. So the narrowest angle a tube of width `w` can enforce is about
 `wavelength / w`, and making it deeper than `w² / wavelength` only loses
-light.
+light. For example, a tube 5 µm wide in green light (0.5 µm) cannot select
+angles narrower than about a tenth of a radian (6°), and there is no point
+making it deeper than 50 µm.
 
 | Depth divided by width | Largest accepted angle | Light kept | Signal-to-noise per sample | Narrowest tube that can use this ratio |
 |---|---|---|---|---|
@@ -237,17 +413,33 @@ light.
 | 30 | 1.9° | 0.035 % | 0.019 | 15 µm |
 | 100 | 0.57° | 0.0032 % | 0.0056 | 50 µm |
 
-Light kept is the exact view factor between the two ends of a square tube.
-Signal-to-noise assumes photon noise dominates, so it falls as the square root
-of the light. The last column is `wavelength × (L / w)` for green light.
+Light kept is the exact geometric fraction of the light entering one end of
+a square tube that reaches the other end directly (the "view factor").
+Signal-to-noise is the wanted signal divided by the random error. It assumes
+photon noise dominates, the chance variation in the number of light
+particles counted, so it falls as the square root of the light. The last column is `wavelength × (L / w)` for green light.
 
 The table shows why one tube per native pixel is not the answer for this
 sensor. A 1.12 µm tube can be at most about 2.5 µm deep before diffraction
 takes over, which gives an acceptance of about 24°. That is roughly what the
-existing microlenses already do. The useful design is a tube several
+existing microlenses (the tiny lens on each pixel) already do. The useful design is a tube several
 micrometres wide over a group of pixels.
 
 ![Patch shape, best tube width and light lost](diagrams/optics-tube-numbers.svg)
+
+*Figure: three charts about tubes. Left: the patch of surface that one pixel
+sees at a gap of 100 µm, as response (up) against position on the surface in
+micrometres (across). Without a tube (grey) the patch is more than 100 µm
+wide. With a tube 10 µm wide (blue) or 30 µm wide (orange), each 1 mm deep,
+it is a narrow spike. Middle: the width of the patch that gives half the
+signal (up, in micrometres, lower is sharper) against the width of the tube
+(across), for gaps of 10, 30 and 100 µm. Each curve has a lowest point,
+marked with a dot, which is the best tube width for that gap. Narrower tubes
+do worse because the light spreads by diffraction. The dashed lines show the
+same measure for a pixel with no tube. Right: the price. The fraction of
+light kept (blue) and the signal-to-noise ratio of one reading (orange),
+both compared with a pixel with no tube, against how many times deeper the
+tube is than it is wide.*
 
 The middle panel comes from the diffraction calculation. For each gap there is
 a best tube width, about 1.3 × √(wavelength × gap):
@@ -261,7 +453,8 @@ a best tube width, about 1.3 × √(wavelength × gap):
 The patch is 10 to 30 times narrower than for an open pixel. In terms of the
 smallest period above the noise floor the gain at 30 µm is about 9 times
 (23 µm to 2.7 µm). The transfer curve of a tube also has a hard cut-off, at a
-period of `wavelength × z / w`, below which nothing passes. A wider tube moves
+period of `wavelength × z / w`, below which nothing passes. For green light,
+a 30 µm gap and a 5 µm tube, that is 3 µm. A wider tube moves
 that cut-off to finer detail but lowers the contrast above it, so the best
 width for reconstruction is somewhat wider than the best width for a narrow
 patch. Finding it is a job for the simulator.
@@ -278,8 +471,9 @@ independent channel per tube, not per pixel.
   An LED can usually be driven a hundred times harder than a bare sensor
   needs, so this is affordable, but it works against the short light pulses of
   section 4.1.
-- **Wall reflections.** Every smooth surface is a good mirror at grazing
-  angles, and grazing angles are exactly what a tube wall sees. Smooth walls
+- **Wall reflections.** Every smooth surface is a good mirror for light that
+  skims along it (grazing angles), and that is exactly the light a tube wall
+  sees. Smooth walls
   turn the tube into a light pipe and the angular selection is lost. The walls
   have to be rough and black, or the tube has to be built as a stack of thin
   plates with holes, so that there are no continuous walls.
@@ -303,14 +497,24 @@ Forms reported in the literature or available as parts:
 
 ### 3.4 In the simulator
 
-The tube replaces the gap and pixel terms of the design's blur kernel with the
-tube footprint. Everything else in the linear model, including the fast
-solver, is unchanged, and the signal level is scaled by the light kept. In the
-first stages the footprint is the box-convolved-with-box formula above. The
+The design's blur kernel is its description of the patch of surface each
+pixel sees. The tube replaces the parts of it that come from the gap and
+from the pixel's size with the tube footprint. Everything else in the linear
+(one-pass) model, including the fast solver, is unchanged, and the signal
+level is scaled by the light kept. In the first stages the footprint is the
+formula in the table of section 3.2: a flat-topped patch with sloping
+sides. The
 wave-optics stage replaces it with a computed footprint and decides the best
 tube width.
 
 ## 4. Elements in the light
+
+*In plain words: this section covers changes to the lighting only. Flashing
+the light freezes the motion of the scan. Using a parallel beam of one pure
+colour turns the blur into a pattern a computer can undo. Lighting in fine
+stripes or random grains lets fine detail show up as broad patterns.
+Lighting from several directions, or in several colours, fills in what one
+alone misses.*
 
 ### 4.1 Pulsed and coded light
 
@@ -319,6 +523,8 @@ the sensor length per second and 10 frames per second the sensor moves 65.6
 pixels per frame, and a sharp image needs an exposure of about 0.4 ms. A light
 pulse of that length does the same job as a short exposure, and an LED can be
 switched far faster than that from a Raspberry Pi output pin.
+
+In plain words: a short flash freezes motion, as a camera flash does.
 
 A step further is a coded pulse train: switch the light on and off in a known
 irregular pattern during each frame. A single long exposure erases some
@@ -331,15 +537,20 @@ of a fraction of a percent.
 | Improves | Scan speed without motion blur. Does not change the gap limit. |
 | Cost | A single short pulse collects little light. A code collects half but adds noise when undone; when photon noise dominates, the net gain over a single pulse is modest [O31]. |
 | Reconstruction | Unchanged for a single pulse. A code changes the motion term of the blur kernel, nothing else. |
-| On a Raspberry Pi sensor | Practical. With a rolling shutter each row sees the code with a different, known delay. |
+| On a Raspberry Pi sensor | Practical. The sensor has a rolling shutter, meaning it reads its rows one after another, so each row sees the code with a different, known delay. |
 | In the simulator | The motion term becomes an arbitrary exposure pattern instead of a box. |
 
 ### 4.2 Collimated single-colour light
 
-Light a smooth surface with a parallel beam of one colour and the reflected
-light crosses the gap as a wave that keeps its fine detail. What the sensor
-records is a diffraction pattern (an in-line hologram), and reconstruction
-means undoing the diffraction. This is how nearly all published lensless
+In plain words: light a smooth surface with a tidy beam of one colour and
+the sensor records a pattern of ripples in place of a blur. The ripples
+contain the fine detail, and also the heights of the surface, and a
+computer can work back from them to the surface.
+
+Light a smooth surface with a parallel (collimated) beam of one colour and
+the reflected light crosses the gap as a wave that keeps its fine detail.
+What the sensor records is a diffraction pattern, also called an in-line
+hologram, and reconstruction means undoing the diffraction. This is how nearly all published lensless
 microscopes work [O1, O2, O3], with the sample typically a fraction of a
 millimetre from the sensor.
 
@@ -354,11 +565,23 @@ $$
 
 where $a$ is the fractional change in reflected amplitude, $h$ is the height
 and $\varphi$ is the phase it produces in reflection at normal incidence
-(standard result of Fresnel propagation [O35]; see also [O33]). Two things
-follow.
+(standard result of Fresnel propagation [O35]; see also [O33]).
 
-- **The model stays linear.** This is the design's `m = D S K ρ` with two
-  unknown maps, reflectance and height, each with its own kernel. The fast
+In words: the brightness pattern on the sensor is plain even light (the
+first term), plus a part caused by changes in how well the surface reflects
+(the second), plus a part caused by changes in its height (the third). Each
+part is the surface's own pattern with every feature size made stronger or
+weaker by a known factor, the cosine or sine term, which depends only on the
+feature size, the wavelength $\lambda$ and the gap $z_0$. The symbol
+$\mathbf{f}$ stands for the fineness of a feature, the number of periods per
+unit length. Because the factors are known, they can be divided out again.
+The last formula says how height becomes a delay of the wave: a step of a
+quarter of a wavelength, about 100 nm, turns the reflected wave completely
+upside down. Two things follow.
+
+- **The model stays linear.** This is the design's `m = D S K ρ` (readings
+  equal the surface, blurred, sampled and summed over the pixel) with two
+  unknown maps, reflectance and height, each with its own blur. The fast
   solver still applies.
 - **Height is measured directly.** One nanometre of height changes the signal
   by up to 5 percent (section 8).
@@ -369,13 +592,22 @@ wavelength × gap, so data at two or three gaps [O5] or two or three colours
 [O8] fill them in. Large, slowly varying height is passed weakly at any gap or
 colour, which is a known weakness of these methods [O22].
 
-Requirements, from the envelope of the formula:
+Requirements, from the formula. The light must be coherent in two senses.
+It must come from a small enough source that all of it arrives from nearly
+the same direction (spatial coherence), and it must be close enough to a
+single colour (temporal coherence). Otherwise the ripples from different
+directions or colours overlap and wash each other out.
 
 | Requirement | Rule | Example: 1 µm features at a 100 µm gap |
 |---|---|---|
 | Small light source (spatial coherence) | Source angular size × gap well below the feature size | Under 5 milliradians: a 0.1 mm hole 20 mm or more away |
 | Narrow colour band (temporal coherence) | Bandwidth below about 0.4 × period² / gap | About 4 nm: a filtered LED or a laser diode |
 | Weak surface for the linear form | Height range well below a wavelength, smooth surface | Otherwise the non-linear methods of section 5.2 |
+
+In words: the finer the detail and the larger the gap, the smaller the
+light source must look from the surface and the purer its colour must be. A
+milliradian is about a seventeenth of a degree. The bandwidth is the spread
+of wavelengths in the light.
 
 | | |
 |---|---|
@@ -387,18 +619,33 @@ Requirements, from the envelope of the formula:
 
 ### 4.3 Fringe and speckle lighting
 
-Fine detail survives the gap if it is first multiplied by a known fine pattern
-of light. The product contains coarse beat patterns that do cross the gap.
-This is the principle of structured-illumination microscopy [O14].
+In plain words: light the surface with fine stripes, and detail too fine to
+cross the gap shows up as broad bands that do cross it, in the way two
+overlapping net curtains show broad moiré bands.
 
-Two beams of the same colour crossing at an angle make straight fringes with a
-period down to half a wavelength, and the fringes stand as vertical sheets, so
+Fine detail survives the gap if it is first multiplied by a known fine pattern
+of light. The product contains coarse beat patterns (the broad bands) that do
+cross the gap. This is the principle of structured-illumination microscopy
+[O14].
+
+Two beams of the same colour from the same laser, crossing at an angle,
+interfere and make straight bright and dark stripes (fringes) with a period
+down to half a wavelength. The fringes stand as vertical sheets of light, so
 they stay sharp at any gap. The scanning design then offers something useful.
 If the fringes are fixed to the sensor, the surface slides through them, and
 every pixel records the fine detail directly as a time series. No stepping of
 the pattern is needed, because the scan does it.
 
 ![Bars finer than the gap can pass, with and without fringe lighting](diagrams/optics-fringe-demo.svg)
+
+*Figure: a calculated example of what stripe lighting does. Top: the test
+surface, a set of bars repeating every 3 µm, shown as how much light it
+reflects (up) against position in micrometres (across). Middle: what one
+pixel records as it scans past, 30 µm above the surface, in ordinary even
+light. The line is flat. The bars are far too fine for that gap and are
+lost. Bottom: the same scan when the surface is lit by 3 µm stripes of light
+that travel with the sensor. The pixel's signal now rises and falls once per
+bar, so the bars are recorded.*
 
 In this one-dimensional calculation, bars of 3 µm period seen across a 30 µm
 gap leave a ripple of 0.1 percent with uniform light (and that is the edge of
@@ -410,7 +657,8 @@ from a publication, and needs confirming in the simulator.
 The limit is that one fringe period opens only one narrow window of feature
 sizes (the orange curve in the chart of section 2). Covering all sizes needs
 many fringe periods and directions, or a pattern that contains all of them at
-once: laser speckle. Speckle lighting with unknown patterns has been shown to
+once: laser speckle, the random grainy pattern that laser light makes after
+passing through or bouncing off something rough. Speckle lighting with unknown patterns has been shown to
 work [O15, O24], at the price that each feature size then gets only a small
 share of the contrast, roughly the speckle grain size divided by the gap.
 Section 9.7 takes up speckle again for the coherent, slanted lighting of the
@@ -420,11 +668,16 @@ Section 9.7 takes up speckle again for the coherent, slanted lighting of the
 |---|---|
 | Improves | Lateral resolution down to the pattern period, half a wavelength at best, independent of the gap. Slanted fringes also encode height (section 8). |
 | Cost | Half the light at most. Needs two stable coherent beams reaching the surface, and the pattern must be known or estimated. Reflections between sensor and surface distort it. |
-| Reconstruction | Still linear in reflectance, but the blur is no longer the same for every pixel. For fringes it becomes a sum of a few convolutions; for speckle the pattern has to be calibrated or solved for. |
-| On a Raspberry Pi sensor | Possible on a bench with a laser diode and a beam splitter. Mechanically delicate. |
+| Reconstruction | Still linear in reflectance (one-pass), but the blur is no longer the same for every pixel. For fringes it becomes a sum of a few plain blurs (convolutions). For speckle the pattern has to be measured beforehand or worked out from the data. |
+| On a Raspberry Pi sensor | Possible on a bench with a laser diode and a beam splitter (a part-silvered mirror that divides one beam into two). Mechanically delicate. |
 | In the simulator | Multiply the surface by a light pattern expressed in sensor coordinates before blurring. |
 
 ### 4.4 Several light angles
+
+In plain words: lighting from different directions shows different things.
+On a rough surface the shadows reveal slopes. On a smooth one, each
+direction brings a different part of the fine detail within the sensor's
+reach.
 
 - **For slope and height, with diffuse light.** Lighting the surface from
   three or more directions in turn gives the local slope from the change in
@@ -432,14 +685,17 @@ Section 9.7 takes up speckle again for the coherent, slanted lighting of the
   It measures slope, so height comes by integration and slow errors build up.
 - **For resolution, with coherent light.** Each light angle shifts which
   detail falls within the pixels' acceptance. Combining many angles gave the
-  250 nm result quoted above [O6], and the same idea with a lens is Fourier
-  ptychography [O25]. Small angle changes only shift the pattern sideways,
+  250 nm result quoted above [O6], and the same idea with a lens is called
+  Fourier ptychography [O25]. Small angle changes only shift the pattern sideways,
   which the scan already provides for free [O32, O34].
 
 In the simulator: the direction of the light is a parameter of the coherent
 model, and a list of directions for the shading model.
 
 ### 4.5 Several colours
+
+In plain words: each colour gives a different pattern of ripples from the
+same surface, so several colours give several independent looks for free.
 
 Changing the colour changes the diffraction pattern without moving anything.
 It has been used on its own to recover detail finer than the pixel [O8], and
@@ -451,9 +707,16 @@ three colours in one frame (section 5.3).
 
 ### 4.6 Gratings and Talbot self-imaging
 
+In plain words: a grating is a plate of fine evenly spaced lines. Lit with a
+tidy beam, a sharp copy of its lines appears in mid-air at set distances
+behind it. That can throw a fine pattern of light onto the surface with no
+lens. It cannot carry a picture of the surface back to the sensor.
+
 A grating lit by a parallel single-colour beam reproduces its own pattern at
 regular distances behind it, the Talbot distance `2 × period² / wavelength`
-and its multiples [O17]. Three possible uses, with different verdicts:
+and its multiples [O17]. In words: square the spacing of the lines, double
+it, and divide by the wavelength. For lines 10 µm apart in green light the
+distance is 0.4 mm. Three possible uses, with different verdicts:
 
 | Use | Verdict |
 |---|---|
@@ -462,6 +725,13 @@ and its multiples [O17]. Three possible uses, with different verdicts:
 | Make a pixel sensitive to angle | Works, but needs a custom chip. Two gratings stacked over a pixel give it a response that depends on the direction of the light [O16]. This is an angle restriction that does not throw light away. It is subject to the same square-root law. |
 
 ## 5. Elements on the sensor face
+
+*In plain words: three things can sit on the sensor itself. A cover with a
+tiny hole over each pixel makes the pixels effectively smaller, which only
+helps if the sensor nearly touches the surface. A rough or finely patterned
+layer scrambles the light in a way that keeps fine detail, and is the basis
+of the published work closest to this project. And the colour filter already
+on the sensor can be put to use.*
 
 ### 5.1 Sub-pixel openings
 
@@ -482,9 +752,11 @@ where the design says it should be possible: at a gap below the pixel size.
 
 ### 5.2 Coded masks and thin diffusers
 
-A mask or diffuser with fine random structure, fixed to the sensor, makes the
-light from each surface point interfere with itself, so each point produces a
-detailed pattern on the sensor instead of a smooth spot. That puts back the
+A mask is a layer with a fine pattern of clear and dark, or thick and thin,
+areas. A diffuser is a layer that scatters light, like frosted glass. Either,
+with fine random structure and fixed to the sensor, makes the light from
+each surface point interfere with itself, so each point produces a detailed
+pattern on the sensor instead of a smooth spot. That puts back the
 fine structure the gap removes.
 
 - **With diffuse light.** A fine mask a few hundred micrometres above the
@@ -507,14 +779,16 @@ continuous motion during the exposure can be modelled instead of avoided
 
 | | |
 |---|---|
-| Improves | Resolution to about a wavelength at any gap, plus height. Makes the inverse problem better conditioned, because every frame is a different encoding of the same surface. |
-| Cost | A calibrated mask. Reconstruction is non-linear and iterative, and every iteration revisits all the frames, unlike the design's solver that reads the data once. |
+| Improves | Resolution to about a wavelength at any gap, plus height. Makes the reconstruction better conditioned, meaning less sensitive to small errors in the data, because every frame is a different encoding of the same surface. |
+| Cost | A mask whose pattern has been measured (calibrated). Reconstruction is no longer one-pass. It is iterative: guess, compare with the data, improve, repeat. Every round revisits all the frames, unlike the design's solver that reads the data once. |
 | On a Raspberry Pi sensor | The published layer combined etched scatterers with printed absorbers [O22]. A thin diffusing film laid on the sensor is a plausible home-built version, untested. |
 | In the simulator | A complex mask applied to the wave at the sensor plane in the coherent model. |
 
 ### 5.3 The colour filter that is already there
 
-If only the module lens is removed, the Bayer filter and microlenses stay. The
+If only the module lens is removed, the Bayer filter (the pattern of red,
+green and blue filters over the pixels) and the microlenses (the tiny lens on
+each pixel) stay. The
 design document covers what this does to the pixel response. For this
 exploration:
 
@@ -530,9 +804,16 @@ exploration:
 - **The microlenses** restrict the acceptance angle modestly, which helps in
   diffuse light and limits the finest detail in coherent light [O6].
 
-In the simulator: a per-pixel spectral response, three numbers per pixel type.
+In the simulator: a spectral response for each pixel, meaning how strongly
+it responds to each colour. That is three numbers per pixel type.
 
 ## 6. Elements in the gap
+
+*In plain words: four things could go between the sensor and the surface. A
+block of glass fibres carries the image and makes the mechanics easier but
+does not sharpen it. A part-reflecting flat plate turns height into
+brightness. A liquid shortens the light's waves, which sharpens everything a
+little. Special layered "lenses" from research are not practical here.*
 
 ### 6.1 Fibre-optic plates
 
@@ -557,11 +838,13 @@ sensitivity. The sensor face itself can act as the plate if the gap is small,
 which is option 3 of the design's section 4.5. It needs light of narrow enough
 band that the two reflections can still interfere: twice the distance must be
 well within wavelength² / bandwidth, which is about 12 µm for a plain LED.
+That length is called the coherence length: the distance over which the
+light's waves stay in step. The purer the colour, the longer it is.
 
 ### 6.3 Liquid in the gap
 
 Filling the gap with oil or water shortens the wavelength by the liquid's
-refractive index, 1.3 to 1.5, improves every wave-limited figure by the same
+refractive index (the factor by which the liquid slows light), 1.3 to 1.5, improves every wave-limited figure by the same
 factor, and suppresses reflections. It is cheap and messy, and it rules out
 samples that must stay dry.
 
@@ -575,6 +858,11 @@ entirely.
 
 ## 7. Polarisers and spectral filters
 
+*In plain words: a polariser passes only light vibrating in one direction,
+as polarising sunglasses do, and a spectral filter passes only a narrow band
+of colour. Neither makes the picture sharper. Both clean up the signal that
+the other methods work with.*
+
 Neither changes the gap law. Both improve the quality of the signal that the
 other methods work with.
 
@@ -582,7 +870,7 @@ other methods work with.
 |---|---|---|
 | Crossed polarisers (one on the light, one on the sensor) | Remove mirror-like glare and keep light scattered within the surface [O42] | Useful with diffuse methods on glossy samples. The film is about 0.1 mm thick, so it only fits arrangements that tolerate that gap. |
 | Parallel polarisers | Keep the mirror-like reflection, which carries the surface detail and stays coherent | Useful with coherent methods. |
-| A thin birefringent plate between two polarisers | Converts height gradients into brightness, as in differential interference contrast. Demonstrated lensless [O43] | An alternative route to height. Adds a plate to the gap. |
+| A thin birefringent plate between two polarisers (birefringent: a crystal that splits a beam into two slightly shifted copies) | Converts slopes in height into brightness, as in the microscope method called differential interference contrast. Demonstrated lensless [O43] | An alternative route to height. Adds a plate to the gap. |
 | Narrow-band filter on the light | Lengthens the distance over which reflections can interfere | Required by sections 4.2 and 6.2 unless a laser diode is used. Costs light in proportion to the band removed. |
 | Angle-selective coatings | Layered coatings can pass light from a narrow range of angles only [O44] | A laboratory result. A tube array is the practical equivalent. |
 
@@ -592,6 +880,12 @@ the light.
 
 ## 8. Height
 
+*In plain words: the project also wants the height of the surface, in
+nanometres. Height does not show in an ordinary picture. The methods that
+use interference turn a height change of one nanometre into a brightness
+change of about one percent, which is easily measured. Judging height from
+how blurred the picture is gives a signal thirty times weaker or worse.*
+
 The design document lists three ways height can reach a pixel. With the
 elements above there are six. The chart compares how much signal one nanometre
 of height produces. The values are order-of-magnitude estimates from simple
@@ -599,9 +893,16 @@ formulas, given in the diagram script.
 
 ![Signal produced by one nanometre of height, by mechanism](diagrams/optics-height-signal.svg)
 
+*Figure: how strongly each method responds to height. Each bar is one way of
+sensing height, and its length is the change in a pixel's reading, as a
+percentage, when the surface height changes by one nanometre. Longer is
+better. The methods based on interference give about 0.3 to 5 percent.
+Shading gives about 0.1 percent, and blur width about 0.03 percent. The
+values are order-of-magnitude estimates.*
+
 | Mechanism | Needs | Signal per nanometre | Limits |
 |---|---|---|---|
-| Collimated coherent light, phase contrast (4.2) | Smooth surface, small single-colour source | Up to 5 % | Large slow height changes are passed weakly. Repeats every half wavelength unless two colours are used. |
+| Parallel beam of coherent light, where height shows as a delay of the wave (phase contrast, 4.2) | Smooth surface, small single-colour source | Up to 5 % | Large slow height changes are passed weakly. Repeats every half wavelength unless two colours are used. |
 | Interference against a reference flat or the sensor face (6.2) | Narrow-band light, a flat close to the surface | About 1 % | Gap drift looks like height. |
 | Thin transparent film on a reflecting base | LEDs of a few colours. No coherence needed, because the film is its own interferometer | Of the order of 0.5 % | Only for that kind of sample. Used to measure molecular layers building up on a surface [O45]. Fits the plain reflectance model exactly. |
 | Slanted fringes (4.3) | Two-beam fringes arriving at an angle, so height shifts them sideways [O46] | About 0.3 % | Fringe stability. |
@@ -616,6 +917,15 @@ suggests replacing build stage 5 (blur-width height) with one of the
 interference mechanisms.
 
 ## 9. The target: 100 nm features on silicon chips
+
+*In plain words: this section asks what it takes to see 100 nm features on
+a silicon chip. The answer has two parts. First, light itself sets a limit
+that depends on its wavelength and on how steeply it arrives and leaves:
+violet laser light gets close to 100 nm, and ultraviolet light or water in
+the gap gets there. Second, the sensor's pixels are much wider than the
+detail, so the detail has to be turned into broad patterns before the pixels
+can read it. A good deal can also be measured about 100 nm features without
+making a picture of them.*
 
 Tim's target is features of about 100 nm on silicon chips. This section takes
 "100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
@@ -639,14 +949,36 @@ For coherent light, the finest period that can be recovered is
 
     period = wavelength / (NA of the light + NA collected)
 
-where each NA is the sine of an angle from straight ahead: the slant of the
-light arriving, and the widest angle at which the sensor still collects the
-light the surface sends back. The line width is half the period. Slanting the
+where each NA (numerical aperture) is the sine of an angle from straight
+ahead: the slant of the light arriving, and the widest angle at which the
+sensor still collects the light the surface sends back. The line width is
+half the period.
+
+In words: the steeper the light comes in, and the steeper the angle at which
+the sensor can still catch what comes back, the finer the detail that can be
+recovered. Each NA can be at most 1 in air, so the sum can be at most 2, and
+the finest possible line is a quarter of the wavelength. With light straight
+down (NA 0) and a sensor that collects up to 30° (NA 0.5), the finest line
+is one whole wavelength. Water raises each NA by a factor of 1.33. Slanting the
 light is what synthetic-aperture and ptychographic methods exploit [O6, O25]:
 light arriving at a steep angle shifts fine detail to angles the sensor can
-collect.
+collect. Synthetic aperture means combining many views from different
+angles into the picture a much larger instrument would have taken.
 
 ![Smallest resolvable line width against wavelength](diagrams/optics-hundred-nm.svg)
+
+*Figure: the narrowest lines that can be told apart, for different light.
+Across the bottom is the wavelength of the light in nanometres, with common
+light sources marked by vertical lines. Up the side is the smallest line
+width that can be resolved, in nanometres. Lower is better. The dashed
+horizontal line is the target of 100 nm. Each coloured curve is one
+arrangement, from light straight down (grey, worst) to steeply slanted light
+with a bare sensor and water in the gap (orange, best). The "sum" in the key
+is the two NA values of the formula added together. An arrangement reaches
+the target where its curve is below the dashed line. The coloured strip
+along the bottom shows which wavelengths an ordinary sensor can detect as
+sold (green), which may need its colour filter removed (yellow), and which
+need a special sensor (red).*
 
 | Light | Straight down, sensor collects ±30° | Slanted 65°, sensor collects ±30° | Slanted 72°, bare sensor collects ±58° | As previous, water in the gap |
 |---|---|---|---|---|
@@ -677,6 +1009,10 @@ transparent samples. The only lensless result in reflection found is 2 µm
 
 ### 9.3 What the pixels can actually see
 
+In plain words: a pixel adds up all the light that falls on it. Stripes much
+narrower than the pixel average out to an even grey, so the pixel cannot
+tell they are there. Three ways round this are given below.
+
 The formula above says which detail reaches the sensor as light. It does not
 say the pixels can read it, and for this sensor that is a separate limit. The
 design document raises the same point in its section 4.6.
@@ -701,13 +1037,14 @@ the pixel may see nothing.
 Fine detail can still reach coarse pixels, in three ways. The first two do not
 depend on the pixel edges.
 
-1. **Two mutually coherent beams at once.** If the chip is lit by two slanted
-   beams from the same laser, they form light fringes on the chip (section
+1. **Two beams from one laser at once (mutually coherent beams).** If the
+   chip is lit by two slanted beams from the same laser, they form light fringes on the chip (section
    4.3). Fine detail then beats against those fringes and appears at the
    sensor as a coarse pattern. Example: 405 nm beams from opposite sides at
    72° make fringes of 213 nm period, and chip detail of 200 nm period beats
-   against them with a period of about 3 µm, which the pixels read at nearly
-   full contrast. This is the standard remedy when the detector is coarser
+   against them with a period of about 3 µm (two patterns of nearly equal
+   spacing overlap into a broad one, the moiré effect), which the pixels
+   read at nearly full contrast. This is the standard remedy when the detector is coarser
    than the detail [O14]. It needs both beams on together. Lighting from one
    direction at a time does not do it.
 2. **Where the scattered light lands.** Across a gap of about a millimetre,
@@ -744,18 +1081,24 @@ Consequences for this page:
 
 | Route | What it gains | Hardware it adds | Computation it adds | With a Raspberry Pi class sensor |
 |---|---|---|---|---|
-| Slanted light from several directions, ptychographic reconstruction | Line width from about 400 nm down to 110 to 145 nm at 405 nm | A few laser diodes at fixed angles around the sensor | Very large: iterative phase recovery over every frame, with scan positions as unknowns | Realistic. The blue pixels respond well at 405 nm. Undemonstrated in reflection. |
+| Slanted light from several directions, ptychographic reconstruction | Line width from about 400 nm down to 110 to 145 nm at 405 nm | A few laser diodes at fixed angles around the sensor | Very large: the computer repeatedly refines its estimate of the picture and of the missing phase over every frame (iterative phase recovery), and works out the scan positions as well | Realistic. The blue pixels respond well at 405 nm. Undemonstrated in reflection. |
 | Near ultraviolet, 365 to 385 nm | A further 10 percent | An ultraviolet LED or laser diode | None extra | Uncertain. The colour filter and microlenses may absorb ultraviolet. A ten-minute test with an ultraviolet LED on an unmodified sensor would settle it. |
 | Deep ultraviolet, 250 to 280 nm | A further 30 to 35 percent: 75 to 95 nm lines | Costly weak sources, eye and skin protection, and a sensor with the filter stripped or a special coating | None extra | Not realistic at first. Ordinary sensors respond poorly below 300 nm (general knowledge, not checked for this sensor). |
 | Water or oil in the gap | A factor of 1.33 to 1.5: about 84 nm lines at 405 nm | A drop of liquid, and a sensor and chip that tolerate it | Small | Possible but messy. Light must enter through the liquid. |
 | Near-field gap | In principle unlimited | A gap below about 100 nm held over millimetres, and openings of about 100 nm on every pixel | None | Not realistic. For 200 nm periods the detail fades to a third within about 35 nm of the surface. Finished chips also carry protective layers thicker than that. |
 
 The wavelengths that chip factories themselves use for this job show where
-the comfortable limits are: 193 nm lasers [O47], extreme ultraviolet at
-13.5 nm [O48, O49] and X-rays [O50], all with ptychographic reconstruction.
+the comfortable limits are: 193 nm lasers [O47], extreme ultraviolet light
+with a wavelength of 13.5 nm [O48, O49], and X-rays [O50], all with
+ptychographic reconstruction.
 The method is the same as proposed here. Only the wavelength differs.
 
 ### 9.5 Measuring 100 nm features without resolving them
+
+In plain words: a star is far too small for a telescope to show its shape,
+yet it is easy to see that it is there, exactly where it is, and how bright
+it is. In the same way a 100 nm feature can be found, located and measured
+without a picture that shows its shape.
 
 A feature does not have to be resolved to be found, counted or measured. This
 is where computation can stand in for hardware, and several published results
@@ -764,8 +1107,8 @@ are directly relevant.
 | What is wanted | How | Evidence | Hardware | Computation |
 |---|---|---|---|---|
 | Find and locate isolated features: a single line, a particle, a defect | The feature scatters light that interferes with the mirror reflection of the silicon around it. Its position is found to a small fraction of the resolution, and its size from the strength of the signal. | Particles of 70 to 200 nm detected and sized with a wide-field common-path interferometer [O51]; nanoparticles detected with a lensless sensor, helped by liquid nanolenses [O52]; defects 20 nm wide found in patterned wafers with visible laser light [O53] | None beyond route 1 | Moderate |
-| Measure the average line width or height of a regular array | An array finer than the resolution looks like a uniform film whose brightness depends on colour, polarisation and angle. A model of the array is fitted to those readings. This is how chip factories measure line widths (scatterometry) [O54, O55]. | Standard factory practice [O54] | Three colours and a polariser | Large: an electromagnetic solver inside a fitting loop. This is the Meep level of the simulation chain. |
-| Check a chip against a known or assumed layout | Chip patterns obey strict rules: straight edges in two directions, a few materials, fixed pitches. The unknowns are then edge positions and widths, far fewer than free pixels, and they can be estimated below the resolution limit. With a layout file, the expected data can be simulated and compared directly. | Model-based measurement well below the resolution limit is established in optical metrology [O55, O56] | None | Very large |
+| Measure the average line width or height of a regular array | An array finer than the resolution looks like a uniform film whose brightness depends on colour, polarisation and angle. A model of the array is fitted to those readings. This is how chip factories measure line widths, a method called scatterometry [O54, O55]. | Standard factory practice [O54] | Three colours and a polariser | Large: an electromagnetic solver (a program that calculates how light behaves from first principles) run again and again while the model is adjusted to fit. This is the most accurate level of the project's chain of simulations, which uses the program Meep. |
+| Check a chip against a known or assumed layout | Chip patterns obey strict rules: straight edges in two directions, a few materials, fixed pitches. The unknowns are then edge positions and widths, far fewer than free pixels, and they can be estimated below the resolution limit. With a layout file, the expected data can be simulated and compared directly. | Measuring by fitting a model, well below the resolution limit, is established practice in optical measurement [O55, O56] | None | Very large |
 
 The limit on the third row must be stated plainly. Prior knowledge lets
 computation measure the parameters of a structure of a known kind. It does not
@@ -789,16 +1132,23 @@ the data and how much from the assumption.
 Three practical points apply to all of these:
 
 - **Positions must be known to a few tens of nanometres.** No affordable
-  stage provides that, and none is needed: ptychography recovers positions
+  moving platform (stage) provides that, and none is needed: ptychography recovers positions
   from the data [O23, O34]. This is the same use of natural misalignment that
   the design document already plans, at a finer scale.
-- **Vibration during one exposure cannot be computed away.** It washes out the
-  interference pattern. Short pulses solve it, and laser diodes pulse easily.
+- **Vibration during one exposure cannot be fully computed away.** It washes
+  out the interference pattern, though section 9.7 shows that a model of it
+  recovers part of the loss. Short pulses solve it, and laser diodes pulse easily.
 - **Both the chip and the sensor are mirrors.** Light bounces between them and
   adds its own interference. It has to be modelled, or avoided by tilting the
   sensor slightly.
 
 ### 9.7 Randomness as a tool
+
+In plain words: a rough, random part costs almost nothing to make, because
+it needs no precision. The computer can work out what the part is from the
+data, as long as the part stays the same from one frame to the next. So
+randomness is a way to buy with computation what would otherwise need
+precise hardware.
 
 Tim has said that introducing random noise on purpose, and modelling the
 randomness that is already there, are both in scope. Several elements on this
@@ -828,8 +1178,8 @@ Randomness added on purpose:
 
 | What | What it buys | Hardware | Computation | Rank |
 |---|---|---|---|---|
-| Irregular pulse times and a scan that never repeats | A steady scan with evenly timed pulses puts the frames on a regular grid, which is known to leave repeating artefacts in ptychography [O61]. Irregular spacing removes them [O64]. Pulse times drawn from a known random sequence do this along the scan, and a scan direction slightly off the pixel rows, plus the natural wobble, does it across. It also spreads samples evenly over sub-pixel positions, as the design document plans. | None. A change to the pulse timing. | None extra | 1. Adopt from stage 1. |
-| Speckle lighting: the laser sent through a fixed piece of ground glass (section 4.3) | A speckle pattern is every beam pair the lighting cone allows, all at once, in every direction. Its grain is about the wavelength divided by twice the sine of the widest light angle, so about 225 nm at 405 nm with steep light. Fine chip detail beats against the grain into coarse patterns, the same work-around as beam pairs in section 9.3. Since the light travels with the sensor, the pattern is frozen in sensor coordinates and the chip slides through it. That is ptychography with a structured beam, which is known to converge better than with a smooth beam [O59, O62], and the pattern is solved along with the picture [O61]. | One diffuser in place of several aligned mirrors. Arguably less hardware than beam pairs. | Larger: the light pattern becomes a large unknown | 2. Compare with beam pairs in the simulator for stage 2. |
+| Irregular pulse times and a scan that never repeats | A steady scan with evenly timed pulses puts the frames on a regular grid, which is known to leave false repeating patterns (artefacts) in ptychography [O61]. Irregular spacing removes them [O64]. Pulse times drawn from a known random sequence do this along the scan, and a scan direction slightly off the pixel rows, plus the natural wobble, does it across. It also spreads samples evenly over sub-pixel positions, as the design document plans. | None. A change to the pulse timing. | None extra | 1. Adopt from stage 1. |
+| Speckle lighting: the laser sent through a fixed piece of ground glass (section 4.3) | A speckle pattern is every beam pair the lighting cone allows, all at once, in every direction. Its grain is about the wavelength divided by twice the sine of the widest light angle, so about 225 nm at 405 nm with steep light. Fine chip detail beats against the grain into coarse patterns, the same work-around as beam pairs in section 9.3. Since the light travels with the sensor, the pattern is frozen in sensor coordinates and the chip slides through it. That is ptychography with a structured (patterned) beam, with which the calculation is known to settle on the right answer more reliably than with a smooth beam [O59, O62], and the pattern is solved along with the picture [O61]. | One diffuser in place of several aligned mirrors. Arguably less hardware than beam pairs. | Larger: the light pattern becomes a large unknown | 2. Compare with beam pairs in the simulator for stage 2. |
 | Random scattering layer on the sensor (section 5.2) | A third work-around for coarse pixels, on the detection side. The layer scrambles light arriving at steep angles into patterns the pixels can record, and makes each frame a different encoding of the surface. It is the basis of the closest published results [O22, O23]. | One passive layer on the sensor face. No precision needed, but it touches the sensor. | Larger: the layer is another unknown, solved once | 3. Simulate for stage 2. It belongs there if the approach only works with sharp pixel edges without it. Otherwise keep it for stage 4. |
 | Noise as dither | A sensor that rounds to whole counts loses any change smaller than one count, unless noise of about half a count or more is present. Then averaging many samples recovers it [O63]. The design gives every surface point thousands of samples, so this matters for the weakest signals. | None. Choose the sensor gain so that the noise is at least about one count. | None | Adopt. A setting, to be checked on the sensor. Past that level more noise only costs samples. |
 | Coded pulses within one exposure (section 4.1) | Keeps all feature sizes when the exposure is long | None | Small | Low. A laser diode is bright enough for a single short pulse. |
@@ -840,8 +1190,8 @@ Randomness already present, to be modelled and not fought:
 | Source | How it is modelled | Why it helps |
 |---|---|---|
 | Scan position and speed errors | A position for every frame, solved from the data [O23, O34] | Already in every stage. Removes the need for a precise stage. |
-| Vibration during a pulse, and laser light that is not perfectly coherent | The light is described as a mixture of a few patterns instead of one [O58, O26] | Recovers contrast that would otherwise be counted as lost, and relaxes the pulse length and laser quality needed. |
-| Photon noise | The fit is weighted by the true statistics of photon counting instead of plain least squares [O60] | Matters most where the signal is dim: light scattered far from the mirror direction, which carries the finest detail. |
+| Vibration during a pulse, and laser light that is not perfectly coherent | The light is described as a mixture of a few patterns instead of one (called mixed states in the literature) [O58, O26] | Recovers contrast that would otherwise be counted as lost, and relaxes the pulse length and laser quality needed. |
+| Photon noise | The fit gives each reading the weight it deserves, using the known statistics of counting photons, instead of treating all readings alike (maximum likelihood instead of plain least squares) [O60] | Matters most where the signal is dim: light scattered far from the mirror direction, which carries the finest detail. |
 | Pulse to pulse laser brightness, and laser colour jumps | One brightness and one wavelength per frame, solved or read from the frame average | Lets an ordinary laser diode be used without stabilising it. |
 | Pixel to pixel differences in gain, and in the shape of each pixel's sensitive area | A map per pixel, frozen, solved from the data | Gain is already in stage 1. Differences in shape would act as a weak built-in random mask. Whether they are large enough to help is not known. The simulations sweep it, and the stage 0 measurement on hardware would show it. |
 | Gap and tilt drift | A few slowly changing numbers per frame | Removes the need for a precise mount. |
@@ -854,6 +1204,11 @@ the scattering layer. None of this changes the stage numbers or the limits
 quoted for each stage.
 
 ## 10. Recommendation: a staged path, the current leading candidate
+
+*In plain words: the first table compares every option on this page. After
+it comes the recommended path for 100 nm features on silicon chips, in five
+stages numbered 0 to 4. Each stage gives a useful result and prepares the
+next. All of it is done in simulation first.*
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -916,6 +1271,12 @@ flowchart LR
     S3 -. "better starting<br/>estimate" .-> S2
     S2 -. "positions, light and<br/>sensor calibration" .-> S4
 ```
+
+*Figure: the five stages of the recommended path, in order from left to
+right. Solid arrows show the order of work. The dotted arrows show results
+handed back or forward: stage 3 gives stage 2 a better starting estimate, so
+those two are repeated in turn, and stage 2 passes its measured positions
+and its calibration of the light and the sensor on to stage 4.*
 
 | Stage | What is done | Hardware added | Computation added | Result | What it hands on |
 |---|---|---|---|---|---|
@@ -985,6 +1346,10 @@ matt surfaces.
 
 ## 11. Parameters for the simulator
 
+*In plain words: this section is for whoever writes the simulation program.
+It lists the settings the program would need so that every option on this
+page can be switched on and tried.*
+
 Proposed additions to the design's configuration, so the recommended options
 become settings and not separate programs. Names are suggestions.
 
@@ -1027,6 +1392,13 @@ flowchart LR
     L3 --> L4["Level 4<br/>Coherent, full<br/>masks, strong surfaces"]
 ```
 
+*Figure: the four levels of calculation the options on this page need, from
+the simplest and fastest on the left to the most complete and slowest on the
+right. Each box names the level, the kind of calculation, and the options it
+covers. Each level can do everything the one before it can. These are levels
+of this page's models and are separate from the numbered levels of the
+project's simulation chain.*
+
 | Level | Forward model | Reconstruction | Elements covered |
 |---|---|---|---|
 | 1 | The design's `m = D S K ρ` with a different kernel `K` | Unchanged | Tubes, pulses and codes, sub-pixel openings, colour gains, polariser contrast |
@@ -1040,10 +1412,23 @@ the light lost feeding the signal-to-noise control.
 
 ## 12. Getting light in, and the questions that decide the choice
 
+*In plain words: the sensor sits over the surface like a lid, so getting
+light underneath it is a problem in itself. There are four ways to do it,
+and each suits different methods. The section ends with the questions whose
+answers would settle the remaining choices.*
+
 With an opaque surface and a sensor covering it, the light has few ways in.
 The choice of method and the choice of lighting constrain each other.
 
 ![Four ways to light the surface under the sensor](diagrams/optics-illumination-geometries.svg)
+
+*Figure: four side views, each showing the sensor above the surface and the
+path the light takes. A: light enters from the side through the gap. B: a
+parallel beam comes in at a slant and reflects off a mirror-like surface up
+to the sensor. C: light is fed in through a beam splitter, a part-silvered
+mirror between sensor and surface. D: light comes up through a transparent
+sample from below. The table after the figure says how big a gap each needs
+and which methods it suits.*
 
 | Arrangement | Gap it needs | Methods it suits |
 |---|---|---|
@@ -1075,6 +1460,11 @@ fringes (section 9.3). It is swept in simulation and measured when hardware
 starts.
 
 ## 13. Limits of these estimates
+
+*In plain words: the numbers on this page come from simplified formulas and
+small calculations, not from measurements. This section lists what was
+simplified or assumed, so that no figure is trusted further than it should
+be.*
 
 - The tube diffraction calculation is one-dimensional (a slit, not a square
   or round bore), assumes small angles, and treats the walls as perfect
