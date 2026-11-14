@@ -29,7 +29,9 @@ import numpy as np
 from . import approaches as ap
 from . import level1 as l1
 
-CONTRAST_SHARE = 0.5          # a bar group counts as resolved at this share of its true contrast
+CONTRAST_SHARE = 0.5          # a bar group counts as shown from this share of its true pattern ...
+CONTRAST_CEILING = 1.5        # ... up to this one: more than that is noise or ringing, not the bars
+LOST_NM = 100.0               # frame positions wrong by more than this count as a failed run
 ALIGN_PX = 3.0                # scoring may slide a reconstruction by at most this many pixels
 
 
@@ -59,6 +61,25 @@ def align_to_truth(estimate, truth, max_cells):
     return moved, shift
 
 
+def _contrast_share(estimate, truth, group, dx_nm):
+    """How much of a bar group's true pattern an estimate shows, as a share of the truth.
+
+    The estimate and the truth are both projected onto a wave of the group's
+    period over the middle of the group, and the part of the estimate's wave
+    that is in step with the truth's is divided by the truth's. 1 is perfect.
+    Bars drawn in the wrong place count for less or negative, and noise that
+    happens to contain the period cannot count for more than its in-step part.
+    """
+    period, start, stop = group
+    per = period / dx_nm
+    cycles = int((stop - start) / per) - 2
+    a = start + int(round(per))
+    window = slice(a, a + int(round(cycles * per)))
+    wave = np.exp(-2j * np.pi * np.arange(window.stop - window.start) / per)
+    est, true = np.mean(estimate[window] * wave), np.mean(truth[window] * wave)
+    return float((est * np.conj(true)).real / abs(true) ** 2)
+
+
 def score(scene: ap.Scene, frames: l1.Frames1D, estimate, positions, believed):
     """The measures every result is judged by. All are against the truth."""
     max_cells = ALIGN_PX * frames.optics.pitch_nm / scene.dx_nm
@@ -66,22 +87,22 @@ def score(scene: ap.Scene, frames: l1.Frames1D, estimate, positions, believed):
     out = {"rms_error": float(np.sqrt(np.mean((aligned - scene.surface) ** 2))),
            "shift_nm": float(shift * scene.dx_nm),
            "contrast_share": None, "finest_period_nm": None, "wrong_material_percent": None}
+    out["has_bars"] = bool(scene.groups)
     if scene.groups:
-        shares = []
-        for group in scene.groups:
-            true = l1.bar_contrast(scene.surface, group, scene.dx_nm)
-            shares.append(l1.bar_contrast(aligned, group, scene.dx_nm) / true)
+        shares = [_contrast_share(aligned, scene.surface, group, scene.dx_nm) for group in scene.groups]
         out["contrast_share"] = [float(s) for s in shares]
         finest = None
         for group, share in sorted(zip(scene.groups, shares), key=lambda gs: -gs[0][0]):
-            if share < CONTRAST_SHARE:
+            if not CONTRAST_SHARE <= share <= CONTRAST_CEILING:
                 break
             finest = group[0]
-        # nothing resolved is recorded as twice the coarsest period, so that medians stay defined
-        out["finest_period_nm"] = float(finest) if finest else 2.0 * max(g[0] for g in scene.groups)
+        out["finest_period_nm"] = float(finest) if finest else None      # None: not even the coarsest group
     if scene.levels is not None:
         middle = 0.5 * (scene.levels[0] + scene.levels[1])
-        out["wrong_material_percent"] = float(100 * np.mean((aligned > middle) != (scene.surface > middle)))
+        high = scene.surface > middle
+        missed = np.mean(aligned[high] <= middle) if high.any() else 0.0
+        invented = np.mean(aligned[~high] > middle) if (~high).any() else 0.0
+        out["wrong_material_percent"] = float(100 * 0.5 * (missed + invented))
     used = believed if positions is None else positions
     out["position_error_nm"] = l1.position_error(frames, used)
     return out
@@ -170,43 +191,61 @@ def run(comparison: Comparison, workers=1):
 # --------------------------------------------------------------- reporting
 
 MEASURES = [
-    ("rms_error", "Error against the true surface (rms, reflectance)", "{:.3f}"),
-    ("finest_period_nm", "Finest bar period shown at half its true contrast or better (nm)", "{:,.0f}"),
-    ("wrong_material_percent", "Surface assigned to the wrong material (%)", "{:.1f}"),
-    ("position_error_nm", "Error of the frame positions used (nm, rms)", "{:.1f}"),
+    ("rms_error", "median", "Error against the true surface (rms, reflectance), median", "{:.3f}"),
+    ("rms_error", "worst", "Error against the true surface (rms, reflectance), worst run", "{:.3f}"),
+    ("finest_period_nm", "median", "Finest bar period shown (nm), median; \"none\" if not even the coarsest", "{:,.0f}"),
+    ("wrong_material_percent", "median", "Surface assigned to the wrong material (%, average of the two materials), "
+                                         "median", "{:.1f}"),
+    ("position_error_nm", "median", "Error of the frame positions used (nm, rms), median", "{:.1f}"),
+    ("position_error_nm", "lost", f"Runs in which the frame positions used were wrong by more than {LOST_NM:.0f} nm "
+                                  "rms (count)", "{:.0f}"),
 ]
 
 
-def summarise(records, measure):
-    """Median over seeds of one measure, as ``{(scene, approach, condition): value or None or str}``."""
+def summarise(records, measure, how="median"):
+    """One figure per cell over the seeds, as ``{(scene, approach, condition): float or "refused"}``.
+
+    ``how`` is "median", "worst" (the largest) or "lost" (how many runs
+    exceeded ``LOST_NM``). For the finest period, a run that showed no bar
+    group counts as infinitely coarse, so a median can come out infinite.
+    """
     cells = {}
     for r in records:
         key = (r["scene"], r["approach"], r["condition"])
         if "refused" in r:
             cells[key] = "refused"
-        elif r.get(measure) is not None:
-            cells.setdefault(key, []).append(r[measure])
-    return {k: (v if isinstance(v, str) else float(np.median(v))) for k, v in cells.items()}
+            continue
+        value = r.get(measure)
+        if measure == "finest_period_nm" and r.get("has_bars") and value is None:
+            value = np.inf
+        if value is not None:
+            cells.setdefault(key, []).append(value)
+    pick = {"median": np.median, "worst": np.max, "lost": lambda v: np.sum(np.array(v) > LOST_NM)}[how]
+    return {k: (v if isinstance(v, str) else float(pick(v))) for k, v in cells.items()}
 
 
 def tables_markdown(comparison: Comparison, records):
-    """All result tables as Markdown text."""
+    """The result tables as Markdown text. The same records always give the same text."""
     lines = []
     number = 0
     conditions = [c.name for c in comparison.conditions]
+    solvers = {a.name for a in comparison.approaches if a.positions == "unknown"}
     for scene in comparison.scenes:
-        for measure, title, fmt in MEASURES:
-            cells = summarise(records, measure)
-            rows = [(a.name, [cells.get((scene, a.name, c)) for c in conditions]) for a in comparison.approaches]
+        for measure, how, title, fmt in MEASURES:
+            cells = summarise(records, measure, how)
+            chosen = [a for a in comparison.approaches if measure != "position_error_nm" or a.name in solvers]
+            rows = [(a.name, [cells.get((scene, a.name, c)) for c in conditions]) for a in chosen]
             if not any(isinstance(v, float) for _, values in rows for v in values):
                 continue
             number += 1
             lines += [f"| Approach | {' | '.join(conditions)} |", "|---|" + "---:|" * len(conditions)]
             for name, values in rows:
-                shown = ["not run" if v == "refused" else "" if v is None else fmt.format(v) for v in values]
+                shown = ["not run" if v == "refused" else "" if v is None else "none" if np.isinf(v)
+                         else fmt.format(v) for v in values]
                 lines.append(f"| `{name}` | {' | '.join(shown)} |")
+            note = " Only approaches with no position readout are listed." if measure == "position_error_nm" else ""
             lines += ["", f"*Table R{number}. Scene `{scene}`: {title[0].lower() + title[1:]}. Simulated, level 1; "
-                          f"median of {len(comparison.seeds)} seeds. Columns are the conditions.*", ""]
+                          f"{len(comparison.seeds)} runs per cell, one per seed. Columns are the conditions.{note}*", ""]
     refused = sorted({(r["approach"], r["scene"], r["refused"]) for r in records if "refused" in r})
     if refused:
         number += 1
@@ -214,18 +253,24 @@ def tables_markdown(comparison: Comparison, records):
         lines += [f"| `{a}` | `{s}` | {why.split(': ', 1)[-1]} |" for a, s, why in refused]
         lines += ["", f"*Table R{number}. Combinations that were refused, with the reason.*", ""]
     number += 1
-    lines += ["| Approach | Typical time for one reconstruction (s) | Readings used | Runs that gave a warning |",
-              "|---|---:|---:|---:|"]
+    lines += ["| Approach | Readings used per run | Runs that gave a warning |", "|---|---:|---:|"]
     for a in comparison.approaches:
         mine = [r for r in records if r["approach"] == a.name and "refused" not in r]
         if mine:
-            seconds = float(np.median([r["seconds"] for r in mine]))
             warned = sum(bool(r["warnings"]) for r in mine)
-            lines.append(f"| `{a.name}` | {float(f'{seconds:.1g}'):g} | {mine[0]['readings']:,} | "
-                         f"{warned} of {len(mine)} |")
-    lines += ["", f"*Table R{number}. Cost of each approach. Times are for one core of the machine that ran the "
-                  "comparison and are rounded to one figure.*", ""]
+            lines.append(f"| `{a.name}` | {mine[0]['readings']:,} | {warned} of {len(mine)} |")
+    lines += ["", f"*Table R{number}. Data used by each approach, and solver warnings.*", ""]
     return "\n".join(lines)
+
+
+def timings_markdown(comparison: Comparison, records):
+    """Typical computing time per approach. Differs from run to run and machine to machine."""
+    lines = ["| Approach | Typical time for one reconstruction (s) |", "|---|---:|"]
+    for a in comparison.approaches:
+        mine = [r["seconds"] for r in records if r["approach"] == a.name and "refused" not in r]
+        if mine:
+            lines.append(f"| `{a.name}` | {float(f'{np.median(mine):.1g}'):g} |")
+    return "\n".join(lines) + "\n"
 
 
 def figures(comparison: Comparison, records, out_dir):
@@ -238,7 +283,7 @@ def figures(comparison: Comparison, records, out_dir):
     ink, paper = "#1f2430", "#fcfcfa"
     conditions = [c.name for c in comparison.conditions]
     names = [a.name for a in comparison.approaches]
-    cells = summarise(records, "rms_error")
+    cells = summarise(records, "rms_error", "median")
     fig, axes = plt.subplots(1, len(comparison.scenes), figsize=(4.1 * len(comparison.scenes) + 2.2, 0.42 * len(names) + 2.3),
                              sharey=True, facecolor=paper)
     axes = np.atleast_1d(axes)
@@ -308,8 +353,9 @@ def _rounded(value, figures=6):
 
 def _code_version():
     try:
-        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True,
-                              cwd=Path(__file__).parent, check=True).stdout.strip()
+        # "-dirty" is added if the code had changes not yet committed when the comparison ran
+        return subprocess.run(["git", "describe", "--always", "--dirty", "--exclude", "*"], capture_output=True,
+                              text=True, cwd=Path(__file__).parent, check=True).stdout.strip()
     except Exception:
         return "unknown"
 
@@ -325,6 +371,7 @@ def write_results(comparison: Comparison, records, out_dir, comparison_text=""):
          "approach_files": {a.name: a.source for a in comparison.approaches}, "comparison_file": comparison_text,
          "records": stable}, indent=1) + "\n")
     (out / "tables.md").write_text(tables_markdown(comparison, records))
+    (out / "timings.md").write_text(timings_markdown(comparison, records))
     figures(comparison, records, out)
 
 

@@ -1,10 +1,11 @@
 name = "fast-scan-coded-light"
 description = "The fast scan with the light switched on and off in a fixed irregular pattern within each frame, which keeps the smear reversible."
-hardware = ["sensor with its lens removed", "light that can be switched within a frame", "scan stage", "position readout good to a few nanometres"]
+hardware = ["sensor with its lens removed", "light that can be switched within a frame", "scan stage", "position readout, taken as exact"]
 positions = "known"
 
 [scan]
 shift_px = 2.37
+n_frames = 31
 exposure_fraction = 1.0
 code = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1]
 

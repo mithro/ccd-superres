@@ -1,10 +1,11 @@
 name = "fast-scan-short-pulse"
-description = "Scan six times faster (2.37 pixels per frame) with the light flashed briefly for each frame. Least squares, positions given."
-hardware = ["sensor with its lens removed", "pulsed light", "scan stage", "position readout good to a few nanometres"]
+description = "Scan the same strip six times faster (2.37 pixels per frame, 31 frames in place of 200, so six times fewer readings) with the light flashed briefly for each frame. Least squares, positions given."
+hardware = ["sensor with its lens removed", "pulsed light", "scan stage", "position readout, taken as exact"]
 positions = "known"
 
 [scan]
 shift_px = 2.37
+n_frames = 31
 exposure_fraction = 0.0
 
 [reconstruction]

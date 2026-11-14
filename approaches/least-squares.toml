@@ -1,6 +1,6 @@
 name = "least-squares"
 description = "Find the surface whose predicted readings match the measured ones, with a preference for smoothness. Positions are given."
-hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout good to a few nanometres"]
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout, taken as exact"]
 positions = "known"
 
 [reconstruction]

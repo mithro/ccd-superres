@@ -1,6 +1,6 @@
 name = "least-squares-light-smoothing"
 description = "Least squares with ten times less smoothing, the same as the two-material fits use, so that those can be compared like for like. Positions are given."
-hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout good to a few nanometres"]
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout, taken as exact"]
 positions = "known"
 
 [reconstruction]
