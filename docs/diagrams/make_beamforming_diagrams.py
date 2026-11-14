@@ -197,6 +197,7 @@ def array_factor(steer_u=0.25, n=64, fill=8):
                 ls=(0, (5, 2)), label="one pixel alone")
         ax.axvline(steer_u, color=INK2, lw=0.8, ls=":")
         ax.set_ylim(-45, 3)
+        ax.set_xlim(-1, 1)
         ax.set_ylabel("response (dB)")
         ax.set_title(title, fontsize=10.5, loc="left")
         tidy(ax)
@@ -219,6 +220,11 @@ def array_factor(steer_u=0.25, n=64, fill=8):
           f"({np.degrees(np.arcsin(lobe)):.1f} degrees from straight down)")
     print(f"  lobes inside +-90 degrees when steered to 0: "
           f"{2 * int(np.floor(1 / lobe)) + 1}")
+    peaks = [steer_u + m * lobe for m in range(-6, 7)
+             if abs(steer_u + m * lobe) <= 1]
+    print(f"  lobes when steered to sine {steer_u} "
+          f"({np.degrees(np.arcsin(steer_u)):.1f} degrees, as in the figure): "
+          f"{len(peaks)}")
     print(f"  spacing needed for no ambiguity (half wavelength): "
           f"{1000 * WAVELENGTH_UM / 2:.1f} nm = pitch / "
           f"{PITCH_UM / (WAVELENGTH_UM / 2):.2f}")
@@ -234,10 +240,21 @@ def array_factor(steer_u=0.25, n=64, fill=8):
 # ---------------------------------------------------------------------------
 
 def _bands(beams, half_band):
-    """Object-frequency bands (in units of 1/wavelength) reached by beam pairs."""
+    """Object-frequency bands (in units of 1/wavelength) reached by beam pairs.
+
+    A pair (a, b) reaches ripples near |a - b|, within the half-band. The
+    scattered light must itself travel, so its sine stays within +-1, which
+    clips the top of the band at 1 + the larger of |a| and |b|.
+    """
     beams = np.asarray(beams, float)
-    diffs = sorted({round(abs(a - b), 6) for a in beams for b in beams})
-    return [(d - half_band, d + half_band) for d in diffs], diffs
+    bands, diffs = [], set()
+    for a in beams:
+        for b in beams:
+            d = round(abs(a - b), 6)
+            top = max(1 - min(a, b), 1 + max(a, b))
+            bands.append((d - half_band, min(d + half_band, top)))
+            diffs.add(d)
+    return sorted(set(bands)), sorted(diffs)
 
 
 def _covered(bands, top):
@@ -266,8 +283,8 @@ def coarray(max_sine=0.95):
          [-max_sine + unit6 * k for k in (0, 1, 4, 6)]),
     ]
     half_bands = [
-        ("pixel records fringes down to one pixel wide", WAVELENGTH_UM / PITCH_UM),
-        ("pixel records fringes down to two pixels wide",
+        ("fringe period down to one pixel (upper bound)", WAVELENGTH_UM / PITCH_UM),
+        ("fringe period down to two pixels",
          WAVELENGTH_UM / (2 * PITCH_UM)),
     ]
     top = 2 * max_sine
@@ -307,6 +324,15 @@ def coarray(max_sine=0.95):
         sec.set_xticks([400, 200, 150, 125, 107])
         sec.set_xlabel("line width (nm) at 405 nm")
     save(fig, "coarray")
+
+    # One dimension: beams needed to give `steps` equal distinct spacings.
+    for steps in (3, 6):
+        even = steps + 1
+        n = 2
+        while n * (n - 1) // 2 < steps:
+            n += 1
+        print(f"  1-D, {steps} distinct spacings wanted: evenly spaced beams "
+              f"{even}, beams if no spacing repeats at least {n}")
 
     # Rough two-dimensional count: patches of side 2*half_band tiling half a
     # disc of radius `top` (the other half is its mirror image).
@@ -390,11 +416,10 @@ def adaptive_demo(m=32, shots=200, sep=0.4, snr_db=20.0, seed=7):
         curves = [("delay and sum", das, INK2, "-"),
                   ("minimum variance (Capon)", capon, BLUE, "-"),
                   ("subspace (MUSIC)", music, ORANGE, "-")]
-        if coherent:
-            sub = 20
-            Rs = _smooth(X, sub)
-            _, _, music_s = _spectra(Rs, sub, grid)
-            curves.append(("MUSIC after spatial smoothing", music_s, AQUA, "-"))
+        sub = 20
+        Rs = _smooth(X, sub)
+        _, _, music_s = _spectra(Rs, sub, grid)
+        curves.append(("MUSIC after spatial smoothing", music_s, AQUA, "-"))
         for name, y, col, ls in curves:
             ydb = 10 * np.log10(y / y.max())
             ax.plot(grid / rayleigh, ydb, color=col, lw=1.5, ls=ls, label=name)
@@ -423,6 +448,11 @@ def _scan(name, rows, cols, frames):
     k = np.arange(frames)
     if name == "one straight pass":
         return [(int(i), 0) for i in k]
+    if name == "two passes, shifted sideways by 1":
+        return [(int(i), 0) for i in k] + [(int(i), 1) for i in k]
+    if name == "three passes, shifted by 0, 1 and 5":
+        return ([(int(i), 0) for i in k] + [(int(i), 1) for i in k]
+                + [(int(i), 5) for i in k])
     if name == "two passes, shifted sideways by 5":
         return [(int(i), 0) for i in k] + [(int(i), 5) for i in k]
     if name == "three passes, shifted by 0, 5 and 8":
@@ -510,9 +540,11 @@ def selfcal_demo(rows=12, cols=12, seed=11):
     names = [
         "one straight pass",
         "two passes, shifted sideways by 5",
-        "three passes, shifted by 0, 5 and 8",
+        "two passes, shifted sideways by 1",
+        "three passes, shifted by 0, 1 and 5",
         "one pass along, one pass across",
     ]
+    ACROSS = names[4]
     print("SELF-CALIBRATION OF PIXEL GAINS, TOY SENSOR")
     print(f"  {rows} x {cols} pixels. Combinations the data cannot fix:")
     null = {}
@@ -528,18 +560,33 @@ def selfcal_demo(rows=12, cols=12, seed=11):
     rng = np.random.default_rng(seed)
     gain, est_bad = _solve_gains(names[0], rows, cols, 32, rng)
     err_bad = _gauge_error(gain, est_bad, remove_plane=True)
-    gain2, est_good = _solve_gains(names[3], rows, cols, 32, rng)
+    gain2, est_good = _solve_gains(ACROSS, rows, cols, 32, rng)
     err_good = _gauge_error(gain2, est_good, remove_plane=True)
     print(f"  32 frames per pass. Gain error (r.m.s., per cent): "
           f"one straight pass {100 * err_bad.std():.2f}, "
           f"along and across {100 * err_good.std():.2f}")
+
+    print("  gain error at 32 frames per pass, by scan pattern (mean of 6 "
+          "runs, per cent): all of it | broad trend across the columns | rest")
+    for name in names[2:]:
+        tot, broad, fine = [], [], []
+        for rep_i in range(6):
+            g, e = _solve_gains(name, rows, cols, 32,
+                                np.random.default_rng(500 + rep_i))
+            err = _gauge_error(g, e, True)
+            colmean = err.mean(axis=0, keepdims=True)
+            tot.append(err.std())
+            broad.append(colmean.std())
+            fine.append((err - colmean).std())
+        print(f"    {name:38s} {100 * np.mean(tot):.2f}  "
+              f"{100 * np.mean(broad):.2f}  {100 * np.mean(fine):.2f}")
 
     frames_list = [4, 8, 16, 32, 64, 128]
     curve = []
     for frames in frames_list:
         vals = []
         for rep in range(4):
-            g, e = _solve_gains(names[3], rows, cols, frames,
+            g, e = _solve_gains(ACROSS, rows, cols, frames,
                                 np.random.default_rng(100 + 10 * frames + rep))
             vals.append(_gauge_error(g, e, True).std())
         curve.append(100 * float(np.mean(vals)))
@@ -547,7 +594,7 @@ def selfcal_demo(rows=12, cols=12, seed=11):
     print("  frames per pass, gain error %, photon-noise floor % "
           "(1/sqrt(electrons collected by the pixel)):")
     for f, c, s in zip(frames_list, curve, shot):
-        print(f"    {f:4d}  {c:.3f}  {s:.3f}")
+        print(f"    {f:4d}  {c:.3f}  {s:.3f}  ratio {c / s:.2f}")
 
     fig = plt.figure(figsize=(12.5, 4.2))
     gs = fig.add_gridspec(1, 5, width_ratios=[1, 1, 0.06, 0.42, 1.7], wspace=0.3)
@@ -597,7 +644,7 @@ def selfcal_demo(rows=12, cols=12, seed=11):
 
 def counting_tables():
     px = SENSOR_PIXELS[0] * SENSOR_PIXELS[1]
-    area_um2 = SENSOR_MM[0] * SENSOR_MM[1] * 1e6
+    area_um2 = px * PITCH_UM ** 2
     step = WAVELENGTH_UM / 4
     unknowns = area_um2 / step ** 2
     per_pixel = (PITCH_UM / step) ** 2
@@ -606,9 +653,13 @@ def counting_tables():
     print(f"  finest period that travels: {1000 * WAVELENGTH_UM / 2:.1f} nm, "
           f"sample spacing {1000 * step:.2f} nm")
     print(f"  surface samples under the sensor: {unknowns:.3g}")
-    print(f"  surface samples per pixel area: {per_pixel:.0f} "
-          f"(twice that, {2 * per_pixel:.0f}, if brightness and height are both wanted)")
-    print(f"  frames needed at the very least: {unknowns / px:.0f}")
+    print(f"  surface samples per pixel area, square count: {per_pixel:.0f}")
+    disc = per_pixel * np.pi / 4
+    print(f"  the same counting only detail light can carry (a disc, pi/4 "
+          f"of the square): {disc:.0f} (twice that, {2 * disc:.0f}, if "
+          f"brightness and height are both wanted)")
+    print(f"  surface numbers under the sensor, disc count: {disc * px:.3g}")
+    print(f"  frames needed at the very least: {disc:.0f}")
 
     print("AVERAGING GAIN")
     for n in (100, 1000, 13000, 100000):
@@ -616,23 +667,26 @@ def counting_tables():
               f"({10 * np.log10(n):.0f} dB)")
 
     print("REFERENCE BEAM (HETERODYNE) GAIN, per pixel per frame")
+    ref = FULL_WELL_E / 2
+    print(f"  reference at half the well ({ref:.0f} e), best case: fringe "
+          "peak, fringe position known")
     print("  scattered electrons | direct SNR with 3 e read noise | "
-          "SNR with reference filling the well")
+          "SNR through fringes | SNR averaged over fringe position")
     for ns in (0.1, 1.0, 10.0, 100.0):
         direct = ns / np.sqrt(ns + READ_NOISE_E ** 2)
-        het = 2 * np.sqrt(ns * FULL_WELL_E) / np.sqrt(FULL_WELL_E + ns + READ_NOISE_E ** 2)
-        print(f"  {ns:6.1f}  {direct:6.3f}  {het:6.3f}")
+        het = 2 * np.sqrt(ns * ref) / np.sqrt(ref + ns + READ_NOISE_E ** 2)
+        print(f"  {ns:6.1f}  {direct:6.2f}  {het:6.2f}  {het / np.sqrt(2):6.2f}")
     print(f"  weakest scattered share of the reference seen at SNR 1 in one "
-          f"reading: {1 / (4 * FULL_WELL_E):.2e}")
+          f"reading: {1 / (4 * ref):.2e} (1 part in {4 * ref:.0f})")
     for n in (1e3, 1e6):
         print(f"    after combining {n:.0e} readings: "
-              f"{1 / (4 * FULL_WELL_E * n):.1e}")
+              f"{1 / (4 * ref * n):.1e}")
 
     print("SIZE OF THE CORRELATION MATRIX")
     for side in (16, 32, 64, None):
         m = side * side if side else px
         entries = float(m) ** 2
-        gb = entries * 8 / 1e9
+        gb = entries * 8 / 1e9  # single-precision complex numbers
         tiles = px / m
         print(f"  tile {side if side else 'whole sensor'}: receivers {m:,}, "
               f"entries {entries:.3g}, memory {gb:.3g} GB, tiles {tiles:,.0f}")
@@ -652,9 +706,11 @@ def crowding_table():
     """
     print("NOISE COST OF SEPARATING CROWDED POINTS, scale factor SRF^(2p-1)")
     for srf in (1.5, 2.0, 3.0, 4.0):
-        row = [srf ** (2 * p - 1) for p in (1, 2, 3)]
-        print(f"  {srf:3.1f} times finer: 1 point {row[0]:6.1f}, "
-              f"2 points {row[1]:7.1f}, 3 points {row[2]:8.1f}")
+        row = [srf ** (2 * p - 1) for p in (2, 3)]
+        print(f"  {srf:3.1f} times closer than the limit: "
+              f"2 points {row[0]:7.1f}, 3 points {row[1]:8.1f}; "
+              f"law holds for noise below about {1 / row[0]:.3f} and "
+              f"{1 / row[1]:.4f} of the signal")
 
 
 def nearfield_table():
@@ -677,6 +733,215 @@ def nearfield_table():
                   f"{gaps[0]:6.0f} {gaps[1]:6.0f} {gaps[2]:6.0f}")
 
 
+# ---------------------------------------------------------------------------
+# 7. Recovery without knowing the positions
+# ---------------------------------------------------------------------------
+
+def _toy_scene(length, rng):
+    """A row of bars of two brightness levels, blurred over three samples."""
+    x = np.zeros(length)
+    i, v = 0, 0
+    while i < length:
+        run = int(rng.integers(3, 7))
+        x[i: i + run] = v
+        v = 1 - v
+        i += run
+    kernel = np.zeros(length)
+    kernel[:3] = 1 / 3
+    return np.real(np.fft.ifft(np.fft.fft(x) * np.fft.fft(kernel)))
+
+
+def _aligned_error(est, truth):
+    """Error after the best overall shift, as a share of the scene's contrast.
+    The overall shift is the one thing no method can know."""
+    best = min(np.sqrt(np.mean((np.roll(est, s) - truth) ** 2))
+               for s in range(truth.size))
+    return best / truth.std()
+
+
+def _toy_frames(truth, count, noise, rng, step=1.0, jitter=0.5):
+    """Noisy copies of the scene at positions that drift steadily with jitter."""
+    n = truth.size
+    pos = np.cumsum(step + jitter * rng.normal(size=count))
+    shift = np.round(pos).astype(int) % n
+    idx = (np.arange(n)[None, :] - shift[:, None]) % n
+    y = truth[idx] + noise * truth.std() * rng.normal(size=(count, n))
+    return y, shift
+
+
+def _match(y, est):
+    """match[k, s]: how well frame k fits the estimate moved by s samples."""
+    return np.real(np.fft.ifft(
+        np.fft.fft(y, axis=1) * np.conj(np.fft.fft(est))[None, :], axis=1))
+
+
+def _combine(y, weight):
+    """Average of the frames, each moved back by its weighted positions."""
+    fy = np.fft.fft(y, axis=1)
+    fw = np.fft.fft(weight, axis=1)
+    return np.real(np.fft.ifft((fy * np.conj(fw)).sum(0))) / y.shape[0]
+
+
+def _known(y, shift):
+    n = y.shape[1]
+    idx = (np.arange(n)[None, :] + shift[:, None]) % n
+    return np.take_along_axis(y, idx, 1).mean(0)
+
+
+def _start(y, rng):
+    return y[:50].mean(0) + 0.1 * rng.normal(size=y.shape[1])
+
+
+def _best_guess(y, rng, iters=30):
+    """Pick the single best position for every frame, average, repeat."""
+    est = _start(y, rng)
+    for _ in range(iters):
+        m = _match(y, est)
+        w = np.zeros_like(m)
+        w[np.arange(y.shape[0]), m.argmax(1)] = 1
+        est = _combine(y, w)
+    return est
+
+
+def _weigh_all(y, noise_sd, rng, iters=100):
+    """Weigh every possible position of every frame by how well it fits."""
+    est = _start(y, rng)
+    for _ in range(iters):
+        m = _match(y, est) / noise_sd ** 2
+        w = np.exp(m - m.max(1, keepdims=True))
+        w /= w.sum(1, keepdims=True)
+        est = _combine(y, w)
+    return est
+
+
+def _move(prob, step, kernel):
+    out = np.zeros_like(prob)
+    for d, w in kernel.items():
+        out += w * np.roll(prob, step + d)
+    return out
+
+
+def _weigh_all_smooth(y, noise_sd, rng, step=1, iters=40):
+    """As _weigh_all, but positions that would need a jump between one frame
+    and the next are ruled out (forward-backward pass over the frames)."""
+    count, n = y.shape
+    kern = {-2: 0.02, -1: 0.23, 0: 0.5, 1: 0.23, 2: 0.02}
+    back = {-d: w for d, w in kern.items()}
+    est = _start(y, rng)
+    for _ in range(iters):
+        m = _match(y, est) / noise_sd ** 2
+        e = np.exp(m - m.max(1, keepdims=True))
+        fwd = np.zeros((count, n))
+        bwd = np.ones((count, n))
+        fwd[0] = e[0] / e[0].sum()
+        for k in range(1, count):
+            v = _move(fwd[k - 1], step, kern) * e[k]
+            fwd[k] = v / v.sum()
+        for k in range(count - 2, -1, -1):
+            v = _move(bwd[k + 1] * e[k + 1], -step, back)
+            bwd[k] = v / v.sum()
+        w = fwd * bwd
+        w /= w.sum(1, keepdims=True)
+        est = _combine(y, w)
+    return est
+
+
+def _count_layouts(cells, min_run):
+    """Rows of `cells` two-level cells in which every run of equal cells is
+    at least `min_run` long."""
+    ways = [0] * (cells + 1)
+    ways[0] = 1
+    for n in range(1, cells + 1):
+        ways[n] = sum(ways[n - r] for r in range(min_run, n + 1))
+    return 2 * ways[cells]
+
+
+def positions_demo(length=48, count=1000, seeds=(5, 6, 7, 8)):
+    """Rebuild a scene from noisy frames whose positions are not given.
+
+    One dimension, 48 samples, 1000 frames, whole-sample positions on a
+    ring, noise that is the same for every sample. The positions drift
+    steadily with a random jitter. Four methods are compared, and the
+    errors are the mean over four runs with different scenes and noise.
+    Leaves out blur that differs between frames, gain errors and
+    sub-sample positions.
+    """
+    noises = [1.0, 2.0, 3.0, 4.0, 6.0]
+    names = ["positions known", "one best guess per frame",
+             "every position weighed", "every position weighed, jumps ruled out"]
+    runs = np.zeros((len(seeds), len(noises), len(names)))
+    example = None
+    for r, seed in enumerate(seeds):
+        rng = np.random.default_rng(seed)
+        truth_r = _toy_scene(length, rng)
+        for j, noise in enumerate(noises):
+            y, shift = _toy_frames(truth_r, count, noise, rng)
+            sd = noise * truth_r.std()
+            ests = [_known(y, shift), _best_guess(y, rng),
+                    _weigh_all(y, sd, rng), _weigh_all_smooth(y, sd, rng)]
+            runs[r, j] = [100 * _aligned_error(e, truth_r) for e in ests]
+            if r == 0 and noise == 2.0:
+                example = (y[0], ests, truth_r)
+    mean = runs.mean(0)
+    results = {n: mean[:, k] for k, n in enumerate(names)}
+    print("RECOVERY WITHOUT KNOWN POSITIONS, TOY")
+    print(f"  {length} samples, {count} frames, mean of {len(seeds)} runs. "
+          "Error as a share of the scene's contrast (per cent):")
+    for j, noise in enumerate(noises):
+        print(f"    noise {noise:3.1f} x contrast: "
+              + "  ".join(f"{n}: {e:5.1f}" for n, e in zip(names, mean[j])))
+    print("  largest and smallest single run, last method: "
+          + "  ".join(f"{runs[:, j, 3].min():.1f}-{runs[:, j, 3].max():.1f}"
+                      for j in range(len(noises))))
+    truth = example[2]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.3),
+                             gridspec_kw={"width_ratios": [1.25, 1]})
+    ax = axes[0]
+    x = np.arange(length)
+
+    def lined_up(est):
+        s = min(range(length), key=lambda k: np.sum((np.roll(est, k) - truth) ** 2))
+        return np.roll(est, s)
+
+    frame, ests = example[:2]
+    ax.plot(x, frame * 0.25 + 2.6, color=GRID, lw=1.0)
+    ax.text(length - 0.5, 3.75, "one frame as recorded (drawn at quarter height)",
+            ha="right", fontsize=8.5, color=INK2)
+    offsets = [(1.5, ests[1], ORANGE, "one best guess per frame"),
+               (0.0, ests[3], AQUA, "every position weighed, jumps ruled out")]
+    for off, est, col, label in offsets:
+        ax.plot(x, truth + off, color=INK, lw=1.0, ls=":")
+        ax.plot(x, lined_up(est) + off, color=col, lw=1.6)
+        ax.text(length - 0.5, off + 1.12, label, ha="right", fontsize=8.5, color=col)
+    ax.set_xlabel("position along the scene (samples)")
+    ax.set_yticks([])
+    ax.set_ylim(-0.3, 4.1)
+    ax.set_title("Noise twice the scene's contrast (dotted: true scene)",
+                 fontsize=10.5, loc="left")
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+
+    ax = axes[1]
+    colours = [INK2, ORANGE, BLUE, AQUA]
+    for n, col in zip(names, colours):
+        ax.semilogy(noises, results[n], "o-", color=col, lw=1.6, label=n)
+    ax.set_xlabel("noise in one frame (multiples of the scene's contrast)")
+    ax.set_ylabel("error in the rebuilt scene (% of contrast)")
+    ax.set_yticks([2, 5, 10, 20, 50, 100, 200])
+    ax.set_yticklabels(["2", "5", "10", "20", "50", "100", "200"])
+    ax.minorticks_off()
+    ax.legend(fontsize=8.5, frameon=False, loc="lower right")
+    tidy(ax)
+    save(fig, "positions-demo")
+
+    print("CANDIDATE LAYOUTS LEFT AFTER A MINIMUM-WIDTH RULE")
+    for cells in (16, 32, 64):
+        row = [2 ** cells] + [_count_layouts(cells, m) for m in (2, 3, 4)]
+        print(f"  {cells} cells: " + "  ".join(
+            f"{v:.3g} ({np.log2(float(v)):.1f} bits)" for v in row))
+
+
 if __name__ == "__main__":
     receiver_map()
     array_factor()
@@ -686,3 +951,4 @@ if __name__ == "__main__":
     counting_tables()
     crowding_table()
     nearfield_table()
+    positions_demo()

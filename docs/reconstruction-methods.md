@@ -1308,8 +1308,12 @@ the parallax of a light-field camera [[M132](#m132)].
 measured by thousands of different pixels, and each pixel measures millions
 of different points. Radio astronomy calibrates its antennas from exactly
 this kind of redundancy, with no knowledge of the sky [[M129](#m129)]. Here it fixes
-the gain and offset of every pixel, and with enough passes the response
-shape of every pixel, from the scan data alone. A line of pixels crossing
+the gain and offset of every pixel, and with enough passes the differences
+in response shape between pixels, from the scan data alone. One straight
+pass is not enough for this: it cannot tell a streak in the sensor from a
+streak on the chip, and a second pass in another direction or shifted
+sideways is needed
+([beamforming study, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap)). A line of pixels crossing
 each point once has no such redundancy.
 
 **6. Full geometry from a pair of frames.** Two overlapping frames give the

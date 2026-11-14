@@ -28,7 +28,7 @@ The plan asked three questions. The short answers are these.
 1. **What does treating the pixels as an array give beyond averaging?**
    Averaging thousands of readings only reduces noise. The array view adds
    five things: a way to count whether enough numbers are recorded at all
-   (one frame records about 120 times too few, and the scan has to supply
+   (one frame records about 100 times too few, and the scan has to supply
    the rest); an explanation of what the scan does (it fills the gaps
    between pixels, which removes false copies of the picture but does not
    remove the blur of a single pixel); the fact that a pixel becomes a true
@@ -56,10 +56,11 @@ The plan asked three questions. The short answers are these.
    pixel gains very well, better than in radio, and astronomers and
    infrared camera makers have calibrated detector arrays this way since
    about 1990. A toy calculation on this page recovers hidden pixel gains
-   to within 20 per cent of the best that photon noise allows. It also
-   shows a trap: **one straight pass cannot tell a streak in the sensor
-   from a streak on the chip**, and a second pass in a different direction,
-   or passes shifted sideways by unrelated amounts, removes the trap. The
+   to within 20 per cent of the best that photon noise allows, once the
+   few combinations that no data can fix are set aside. It also shows a
+   trap: **one straight pass cannot tell a streak in the sensor from a
+   streak on the chip**. A second pass in a different direction, or a
+   second pass shifted sideways by a small step, removes the trap. The
    shape of a pixel's response carries over only in part: differences
    between pixels can be found from the scan, but the shape common to all
    pixels cannot be separated from the chip's own fine detail without
@@ -67,11 +68,19 @@ The plan asked three questions. The short answers are these.
 
 The study also turned up ideas that were not on anyone's list. The main
 ones: choose the laser beam directions so that no spacing between them is
-repeated, which roughly halves the number of beams needed; change the
+repeated, which in one dimension does with four beams what evenly spaced
+beams need seven for; change the
 lighting between frames on purpose so that the sharper methods become
 usable; borrow the correction that antenna test ranges apply for their
 measuring probe, which is the same problem as the pixel's response; and
 look at sensors whose pixels are built to sense the direction of light.
+
+While the study was being written Tim put two further ideas to it: that
+the simulator should allow recovery by proposing possible solutions and
+eliminating the impossible ones, even without exact positions, and that
+the way real things change in time can help with the eliminating.
+[Section 8](#8-recovery-without-exact-positions-and-the-use-of-time) sets
+out how array fields already do both, and what their published limits are.
 
 For scale: the laser light in the leading candidate has a wavelength of
 405 nm, about 200 times smaller than the width of a hair. A pixel is
@@ -80,7 +89,7 @@ quarter of a wavelength and one eleventh of a pixel.
 
 ## Terms used on this page
 
-Terms already in the [glossary](../glossary.md) are not repeated here.
+The most used of these are also in the [glossary](../glossary.md).
 
 | Term | Meaning |
 |---|---|
@@ -100,27 +109,28 @@ Terms already in the [glossary](../glossary.md) are not repeated here.
 | Redundancy | Two different pairs of receivers that measure the same thing. Useful for calibration, wasteful for coverage. |
 | Gain | The factor by which one receiver, here one pixel, multiplies what it receives. |
 | Degeneracy | A change to the unknowns that leaves every measurement unchanged, so that no amount of data can detect it. |
-| Near field | The region within about a wavelength of a surface, where detail finer than the wavelength can still be sensed. |
+| Near field | The region within a fraction of a wavelength of a surface, where detail finer than the wavelength can still be sensed. |
 
 ## How claims are marked
 
 The rules are those of the [references](../references.md) page.
 
 - A key in square brackets, such as [[BF14](#bf14)], means the statement is
-  taken from that source in [section 12](#12-references).
+  taken from that source in [section 13](#13-references).
 - **Derived here** means worked out on this page or by the script
-  [`docs/diagrams/make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py), which prints every derived
-  number quoted here.
+  [`docs/diagrams/make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py), which prints the numbers
+  behind the tables and figures.
 - **Estimate**, **Assumption**, **Judgement** and **Unverified** have their
   meanings from the references page.
 
-How far the sources were checked: every source in section 12 was confirmed
+How far the sources were checked: every source in section 13 was confirmed
 to exist in a bibliographic database on 14 November 2026. For the sources
-marked "checked against the abstract" in section 12, the statement made here was checked
-against the paper's abstract. **No full text was read for this study.**
-Where this page says something about a source that goes beyond its title
-and abstract, that statement comes from general knowledge of the work and
-is marked Unverified.
+marked "checked against the abstract" in section 13, the statement made
+here was checked against the paper's abstract. **No full text was read for
+this study.** Everything this page says about a source marked "existence
+checked only" comes from general knowledge of the work and is Unverified,
+whether or not the word stands next to it. The same holds where the page
+says more about a source than its abstract does.
 
 ## 1. The questions and the answers
 
@@ -206,7 +216,8 @@ spacing.
 | Spacing needed for no false directions (half a wavelength) | 202.5 | nm |
 | Ratio of the two | 5.53 | |
 | Angle between a true direction and its first false copy, near straight down | 21.2 | degrees |
-| Indistinguishable directions across the whole range of angles | 5 | |
+| Indistinguishable directions when steered straight down | 5 | |
+| The same when steered to 14.5 degrees, as in the figure below | 6 | |
 | Angle from straight down at which one ideal pixel stops responding to fringes | 21.2 | degrees |
 
 The scan changes this. Each frame is taken with the sensor moved by a
@@ -215,12 +226,12 @@ positions much closer together than the pixels. In array terms the scan
 fills in the missing receivers. Radar does the same thing with one antenna
 on a moving aircraft, which is the subject of study B1.
 
-![Two plots of array response against arrival angle: one frame with five equal peaks, and a scan-filled array with one peak](../diagrams/beam-array-factor.svg)
+![Two plots of array response against arrival angle: one frame with six equal peaks, and a scan-filled array with one peak](../diagrams/beam-array-factor.svg)
 
 *Figure: how strongly a row of pixels, used as an array and steered to
 14.5 degrees (dotted line), responds to light arriving from every other
-angle. Top: one frame of 64 pixels. The blue curve has five equal peaks, so
-light from five directions cannot be told apart. Bottom: the same pixels
+angle. Top: one frame of 64 pixels. The blue curve has six equal peaks, so
+light from six directions cannot be told apart. Bottom: the same pixels
 after the scan has filled in 8 positions per pixel. Only the true peak
 remains. The orange dashed curve in both plots is the response of a single
 ideal pixel, which is the same in both: the scan does not change it.
@@ -251,8 +262,8 @@ edges. The real response is unknown until hardware exists
 | 60 | 12.6 |
 | 72 | 11.1 |
 
-In words: only light arriving within about 20 degrees of the reference beam
-makes fringes that a pixel records well. This is the "pixel is the next
+Only light arriving within about 20 degrees of the reference beam makes
+fringes that a pixel records well. This is the "pixel is the next
 wall" finding of the survey, seen from the array side. Section 4 shows how
 the choice of beam directions works within it.
 
@@ -270,22 +281,23 @@ under the sensor.** Derived here (`counting_tables` in [the script](https://gith
 |---|--:|---|
 | Finest repeat distance that light at 405 nm can carry away from the surface | 202.5 | nm |
 | Spacing of samples needed to describe it | 101.25 | nm |
-| Samples of the surface under the 3.68 × 2.76 mm sensor | 991,000,000 | |
+| Samples of the surface under the sensor, on a square grid at that spacing | 989,000,000 | |
 | Pixels in one frame | 8,081,920 | |
-| Surface samples per pixel area | 122 | |
-| The same if both brightness and height are wanted | 245 | |
-| Frames needed at the very least | 123 | |
+| Surface samples per pixel area, square grid | 122 | |
+| Independent numbers per pixel area: the same, counting only detail that light can carry in any direction (a disc, π/4 of the square) | 96 | |
+| The same if both brightness and height are wanted | 192 | |
+| Frames needed at the very least | 96 | |
 
-In words: one frame holds about 120 times too few numbers to describe the
-surface at the finest detail light can carry. No processing of a single
-frame can make up the difference. The scan must deliver at least 122
-usefully different readings of every pixel-sized area for each lighting
-condition, and twice that if height is wanted as well. This is a floor, not
-a target: readings that repeat each other do not count, and noise raises
-the need further.
+One frame holds about 100 times too few numbers to describe the surface at
+the finest detail light can carry. No processing of a single frame can
+make up the difference. The scan must deliver at least 96 usefully
+different readings of every pixel-sized area, counted over all lighting
+conditions together, and twice that if height is wanted as well. This is a
+floor, not a target: readings that repeat each other do not count, and
+noise raises the need further.
 
 **What this means for the project.** The scan calculator should report
-this ratio (useful readings per pixel area, against 122 or 245) next to the
+this ratio (useful readings per pixel area, against 96 or 192) next to the
 sample counts it already gives. It is the first test of any scan setting.
 
 ## 3. Beyond averaging
@@ -322,23 +334,26 @@ graininess of light itself [[BF60](#bf60)].
 **Table 3.2: one pixel, one reading, with and without a reference beam.**
 Derived here (`counting_tables` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)), from the design's starting values of 4,500
 electrons full well and 3 electrons read noise. The reference is assumed to
-fill the well and to be perfectly steady. "Signal-to-noise" is the size of
-the wanted signal divided by the noise.
+fill half the well (2,250 electrons), which leaves room for the fringes,
+and to be perfectly steady. "Signal-to-noise" is the size of the wanted
+signal divided by the noise. The third column is the best case, a pixel
+sitting on the brightest part of a fringe whose position is known. The
+fourth is the average over all positions of the pixel along the fringe.
 
-| Scattered light (electrons) | Signal-to-noise, read directly | Signal-to-noise, read through fringes |
-|--:|--:|--:|
-| 0.1 | 0.03 | 0.63 |
-| 1.0 | 0.32 | 2.00 |
-| 10.0 | 2.29 | 6.31 |
-| 100.0 | 9.58 | 19.76 |
+| Scattered light (electrons) | Signal-to-noise, read directly | Signal-to-noise through fringes, best case | Signal-to-noise through fringes, averaged |
+|--:|--:|--:|--:|
+| 0.1 | 0.03 | 0.63 | 0.45 |
+| 1.0 | 0.32 | 2.00 | 1.41 |
+| 10.0 | 2.29 | 6.30 | 4.45 |
+| 100.0 | 9.58 | 19.53 | 13.81 |
 
-In words: with a reference beam, light too weak to register by itself
-becomes measurable. The weakest scattered light that one reading can detect
-is about 1 part in 18,000 of the reference (5.6 × 10⁻⁵), and combining a
-thousand readings lowers that a thousandfold. The two columns measure
-slightly different things (brightness on the left, the strength of the wave
-on the right), so the comparison shows the principle and is not an exact
-ratio.
+With a reference beam, light too weak to register by itself becomes
+measurable. The weakest scattered light that one reading can detect in the
+best case is about 1 part in 9,000 of the reference (1.1 × 10⁻⁴), and
+combining a thousand readings lowers that a thousandfold. The columns
+measure slightly different things (brightness in the second, the strength
+of the wave in the third and fourth), so the comparison shows the
+principle and is not an exact ratio.
 
 The cost is that the reference fills most of the pixel's capacity, and its
 own graininess is the noise floor. That leads to a limit.
@@ -431,24 +446,29 @@ detail covered, and a black tick marks the centre of the bar for each pair
 of beams. The bottom scale counts ripples per wavelength (finer to the
 right) and the top scale gives the matching line width at 405 nm. The
 orange dashed line is the finest detail the steepest pair of beams reaches,
-with beams at 72 degrees either side. Left: if pixels record fringes as
-narrow as one pixel. Right: if they record fringes only down to two pixels
-wide, the safer assumption. White gaps are detail that no pair of beams
-measures. Simple band model: it leaves out how strongly each pair responds.*
+with beams at 72 degrees either side. Left: if pixels record fringes whose
+repeat distance is as small as one pixel. This is an upper bound, because
+an ideal pixel records nothing at exactly that distance. Right: if they
+record fringes only down to a repeat distance of two pixels, the safer
+assumption. White gaps are detail that no pair of beams measures. Simple
+band model: it leaves out how strongly each pair responds, and each bar is
+cut off at the finest detail its pair of beams can physically reach.*
 
 **Table 4.2: coverage for four sets of beam directions**, one dimension,
-steepest beams at 72 degrees (sine 0.95). Derived here (`coarray` in the
-script). Coverage is the share of all detail between coarse and the
-steepest-pair limit that at least one pair measures.
+steepest beams at 72 degrees (sine 0.95). Derived here (`coarray` in
+[the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). Coverage is the share of all detail between
+coarse and the steepest-pair limit that at least one pair measures. The two
+coverage columns are for fringes recorded down to a repeat distance of one
+pixel (an upper bound) and of two pixels.
 
-| Beams | Sines of the beam angles | Pairs | Distinct spacings | Coverage, fringes down to one pixel (%) | Coverage, fringes down to two pixels (%) |
-|--:|---|--:|--:|--:|--:|
-| 2 | −0.95, +0.95 | 1 | 1 | 38.1 | 19.0 |
-| 3 | −0.95, −0.32, +0.95 | 3 | 3 | 100.0 | 57.1 |
-| 4, evenly spaced | −0.95, −0.32, +0.32, +0.95 | 6 | 3 | 100.0 | 57.1 |
-| 4, no repeated spacing | −0.95, −0.63, +0.32, +0.95 | 6 | 6 | 100.0 | 100.0 |
+| Beams | Layout | Sines of the beam angles | Pairs | Distinct spacings | Coverage, one pixel (%) | Coverage, two pixels (%) |
+|--:|---|---|--:|--:|--:|--:|
+| 2 | Opposite | −0.95, +0.95 | 1 | 1 | 38.1 | 19.0 |
+| 3 | No repeated spacing | −0.95, −0.32, +0.95 | 3 | 3 | 100.0 | 57.1 |
+| 4 | Evenly spaced | −0.95, −0.32, +0.32, +0.95 | 6 | 3 | 100.0 | 57.1 |
+| 4 | No repeated spacing | −0.95, −0.63, +0.32, +0.95 | 6 | 6 | 100.0 | 100.0 |
 
-In words:
+The table and the figure show three things.
 
 - **Two opposite beams leave most detail unmeasured.** They measure the
   very finest detail and the coarse detail, with a wide hole between.
@@ -459,12 +479,17 @@ In words:
   along the range) are the classic four-element layout of [[BF15](#bf15)]
   (Unverified: the layout is recalled from the paper, not re-read).
 
+In one dimension the saving is exact: six distinct spacings need seven
+evenly spaced beams and only four with no repeated spacing (Derived here,
+printed by the script).
+
 In two dimensions the same counting gives a first estimate of how many
 beams the instrument needs: at least 6 beams if pixels record fringes down
-to one pixel wide, and at least 10 if only down to two pixels wide,
-provided no spacing is repeated. (Estimate, from the area to be covered
-divided by the area one pair covers. A real two-dimensional layout will
-need somewhat more.) With evenly spaced beams the number is roughly double.
+to a repeat distance of one pixel, and at least 10 if only down to two
+pixels, provided no spacing is repeated. (**Estimate**, from the area to be
+covered divided by the area one pair covers. A real two-dimensional layout
+will need somewhat more, and the saving over evenly spaced beams in two
+dimensions has not been worked out here.)
 
 Three cautions belong with this result.
 
@@ -520,7 +545,8 @@ fail in that case. Two repairs are known. One is to make the shots differ,
 which here means changing the direction or the relative timing of the beams
 between frames. The other, spatial smoothing, averages over shifted copies
 of a regular array, at the cost of a smaller effective array
-[[BF8](#bf8)].
+[[BF8](#bf8)]. A scanned sensor supplies shifted copies of itself as a
+matter of course, so this repair costs nothing extra here (Derived here).
 
 ### 5.2 A toy demonstration
 
@@ -534,7 +560,8 @@ the two scatterers is unrelated from shot to shot. Delay and sum (grey)
 shows one blob. Minimum variance (blue) and MUSIC (orange) show two sharp
 peaks in the right places. Right: 200 shots that are all alike, as with one
 fixed laser beam. Minimum variance and MUSIC now fail completely. MUSIC
-after spatial smoothing (green) works again. Vertical scale in decibels
+after spatial smoothing (green, in the variant that also uses the array
+reversed end to end) works again. Vertical scale in decibels
 below each curve's peak. Toy calculation with a perfect model of the array
 and noise one tenth the size of the signal.*
 
@@ -547,12 +574,12 @@ as separated. A value near zero means one merged blob.
 | Delay and sum | −0.5 | 0.0 |
 | Minimum variance (Capon) | 10.6 | 0.0 |
 | Subspace (MUSIC) | 18.4 | 0.0 |
-| MUSIC after spatial smoothing | not run | 28.2 |
+| MUSIC after spatial smoothing | 28.0 | 28.2 |
 
-In words: the sharper methods do separate features closer than the ordinary
-limit, but only when the lighting varies between shots or the array is
-smoothed, and this toy case flatters them: two isolated points, a perfect
-model, low noise.
+The sharper methods do separate features closer than the ordinary limit,
+but only when the lighting varies between shots or the array is smoothed,
+and this toy case flatters them: two isolated points, a perfect model, low
+noise.
 
 ### 5.3 Routes that work from brightness
 
@@ -567,9 +594,9 @@ without recording the wave.** Text table.
 | Reference beam | Fringes with a steady beam record the wave. Everything in 5.1 then applies | A steady reference: here the mirror reflection | [[BF59](#bf59), [BF60](#bf60), [BF61](#bf61)] |
 | Paired lighting | Light the scene with beam A, with beam B, and with both together. The three brightness readings give what the wave readings would have given. From these the full table needed by subspace methods is built | A chosen set of lighting combinations. Stated for weak, localised scatterers, exact when there is no noise | [[BF50](#bf50)] |
 | Brightness-only MUSIC | A version of MUSIC derived for brightness data, valid even when light bounces between scatterers | A few point-like scatterers | [[BF48](#bf48)] |
-| Lifting | Treat every product of two unknowns as a new unknown, which turns the brightness problem into a linear one that can be solved exactly for sparse scenes | Very large memory: the number of unknowns is squared | [[BF49](#bf49)] |
+| Lifting | Treat every product of two unknowns as a new unknown, which turns the brightness problem into a linear one that can be solved exactly for sparse scenes | Very large memory: the number of unknowns is squared (Derived here from the method, not stated in the abstract) | [[BF49](#bf49)] |
 | Fluctuation statistics | If the brightness of each feature flickers independently, the statistics of the flicker over many frames sharpen the picture | Independent flicker of each point. Developed for fluorescent dyes that blink | [[BF51](#bf51), [BF52](#bf52)] |
-| Random lighting | Light the scene with many random speckle patterns that need not be known. The frame-to-frame variation holds detail up to twice as fine as one frame | Many frames under changing speckle. Proved for fluorescence, where brightness simply adds | [[BF53](#bf53), [BF54](#bf54), [BF55](#bf55), [BF56](#bf56)] |
+| Random lighting | Light the scene with many random speckle patterns that need not be known. The frame-to-frame variation holds detail up to twice as fine as one frame, when the grain of the speckle matches the blur of the instrument [[BF56](#bf56)] | Many frames under changing speckle. Analysed in general terms and tested on fluorescence, where brightness simply adds [[BF54](#bf54)] | [[BF53](#bf53), [BF54](#bf54), [BF55](#bf55), [BF56](#bf56)] |
 
 Two remarks.
 
@@ -580,9 +607,10 @@ lighting combinations are sufficient.
 
 The last two routes come from fluorescence microscopy, where each point
 glows independently. A chip surface under laser light does not behave like
-that: its points reflect in step with each other. The published guarantee
-of doubled resolution [[BF54](#bf54)] therefore does not transfer as it
-stands. Whether a version holds for a reflecting surface is an open
+that: its points reflect in step with each other. The published analysis
+of doubled resolution [[BF54](#bf54)] claims relevance beyond fluorescence
+but was tested on fluorescence data, so it cannot be assumed to transfer
+as it stands. Whether a version holds for a reflecting surface is an open
 question that the simulator can answer cheaply (**Judgement**). A related
 optical method uses projected speckle on reflecting and transmitting
 samples [[BF109](#bf109)].
@@ -612,21 +640,25 @@ noise grows very fast with how crowded they are [[BF27](#bf27),
 **Table 5.4: how the noise cost of separating crowded point features
 grows.** The law is from [[BF28](#bf28)] (abstract): the error grows as the
 "times finer" factor raised to the power 2p − 1, where p is the number of
-features crowded within one resolution limit. The numbers are that scale
-factor, worked out here (`crowding_table` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)), not exact errors.
+features crowded within one resolution limit. The law applies only once
+the noise is already smaller than about one over that factor, as a share
+of the signal. The numbers are worked out
+here from the law (`crowding_table` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). They are scale factors, not exact
+errors.
 
-| Times finer than the ordinary limit | 1 feature alone | 2 crowded features | 3 crowded features |
-|--:|--:|--:|--:|
-| 1.5 | 1.5 | 3.4 | 7.6 |
-| 2.0 | 2.0 | 8.0 | 32.0 |
-| 3.0 | 3.0 | 27.0 | 243.0 |
-| 4.0 | 4.0 | 64.0 | 1,024.0 |
+| Times finer than the ordinary limit | Error factor, 2 crowded features | Error factor, 3 crowded features | Noise must be below, 2 features (share of signal) | Noise must be below, 3 features (share of signal) |
+|--:|--:|--:|--:|--:|
+| 1.5 | 3.4 | 7.6 | 0.296 | 0.132 |
+| 2.0 | 8.0 | 32.0 | 0.125 | 0.031 |
+| 3.0 | 27.0 | 243.0 | 0.037 | 0.004 |
+| 4.0 | 64.0 | 1,024.0 | 0.016 | 0.001 |
 
-In words: locating one isolated edge or line three times finer than the
-limit costs a factor of 3 in noise, which thousands of readings easily pay
-for (table 3.1). Separating three lines packed that tightly costs a factor
-of 243. Dense rows of lines, which are what a chip mostly is, sit in the
-right-hand columns. This puts a number on the survey's statement that
+An isolated edge or line is outside this law. Its position can be found
+more and more finely as noise falls, with an error simply in proportion to
+the noise, which thousands of readings pay for (table 3.1) (Unverified:
+general knowledge). Separating two lines packed three times closer than
+the limit multiplies the error by 27, and three such lines by 243. Dense
+rows of lines, which are what a chip mostly is, sit in those columns. This puts a number on the survey's statement that
 detecting and locating is far easier than resolving, and it is the reason
 stage 3 of the leading candidate reports a partly inferred picture and not
 a true one. Statistical analyses of two-point resolution reach the same
@@ -637,7 +669,8 @@ conclusion by another route [[BF29](#bf29), [BF30](#bf30)].
 The methods of 5.1 need one number for every pair of receivers.
 
 **Table 5.5: size of the correlation matrix.** Derived here
-(`counting_tables` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)), at 8 bytes per entry.
+(`counting_tables` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)), at 8 bytes per entry, which is a complex number at single
+precision.
 
 | Receivers treated as one array | Number of receivers | Entries | Memory (GB) | Such tiles on the sensor |
 |---|--:|--:|--:|--:|
@@ -646,7 +679,7 @@ The methods of 5.1 need one number for every pair of receivers.
 | Tile of 64 × 64 pixels | 4,096 | 16,777,216 | 0.134 | 1,973 |
 | Whole sensor | 8,081,920 | 6.5 × 10¹³ | 523,000 | 1 |
 
-In words: correlation methods are possible only on small tiles of pixels,
+Correlation methods are possible only on small tiles of pixels,
 each processed on its own. That suits the hundreds of processor cores Tim
 has said are available, since tiles are independent jobs. Radio telescopes
 with many antennas do the same, combining antennas into stations first
@@ -729,9 +762,9 @@ method.
   [[BF68](#bf68)].
 - **Gains that depend on direction are much harder.** Each antenna's
   sensitivity varies with direction, and so does the air above it. Solving
-  for this needs bright known sources in several directions, or a model
-  with few numbers [[BF72](#bf72), [BF75](#bf75), [BF76](#bf76),
-  [BF77](#bf77), [BF78](#bf78), [BF79](#bf79)].
+  for this needs bright known sources in several directions
+  [[BF72](#bf72)], or a model with few numbers [[BF75](#bf75),
+  [BF76](#bf76), [BF77](#bf77), [BF78](#bf78), [BF79](#bf79)].
 
 Sonar and radar have the matching problem of not knowing exactly where
 their receivers are, and solve for the shape of the array from signals of
@@ -786,12 +819,14 @@ steps, lets the brightness of the light vary by 2 per cent from frame to
 frame, adds photon noise, and solves for everything at once. Because every
 reading is a product of a gain, a scene value and a frame brightness,
 taking logarithms turns the problem into a set of sums that ordinary least
-squares solves, as in [[BF88](#bf88)].
+squares solves. The idea of solving gains from shifted frames is that of
+[[BF88](#bf88)]. The logarithm step is this page's choice (Unverified
+whether the paper does the same).
 
 First, without any noise, it counts the degeneracies: the changes to the
 unknowns that leave every reading unchanged.
 
-**Table 6.4a: number of combinations the data cannot fix**, for four scan
+**Table 6.4a: number of combinations the data cannot fix**, for five scan
 patterns on the toy sensor. Derived here (`selfcal_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)).
 One is the unavoidable minimum: the overall brightness scale.
 
@@ -799,34 +834,49 @@ One is the unavoidable minimum: the overall brightness scale.
 |---|--:|--:|
 | One straight pass | 12 | 14 |
 | Two passes, the second shifted sideways by 5 pixels | 5 | 8 |
-| Three passes, shifted sideways by 0, 5 and 8 pixels | 1 | 4 |
+| Two passes, the second shifted sideways by 1 pixel | 1 | 4 |
+| Three passes, shifted sideways by 0, 1 and 5 pixels | 1 | 4 |
 | One pass along and one pass across | 1 | 4 |
 
-In words:
+The table shows four things.
 
 - **One straight pass leaves one unknown per column.** A pixel column that
   is 1 per cent more sensitive gives exactly the same readings as a chip
   that is 1 per cent brighter along that track. No computation can tell
   them apart. This is the streaking familiar from line-scan satellite
   cameras, which study B3 covers.
-- **One sideways shift is not enough.** It ties columns together in groups,
-  and each group keeps one unknown.
-- **Two sideways shifts with no common factor, or a second pass in another
-  direction, remove all of it.** What remains is the overall scale alone.
+- **A sideways shift ties columns together only at the size of the shift.**
+  After a shift of 5 pixels, any pattern that repeats every 5 columns is
+  still hidden, which leaves 5 unknowns. After a shift of 1 pixel every
+  column is tied to its neighbour and only the overall scale is left.
+- **A second pass in another direction does the same as a small shift.**
+  What remains is the overall scale alone.
 - **If the brightness of each frame is not known, three more numbers stay
   unfixed**: the scale of the frame brightness, and a steady trend across
   the sensor in each of two directions, which can be traded against the
   frame brightness. That makes four, the same count as in radio (section
-  6.1). A separate light monitor, or frames that overlap in time, removes
-  them.
+  6.1). Only outside knowledge removes them: a separate light monitor, or
+  a model of the light's brightness that has fewer numbers than there are
+  frames.
+
+A shift of one pixel is enough on a toy sensor 12 columns wide. On a real
+sensor thousands of columns wide it ties each column only to its
+neighbour, so small errors are expected to add up over long distances and
+leave broad trends poorly fixed. The published advice for this kind of
+calibration is to combine shifts at several scales, small and large
+[[BF89](#bf89), [BF90](#bf90)]. (**Estimate**: the toy is too small to
+show the build-up, as table 6.4b confirms.)
 
 Tilting the sensor relative to the scan direction, as the design does to
-get sampling across the scan, does not remove the trap. The argument does
-not depend on the pixel grid: any smooth trend in sensitivity *across* the
-direction of travel can be traded against the same trend in the chip.
-(Derived here.) In practice random pixel-to-pixel gain differences average
-out along a track and are not the worry. The worry is anything smooth and
-fixed to the sensor, above all an uneven laser beam profile.
+get sampling across the scan, does not remove the trap for smooth trends.
+Any trend in sensitivity *across* the direction of travel that changes
+little over one pixel width can be traded against the same trend in the
+chip. (Derived here by argument, not shown by the toy, whose whole-pixel
+steps cannot represent a tilt.) Tilt does separate differences between
+neighbouring pixels, as the
+[design](../design.md) says. So random pixel-to-pixel gain differences are
+not the worry. The worry is anything smooth and fixed to the sensor, above
+all an uneven laser beam profile.
 
 Then, with noise, the script solves for the gains.
 
@@ -835,29 +885,48 @@ Then, with noise, the script solves for the gains.
 *Figure: pixel gains solved from the scan alone, on a toy sensor of 12 × 12
 pixels. Left: the error left in the solved gains after one straight pass,
 in per cent. The columns are wrong by whole stripes, because the data
-cannot fix them. Middle: the same after one pass along and one pass across.
+cannot fix them. The size of each stripe is arbitrary: it is whatever the
+solver happened to pick among equally good answers. Middle: the same after one pass along and one pass across.
 The stripes are gone. Right: the error of the solved gains against the
 number of frames in each pass (blue), with the best that photon noise
 allows for a single pixel (orange dashed) and the 2 per cent spread of the
-hidden gains (dotted). Toy calculation with whole-pixel steps, no blur, and
-photon noise at 2,000 electrons per reading.*
+hidden gains (dotted). The error is counted after the overall scale and a
+steady slope across the sensor, which no data can fix, are removed. Toy
+calculation with whole-pixel steps, no blur, and photon noise at 2,000
+electrons per reading.*
 
-**Table 6.4b: gain error against frames, toy sensor.** Derived here. The
-floor is one divided by the square root of all the electrons a pixel
-collected.
+**Table 6.4b: gain error against frames, toy sensor, one pass along and
+one across.** Derived here. The gain error is what is left after the
+overall scale and a steady slope across the sensor are removed, since no
+data can fix those. The floor is one divided by the square root of all the
+electrons a pixel collected. It is a lower bound that assumes the scene and
+the frame brightness are known.
 
 | Frames in each of the two passes | Gain error (%) | Photon-noise floor (%) | Ratio |
 |--:|--:|--:|--:|
 | 4 | 0.95 | 0.79 | 1.20 |
 | 8 | 0.67 | 0.56 | 1.19 |
 | 16 | 0.47 | 0.40 | 1.19 |
-| 32 | 0.31 | 0.28 | 1.11 |
-| 64 | 0.23 | 0.20 | 1.16 |
+| 32 | 0.31 | 0.28 | 1.12 |
+| 64 | 0.23 | 0.20 | 1.17 |
 | 128 | 0.17 | 0.14 | 1.19 |
 
-In words: the solve reaches within about 20 per cent of the floor, and the
-error keeps falling as frames are added. Extending the floor to the real
-sensor gives the scale of what is possible.
+The solve reaches within about 20 per cent of the floor, and the error
+keeps falling as frames are added. The three scan patterns that leave only
+the overall scale unfixed do equally well on the toy.
+
+**Table 6.4b2: gain error by scan pattern, toy sensor, 32 frames in each
+pass**, mean of six runs. Derived here. "Broad trend" is the part of the
+error that varies smoothly across the columns.
+
+| Scan pattern | Gain error, all (%) | Broad trend (%) | Rest (%) |
+|---|--:|--:|--:|
+| Two passes, the second shifted sideways by 1 pixel | 0.30 | 0.12 | 0.27 |
+| Three passes, shifted sideways by 0, 1 and 5 pixels | 0.26 | 0.10 | 0.24 |
+| One pass along and one pass across | 0.31 | 0.12 | 0.29 |
+
+Extending the floor to the real sensor gives the scale of what is
+possible.
 
 **Table 6.4c: photon-noise floor for one pixel's gain on the real
 sensor.** Derived here. Estimate: it assumes the toy's behaviour holds at
@@ -876,7 +945,8 @@ times better than they start, from the ordinary data.
 
 **What this means for the project.** Self-calibration of gains should be
 part of stage 1, as the design already intends. The scan plan must include
-either a second direction or sideways shifts with no common factor. The
+either a second direction or passes shifted sideways, with a small shift
+among them and, on the present evidence, larger ones as well. The
 [calibration page](../calibration-and-test.md) lists three quantities the
 data can never fix. This study adds the streak across the scan direction
 as a fourth, which is fixable by the scan plan and not by an outside
@@ -911,7 +981,8 @@ this project.
   purpose. A reference sample of known pattern does it more directly.
 - **Describe the response with few numbers.** Radio astronomy does not
   solve for an antenna's full pattern from the sky. It uses a model with a
-  few adjustable numbers [[BF72](#bf72), [BF76](#bf76)]. The calibration
+  few adjustable numbers [[BF76](#bf76)] (Unverified: general knowledge of
+  the practice). The calibration
   page already proposes this for the pixel.
 - **Change the measurement so the two blurs behave differently.** Readings
   at several gaps, colours or beam angles change the optical blur and leave
@@ -931,17 +1002,19 @@ and which are not, and that distinction decides how hard each is to solve.
 
 ```mermaid
 flowchart LR
-    S["Chip surface<br/>unknown"]
     L["Lighting<br/>beam directions,<br/>brightness per frame"]
+    S["Chip surface<br/>unknown"]
     P["Travel across<br/>the gap"]
-    A["Pixel response<br/>to angle and<br/>position"]
-    G["Pixel gain<br/>and offset"]
+    A["Pixel response<br/>to angle and position<br/>(depends on direction:<br/>solve as a few<br/>shared numbers)"]
+    G["Pixel gain and offset<br/>(same for all directions:<br/>solve per pixel<br/>from the scan)"]
     N["Noise and<br/>digitising"]
     D["Reading"]
-    S --> L --> P --> A --> G --> N --> D
-    A -.-|"depends on direction:<br/>solve as a few<br/>shared numbers"| A
-    G -.-|"same for all directions:<br/>solve per pixel<br/>from the scan"| G
+    L --> S --> P --> A --> G --> N --> D
 ```
+
+*Diagram: the steps a reading passes through, from left to right in the
+order the light meets them. The two steps with a note in brackets are the
+ones this page proposes to solve from the scan, and the note says how.*
 
 The design's software plan
 ([section 7.1](../design.md#71-approaches-as-named-configurations)) already
@@ -961,7 +1034,9 @@ than the wavelength of the sound. It places a grid of microphones very
 close to the source, where the fine detail has not yet faded, and computes
 the field back at the source surface [[BF36](#bf36), [BF37](#bf37)]. The
 resolution is set by how close the microphones are and by how small a
-signal they can detect above noise, not by the wavelength.
+signal they can detect above noise, not by the wavelength. (Unverified:
+general knowledge of the method. The abstract of [[BF36](#bf36)] is
+general and does not state this.)
 
 This is the acoustic twin of the project's near-field arrangement, and its
 rule of thumb transfers directly: fine detail fades by a fixed number of
@@ -973,7 +1048,9 @@ Derived here (`nearfield_table` in [the script](https://github.com/mithro/ccd-su
 [[Goodman](../references.md)]. The rule has the same form as the one used
 in acoustic holography [[BF37](#bf37)] (Unverified: recalled from the book,
 not re-read). "Faded by 40 dB" means the detail's signal is one hundredth
-of its size at the surface.
+of its size at the surface. A line pattern under slanted light sends its
+detail off in two directions. The rows for 72 degrees give the one that
+fades more slowly.
 
 | Line width (nm) | Angle of the light (degrees) | Fading per 100 nm of gap (dB) | Gap for 20 dB fading (nm) | Gap for 40 dB (nm) | Gap for 60 dB (nm) |
 |--:|--:|--:|--:|--:|--:|
@@ -986,16 +1063,24 @@ of its size at the surface.
 | 40 | 0 | 66.9 | 30 | 60 | 90 |
 | 40 | 72 | 53.7 | 37 | 74 | 112 |
 
-In words: with light straight down, 100 nm lines have faded a hundredfold
-within 169 nm of the surface. With light at a steep slant the same lines
-fade four and a half times more slowly, and are still at one hundredth
-strength 758 nm away, about two wavelengths. Averaging can recover a
-hundredfold loss (table 3.1). So slanted light does not only help in the
-far-field arrangement. It also relaxes the gap that a near-field
-arrangement would need for 100 nm lines, from a sixth of a micrometre to
-most of a micrometre. For lines much finer than 100 nm the advantage
-disappears. This agrees with the design's analysis and adds the
-slanted-light column to it.
+With light straight down, 100 nm lines have faded a hundredfold within
+169 nm of the surface. With light at a steep slant, one of the two
+directions into which the lines send their detail fades four and a half
+times more slowly, and is still at one hundredth strength 758 nm away,
+about two wavelengths. The other fades faster than with light straight
+down (37.8 dB per 100 nm, Derived here from the same law). Averaging can
+recover a hundredfold loss (table 3.1). So slanted light does not only
+help in the far-field arrangement. It also relaxes the gap that a
+near-field arrangement would need for 100 nm lines, from a sixth of a
+micrometre to most of a micrometre, for half of the detail's signal. For
+lines much finer than 100 nm the advantage disappears. This agrees with
+the design's analysis and adds the slanted-light column to it.
+
+One condition comes with the slow-fading direction. The fringes it makes
+with the mirror reflection of its own beam repeat every 200 nm or so,
+which a pixel cannot record. It has to be read against the reflection of
+the beam from the opposite side, which gives fringes about 3.3 µm apart.
+(Derived here.) This is the beam-pair arrangement of section 4 again.
 
 ### 7.2 Antenna test ranges
 
@@ -1019,12 +1104,213 @@ response is not an obstacle of a new kind. Once known, it is removed by a
 division, direction by direction, and the only price is noise where the
 response is small. Table 2.2b shows where that is: an ideal pixel responds
 at 2 to 20 per cent beyond 20 degrees, so those directions cost a factor of
-5 to 40 in noise, which averaging can pay (table 3.1). The response has to
-be known, not large. That is one more reason the pixel response is the
+5 to 40 in noise, which averaging can pay (table 3.1). At the exact
+angles where the response is zero (21.2 and 46.3 degrees for the ideal
+pixel) the division fails, and that detail has to come from another beam
+direction or another gap. Elsewhere the response has to be known, not
+large. That is one more reason the pixel response is the
 quantity to pin down, and it is good news for whichever stage does so.
 (Judgement, resting on the ideal-pixel figures.)
 
-## 8. Ideas that were not on the list
+## 8. Recovery without exact positions, and the use of time
+
+Tim put two ideas to the research studies on 14 November 2026:
+
+> "Combining the results with simulation should allow recovery based on
+> working out potential possible solutions and eliminating ones which are
+> physically impossible even without exact positioning information."
+
+> "Temporal properties of the real world can also be used to help eliminate
+> incorrect or impossible solution spaces."
+
+Array processing and the fields next to it have worked this way for
+decades, under other names. This section sets out how they do it, what
+limits they have published, and what a small calculation shows. Changing
+the design to include it belongs to the simulator's own pages. This
+section supplies the evidence. The radar study covers the same two ideas
+from its side in
+[sections 5.4 and 5.5](synthetic-aperture-radar.md#54-proposing-candidates-and-eliminating-the-impossible).
+
+### 8.1 How array fields do it
+
+**Table 8.1: five strategies for recovering a scene when positions, or
+parts of the instrument, are not known.** Text table.
+
+| Strategy | How it works | Where it is standard practice | Published limit | Sources |
+|---|---|---|---|---|
+| Search over candidates, with a simulator as judge | Simulate what the array would record for each candidate answer, and keep the candidates that match the recording. Unknowns of the surroundings are searched together with the answer | Ocean acoustics, as matched-field processing (see the [survey](../reconstruction-methods.md)) and "focalization". Sea-bed surveys, which report how probable every candidate is and not one answer | The search grows quickly with the number of unknowns. A simulator that is wrong in some detail gives a confident wrong answer | [[BF110](#bf110), [BF111](#bf111), [BF112](#bf112)] |
+| Weigh every candidate position, do not choose one | For each frame, work out how well every possible position fits. Let the frame contribute to the picture at every position, in proportion to the fit | Electron microscopy of single molecules, where every one of a great many very noisy images has an unknown orientation | Works at noise levels where choosing a single best position fails. The number of frames needed still grows steeply with noise (below) | [[BF113](#bf113), [BF114](#bf114)] |
+| Use quantities that do not depend on position | From each frame compute only numbers that a shift cannot change, average them over all frames, and rebuild the scene from the averages | Astronomy through turbulent air, radio astronomy's closure quantities (section 6.1), and the mathematics of "multireference alignment" | At high noise the frames needed grow as the cube of the noise power | [[BF115](#bf115), [BF116](#bf116), [BF117](#bf117), [BF118](#bf118), [BF63](#bf63)] |
+| Eliminate by what the answer is allowed to be | Keep only candidates that obey known rules: the signal takes one of a few values, or has constant strength, or is never negative, or is confined to a known region | Radio communications, where overlapping digital signals are separated with no knowledge of the array. Image restoration by projecting onto each rule in turn | The rules must be true. A rule that is nearly true eliminates the right answer | [[BF120](#bf120), [BF121](#bf121), [BF122](#bf122), [BF123](#bf123)] |
+| Eliminate by how things change in time | The scene, the instrument and the noise change at different rates. Sort what is recorded by its rate of change | Tracking of moving things, speech recognition, radio astronomy's filtering by fringe rate, airborne radar | Needs a correct statement of how fast each thing can change | [[BF124](#bf124), [BF125](#bf125), [BF126](#bf126), [BF102](#bf102)] |
+
+The third strategy has the best understood limit. "Multireference
+alignment" is the name mathematicians give to exactly this problem: many
+noisy copies of one signal, each shifted by an unknown amount. Two results
+were checked against abstracts for this page.
+
+- The signal can be rebuilt from shift-proof averages alone, without ever
+  estimating a single shift [[BF116](#bf116)].
+- The price is in the number of frames. When noise is low, the frames
+  needed grow in proportion to the noise power, as they would with known
+  positions. When noise is high, they grow as its cube [[BF117](#bf117)].
+  Doubling the noise power in each frame then calls for eight times as
+  many frames, where known positions would call for twice as many.
+
+That cube law is the worst case, in which nothing at all is known about
+the shifts. This instrument is far better placed, for three reasons.
+(**Judgement.**)
+
+- The positions are roughly known in advance: the stage moves at a nearly
+  steady rate.
+- One frame has one unknown position and eight million readings, so even
+  very noisy pixels fix it well. The simulator's
+  [level 1](../level1.md) already estimates frame positions from the data
+  to the limit that noise allows.
+- The positions follow each other in time, which the fifth strategy uses.
+
+Where the weighing of candidates is likely to earn its place is on the
+unknowns that one frame fixes poorly: the position of the fringes within
+their 200 nm repeat distance, which each pixel records only faintly, and
+slow changes in the gap. (**Judgement**, to be tested in the simulator.)
+
+### 8.2 A toy calculation
+
+[The script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py) (`positions_demo`) builds a scene of 48 samples made of
+bars of two brightness levels, and records it 1,000 times. Each recording
+is the scene moved to a position that is not given to the methods, with
+fresh noise added. The position advances by about one sample per frame
+with a random error of half a sample each time, as a stage moving at a
+nearly steady rate would. Four methods rebuild the scene.
+
+- **Positions known.** The frames are moved back by their true positions
+  and averaged. This is the best any method can do.
+- **One best guess per frame.** Each frame is matched against the current
+  picture, moved to its single best-fitting position and averaged, and
+  this is repeated. This is elimination in its hardest form: all positions
+  but one are discarded.
+- **Every position weighed.** Each frame contributes at every position in
+  proportion to how well it fits there (the second strategy of table 8.1).
+- **Every position weighed, jumps ruled out.** As the third, and positions
+  that would need the stage to jump between one frame and the next are
+  given no weight (the fifth strategy). The calculation passes forwards
+  and backwards along the sequence of frames, as speech recognisers do
+  [[BF125](#bf125)].
+
+![Left: a noisy recorded frame and two rebuilt scenes against the true scene. Right: error of four methods against noise](../diagrams/beam-positions-demo.svg)
+
+*Figure: rebuilding a scene from 1,000 noisy frames whose positions are
+not given. Left: with noise twice the scene's contrast, one recorded frame
+(grey, drawn at a quarter of its height), the scene rebuilt by choosing
+one best position per frame (orange), and the scene rebuilt by weighing
+every position and ruling out jumps (green). The dotted line under each is
+the true scene. Right: the error of each method against the noise in one
+frame, as a percentage of the scene's contrast, on a logarithmic scale,
+mean of four runs. Grey is the best possible, with positions known. Toy
+calculation in one dimension with whole-sample positions and the same
+noise in every sample.*
+
+**Table 8.2: error in the rebuilt scene, as a percentage of the scene's
+contrast**, mean of four runs with different scenes and noise. Derived
+here. Noise is given in multiples of the scene's contrast in a single
+frame.
+
+| Noise in one frame (× contrast) | Positions known (%) | One best guess per frame (%) | Every position weighed (%) | Weighed, jumps ruled out (%) |
+|--:|--:|--:|--:|--:|
+| 1 | 3.2 | 3.3 | 3.2 | 3.2 |
+| 2 | 6.3 | 23.5 | 12.9 | 8.1 |
+| 3 | 8.5 | 62.9 | 34.0 | 16.8 |
+| 4 | 13.4 | 113.9 | 56.9 | 29.7 |
+| 6 | 19.1 | 180.2 | 104.3 | 49.7 |
+
+While the noise in a frame is no larger than the scene's contrast, not
+knowing the positions costs nothing. At twice the contrast, choosing one
+position per frame is already nearly four times worse than the best
+possible, weighing every position is twice as bad, and ruling out jumps
+brings the result to within a third of the best possible. At higher noise
+every method falls behind the best possible, and the time rule keeps a factor of about two over weighing alone. Single runs
+of the last method differed from these means by up to about a third.
+
+### 8.3 Eliminating layouts a chip cannot have
+
+A chip layer is mostly made of two materials, and its design rules forbid
+features narrower than a minimum width. Both are rules of the kind in the
+fourth row of table 8.1, and their strength can be counted.
+
+**Table 8.3: number of possible layouts of a row of cells, each of one of
+two materials, before and after a minimum-width rule.** Derived here
+(`positions_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). The second column of each pair
+gives the same count as a number of yes-or-no questions: the count is two
+to that power.
+
+| Cells in the row | All layouts | Yes-or-no questions | Minimum width 2 cells | Yes-or-no questions | Minimum width 3 cells | Yes-or-no questions | Minimum width 4 cells | Yes-or-no questions |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 16 | 65,536 | 16.0 | 1,220 | 10.3 | 176 | 7.5 | 52 | 5.7 |
+| 32 | 4.29 × 10⁹ | 32.0 | 2.69 × 10⁶ | 21.4 | 79,730 | 16.3 | 9,088 | 13.1 |
+| 64 | 1.84 × 10¹⁹ | 64.0 | 1.31 × 10¹³ | 43.6 | 1.64 × 10¹⁰ | 33.9 | 2.74 × 10⁸ | 28.0 |
+
+If the picture is drawn with cells a quarter of the minimum feature width
+(25 nm cells for 100 nm features), the width rule alone removes more than
+half of what has to be found out: 28 questions in place of 64 for a row of
+64 cells. This is the same saving that lets radio receivers separate
+overlapping digital signals knowing only that each takes one of a few
+values [[BF120](#bf120), [BF121](#bf121)].
+
+Two cautions belong here.
+
+- **The candidates cannot be listed one by one.** A row of 64 cells still
+  has 274 million allowed layouts, and a real picture has many millions of
+  cells. The rule has to work inside the fitting, as a projection onto the
+  allowed set [[BF123](#bf123)] or as a preference that makes forbidden
+  layouts costly, not as a list to strike entries from.
+- **Counting candidates is not the same as telling them apart.** The table
+  says how much less there is to find out. Whether the recordings can tell
+  two allowed layouts apart is still set by the limits of sections 2 and
+  5.4.
+
+### 8.4 What time gives
+
+Each thing in the measurement changes in time in its own way. This text
+table lists them. (Derived here, apart from the sources given.)
+
+| Thing | How it changes during a scan | What that allows |
+|---|---|---|
+| The chip surface | Not at all | Whatever differs between two frames of the same place is not the chip |
+| The sensor's position | Smoothly: a stage with mass cannot jump | Sequences of positions that need a jump are ruled out, as in the fourth method of section 8.2 and in tracking filters [[BF124](#bf124)] |
+| Pixel gain and pixel response | Steady, and fixed to the sensor | They travel with the sensor and not with the chip, which is what section 6 uses to separate them |
+| Brightness of the laser | Different in every frame, the same for every pixel | One number per frame, shared by eight million readings |
+| Photon noise and the pixel's electrical noise | New and unrelated in every reading | Averages away, and cannot imitate anything that persists |
+| Vibration | Swings at the frequencies of the mechanics | Describable by a few numbers, not a free position per frame (**Judgement**) |
+
+Radio astronomy applies the same sorting to its own data: the sky drifts
+across the array at a known rate, so anything that changes at the wrong
+rate is filtered out as not sky [[BF126](#bf126)]. Airborne radar
+separates the ground from moving targets by treating position across the
+array and time together [[BF102](#bf102)].
+
+### 8.5 What carries over, and what to watch
+
+- **Hard elimination fails first.** In the toy, discarding all but one
+  position per frame was the first method to break down as noise rose.
+  Giving candidates weights, and keeping the unlikely ones in play, about
+  halved the error at every higher noise level. "Eliminate" should mean "give almost no weight"
+  wherever there is noise.
+- **A wrong simulator eliminates the truth.** Matched-field processing is
+  known for failing when the model of the ocean is slightly off (Unverified:
+  general knowledge of that field). The remedy in that field is to search
+  over the doubtful parts of the model too, which is "focalization"
+  [[BF110](#bf110)]. Here the doubtful part is the pixel response.
+- **Some things cannot be found and do not need to be.** No method can
+  know the overall position of the picture. The toy lines up its result
+  with the truth before scoring for that reason.
+- **The rules have to be written down.** "Physically impossible" needs a
+  list: which materials, which minimum widths, which layer heights.
+  Section 11 asks Tim for it.
+- **The instrument starts from a good position.** Rough positions, one
+  position shared by millions of pixels, and smooth motion make this far
+  easier than the worst case the mathematics describes.
+
+## 9. Ideas that were not on the list
 
 Tim asked that the research turn up approaches nobody had named. This text
 table lists what this study found, each with a verdict in the form the
@@ -1032,18 +1318,21 @@ plan's scouting uses.
 
 | Idea | From | What it would give | Verdict |
 |---|---|---|---|
-| Choose beam directions so that no spacing between them repeats | Sparse arrays, section 4 | Full coverage with about half as many laser beams | Promote. Added to the plan as X17 |
-| Plan the scan with a second direction, or sideways shifts with no common factor | Detector self-calibration, section 6.4 | Gains free of streaks, from the ordinary data | Promote. Added to the plan as X18 |
-| Change the lighting between frames on purpose | Subspace methods, section 5 | Makes the sharper methods usable on isolated features; may give extra detail from frame-to-frame variation | Promote as a simulator experiment. Added to the plan as X19 |
-| Probe compensation and the other methods of antenna test ranges | Section 7.2 | A standard, analysed way to remove the pixel's response once it is known | Promote. Added to the plan as X20 |
+| Choose beam directions so that no spacing between them repeats | Sparse arrays, section 4 | Full coverage with fewer laser beams: four in place of seven in one dimension | Promote. Added to the plan as X-B2-1 |
+| Plan the scan with a second direction, or passes shifted sideways by a small step and by larger ones | Detector self-calibration, section 6.4 | Gains free of streaks, from the ordinary data | Promote. Added to the plan as X-B2-2 |
+| Change the lighting between frames on purpose | Subspace methods, section 5 | Makes the sharper methods usable on isolated features; may give extra detail from frame-to-frame variation | Promote as a simulator experiment. Added to the plan as X-B2-3 |
+| Probe compensation and the other methods of antenna test ranges | Section 7.2 | A standard, analysed way to remove the pixel's response once it is known | Promote. Added to the plan as X-B2-4 |
 | Agreement between parts of the sensor as a quality map | Ultrasound, section 5.6 | A cheap flag for regions where the model is wrong | Promote as a diagnostic in the reconstruction |
 | Keep the bright mirror reflection off the sensor | Section 3.3 | More of each pixel's capacity for the scattered light | Park. It gives up the reference beam. Compare both in the simulator |
 | Sensors whose pixels sense the direction of light, using tiny gratings built over each pixel | Camera research [[BF106](#bf106)] | Pixels with a built-in, known response to angle | Pass to the sensor survey, B5. Hardware |
-| Sensors whose pixels are true wave receivers, on a silicon photonics chip | [[BF107](#bf107), [BF108](#bf108)] | An optical array in the full radio sense | Reject for now. Published arrays are 4 × 4 and 8 × 8 pixels with resolution limited by pixel spacing [[BF107](#bf107)]. Noted for B5 |
+| Sensors whose pixels are true wave receivers, on a silicon photonics chip | [[BF107](#bf107), [BF108](#bf108)] | An optical array in the full radio sense | Reject for now. Published arrays are 4 × 4 pixels, with resolution limited by pixel spacing [[BF107](#bf107)], and 8 × 8 pixels [[BF108](#bf108)]. Noted for B5 |
 | Sorting the light by its shape before detecting it, which removes the usual penalty for two close points | Quantum measurement theory [[BF31](#bf31)] | In principle, separation of close features at no extra noise cost | Reject for now. Needs precise optics in front of the sensor, and is stated for two glowing points, not a reflecting surface |
-| Treat fixed sensor patterns and the moving scene as separable in space and time together | Airborne radar [[BF102](#bf102)] | Another view of self-calibration | Park. It leads to the same conditions as section 6.4 |
+| Treat fixed sensor patterns and the moving scene as separable in space and time together | Airborne radar [[BF102](#bf102)], as a loose parallel | Another view of self-calibration | Park. It leads to the same conditions as section 6.4 |
+| Weigh every candidate position of every frame, and rule out sequences that need a jump | Electron microscopy and tracking, section 8 | In the toy, an error three to four times lower than choosing one position per frame, once the noise exceeds the scene's contrast | Promote as a simulator experiment. Added to the plan as X-B2-5 |
+| Build the picture from quantities that a shift cannot change | Astronomy and multireference alignment, section 8.1 | A reconstruction that never needs the positions, as a cross-check on one that solves for them | Park. Its published cost in frames is high, and the positions here are roughly known |
+| Use the chip's two materials and minimum width as a rule inside the fitting | Blind separation of digital radio signals, section 8.3 | More than half of what must be found out is removed, by count | Promote, with the rules as a stated input. Part of X-B2-5 |
 
-## 9. Recommended changes
+## 10. Recommended changes
 
 Each study ends with the changes it recommends. Text table.
 
@@ -1051,53 +1340,69 @@ Each study ends with the changes it recommends. Text table.
 |---|---|---|
 | Design, measurement model | State that with coherent light the mirror reflection acts as a reference beam, and make its presence on the sensor a setting | Sections 2.1, 3.2, 3.3 |
 | Design, leading candidate, stage 2 | Lay out the beam directions by the no-repeated-spacing rule, and draw the coverage chart of section 4 for each layout. First estimate 6 to 10 beams | Section 4 |
-| Design, scan plan | Require a second scan direction, or sideways shifts with no common factor, in any scan used for calibration | Section 6.4 |
+| Design, scan plan | Require a second scan direction, or passes shifted sideways by a small step and by larger ones, in any scan used for calibration | Section 6.4 |
 | Calibration page | Add the streak across the scan direction to the list of what the data cannot fix, with the scan plan as its cure. Add a monitor of frame brightness, or its absence, as a stated choice | Section 6.4 |
 | Calibration page | Solve for pixel response as differences per pixel plus a shared shape of few numbers. Treat the shared shape as needing a known scene, several gaps, or sharp edges | Section 6.5 |
-| Scan calculator | Report useful readings per pixel area against the floor of 122, or 245 with height | Section 2.3 |
+| Scan calculator | Report useful readings per pixel area against the floor of 96, or 192 with height | Section 2.3 |
 | Simulator parameters | Beam direction layout rule; reference beam on or off the sensor; lighting changed between frames (direction, relative timing, speckle); frame brightness known or unknown | Sections 3 to 6 |
 | Simulator components | A tile-wise correlation step with minimum variance and MUSIC, as an optional stage 3 tool. An agreement map between parts of the sensor as a standard diagnostic | Sections 5.5, 5.6 |
 | Simulator structure | Keep the forward model as an ordered chain with separate unknowns per step, and make "solve one step, hold the rest" standard | Section 6.6 |
 | Staged plan | Gain self-calibration in stage 1 with the scan plan above. Sharper methods on isolated features in stage 3 | Sections 5.6, 6.4 |
 | Reading list for the stage 2 build | Full-text reading of [[BF50](#bf50)] and [[BF14](#bf14)] | Sections 4.2, 5.3 |
+| [Reconstruction methods](../reconstruction-methods.md), section on the two-dimensional sensor, item 5 | The sentence that one pass fixes the gain of every pixel "from the scan data alone" was corrected together with this page. One straight pass leaves one unknown per track across the scan | Section 6.4 |
+| Design, reconstruction | Add recovery by weighted candidates as a named approach: weigh every candidate position, rule out jumps in time, and apply the chip's material and width rules inside the fitting. The simulator build owns this change | Section 8 |
+| Simulator parameters | Position knowledge (exact, rough, none); position handling (one best guess, weighed, weighed with a motion rule); scene rules (number of materials, minimum width) | Section 8 |
 
-## 10. Questions for Tim
+## 11. Questions for Tim
 
 1. **Can the stage move the sensor in two directions, or only one?** The
    streak-free calibration of section 6.4 needs either a second direction
-   or passes shifted sideways by chosen amounts. Sideways shifts need only a
-   coarse second axis.
+   or passes shifted sideways. The smallest sideways shift should be about
+   a pixel, so the second axis needs fine steps over a short range, not a
+   long travel.
 2. **Is a small light monitor acceptable as hardware later?** One
    photodiode watching the laser removes three of the four unfixed numbers
-   of section 6.4. Without it they must come from overlap between frames.
+   of section 6.4. Without it they need a model of how the laser's
+   brightness can vary that has fewer numbers than there are frames.
 3. **Is changing the lighting from frame to frame acceptable?** Switching
    between beams is already in the design. Section 5 suggests also varying
    their relative timing or adding a moving diffuser, in simulation first.
+4. **Which rules may the reconstruction assume about the chip?** Section
+   8.3 needs them stated: how many materials in the layer to be imaged,
+   the minimum feature width, and whether the layout or its design rules
+   are known in advance.
 
-## 11. Limits of this study
+## 12. Limits of this study
 
 - **No full texts were read.** Statements about sources rest on abstracts,
   or where marked Unverified on general knowledge of well-known work. The
-  two sources that most deserve a full reading are named in section 9.
+  two sources that most deserve a full reading are named in section 10.
 - **The co-array result of section 4 is this page's own derivation.** It
   assumes a thin surface that scatters weakly and a strong mirror
   reflection. Real chip surfaces have height comparable to the wavelength
   and scatter strongly. The result needs testing at simulation levels 3
   and 4 before it is relied on.
 - **Every calculation here is a toy.** One dimension or a 12 × 12 sensor,
-  whole-pixel steps, ideal pixels, no blur. They show which effects exist
+  whole-pixel steps, ideal pixels, no blur. The toy of section 8.2 gives
+  every sample the same noise and every frame the same blur, and its
+  figures are means of four runs. They show which effects exist
   and roughly how large they are. They are not predictions.
 - **The pixel's real response is unknown**, as throughout the project.
   Tables 2.2b and 4.2 use an ideal pixel and bracket the uncertainty with
   two assumptions.
 - **The sharper methods were tested with a perfect model.** Their known
   weakness is sensitivity to model error, which the toy does not include.
+- **This page was reviewed independently before merging.** A reviewer who
+  was given the page, the script and the sources, but not the author's
+  conclusions, recomputed the tables, compared the figures with the text
+  and compared the cited claims with abstracts. The corrections are
+  listed in the [review record](../review.md).
 - **Sibling studies may overlap.** Motion-based filling of the array
   belongs to B1, streaking in line-scan cameras to B3, and reference-free
   recovery of the wave to B4. Where they reach different conclusions, the
   difference should be settled in plan item C1.
 
-## 12. References
+## 13. References
 
 All entries were confirmed to exist in OpenAlex or Crossref on 14 November
 2026. "Checked against the abstract" means the statement made on this page
@@ -1147,8 +1452,8 @@ Existence checked only.
 (bf7)=
 [BF7] Stoica and Nehorai, "MUSIC, maximum likelihood, and Cramer-Rao bound",
 IEEE Transactions on Acoustics, Speech, and Signal Processing, 1989.
-[doi:10.1109/29.17564](https://doi.org/10.1109/29.17564). Existence checked
-only.
+[doi:10.1109/29.17564](https://doi.org/10.1109/29.17564).
+Checked against the abstract.
 
 (bf8)=
 [BF8] Shan, Wax and Kailath, "On spatial smoothing for direction-of-arrival
@@ -1326,8 +1631,9 @@ checked only.
 [BF36] Maynard, Williams and Lee, "Nearfield acoustic holography: I. Theory of
 generalized holography and the development of NAH", Journal of the Acoustical
 Society of America, 1985.
-[doi:10.1121/1.392911](https://doi.org/10.1121/1.392911). Checked against the
-abstract.
+[doi:10.1121/1.392911](https://doi.org/10.1121/1.392911).
+Existence checked only: the abstract is general and does not state
+what this page says.
 
 (bf37)=
 [BF37] Williams, *Fourier Acoustics: Sound Radiation and Nearfield Acoustical
@@ -1484,15 +1790,16 @@ Checked against the abstract.
 [BF69] Barry, Hazelton, Sullivan, Morales and Pober, "Calibration requirements
 for detecting the 21 cm epoch of reionization power spectrum and implications
 for the SKA", Monthly Notices of the Royal Astronomical Society, 2016.
-[doi:10.1093/mnras/stw1380](https://doi.org/10.1093/mnras/stw1380). Existence.
-Its finding is as summarised in the abstract of BF68.
+[doi:10.1093/mnras/stw1380](https://doi.org/10.1093/mnras/stw1380).
+Existence checked only. Its finding is as summarised in the abstract of
+BF68.
 
 (bf70)=
 [BF70] Grobler, Nunhokee, Smirnov, van Zyl and de Bruyn, "Calibration
 artefacts in radio interferometry. I. Ghost sources in Westerbork Synthesis
 Radio Telescope data", Monthly Notices of the Royal Astronomical Society,
 2014. [doi:10.1093/mnras/stu268](https://doi.org/10.1093/mnras/stu268).
-Existence checked only.
+Checked against the abstract.
 
 (bf71)=
 [BF71] Salvini and Wijnholds, "Fast gain calibration in radio astronomy using
@@ -1554,7 +1861,7 @@ Existence checked only.
 [BF80] Tegmark and Zaldarriaga, "Fast Fourier transform telescope", Physical
 Review D, 2009.
 [doi:10.1103/physrevd.79.083530](https://doi.org/10.1103/physrevd.79.083530).
-Existence checked only.
+Checked against the abstract.
 
 (bf81)=
 [BF81] Thyagarajan, Beardsley, Bowman and Morales, "A generic and efficient
@@ -1642,7 +1949,8 @@ Existence checked only.
 [BF95] Anderson and King, "Toward high-precision astrometry with WFPC2. I.
 Deriving an accurate point-spread function", Publications of the Astronomical
 Society of the Pacific, 2000.
-[doi:10.1086/316632](https://doi.org/10.1086/316632). Existence checked only.
+[doi:10.1086/316632](https://doi.org/10.1086/316632).
+Checked against the abstract.
 
 ### Near-field antenna measurement
 
@@ -1656,7 +1964,7 @@ Existence checked only.
 [BF97] Paris, Leach and Joy, "Basic theory of probe-compensated near-field
 measurements", IEEE Transactions on Antennas and Propagation, 1978.
 [doi:10.1109/tap.1978.1141855](https://doi.org/10.1109/tap.1978.1141855).
-Existence checked only.
+Checked against the abstract.
 
 (bf98)=
 [BF98] Wittmann, Alpert and Francis, "Near-field antenna measurements using
@@ -1668,7 +1976,7 @@ Checked against the abstract.
 [BF99] Isernia, Leone and Pierri, "Radiation pattern evaluation from
 near-field intensities on planes", IEEE Transactions on Antennas and
 Propagation, 1996. [doi:10.1109/8.496257](https://doi.org/10.1109/8.496257).
-Existence checked only.
+Checked against the abstract.
 
 (bf100)=
 [BF100] Yaccarino and Rahmat-Samii, "Phaseless bi-polar planar near-field
@@ -1729,3 +2037,103 @@ Conference on Lasers and Electro-Optics, 2017.
 [doi:10.1364/cleo_at.2017.jw2a.9](https://doi.org/10.1364/cleo_at.2017.jw2a.9).
 Existence checked only.
 
+### Recovery without known positions, rules and time
+
+(bf110)=
+[BF110] Collins and Kuperman, "Focalization: environmental focusing and source
+localization", Journal of the Acoustical Society of America, 1991.
+[doi:10.1121/1.401933](https://doi.org/10.1121/1.401933). Existence checked
+only.
+
+(bf111)=
+[BF111] Gerstoft, "Inversion of seismoacoustic data using genetic algorithms
+and a posteriori probability distributions", Journal of the Acoustical Society
+of America, 1994. [doi:10.1121/1.408387](https://doi.org/10.1121/1.408387).
+Existence checked only.
+
+(bf112)=
+[BF112] Dosso, "Quantifying uncertainty in geoacoustic inversion. I. A fast
+Gibbs sampler approach", Journal of the Acoustical Society of America, 2002.
+[doi:10.1121/1.1419086](https://doi.org/10.1121/1.1419086). Existence checked
+only.
+
+(bf113)=
+[BF113] Sigworth, "A maximum-likelihood approach to single-particle image
+refinement", Journal of Structural Biology, 1998.
+[doi:10.1006/jsbi.1998.4014](https://doi.org/10.1006/jsbi.1998.4014).
+Existence checked only.
+
+(bf114)=
+[BF114] Scheres, "RELION: implementation of a Bayesian approach to cryo-EM
+structure determination", Journal of Structural Biology, 2012.
+[doi:10.1016/j.jsb.2012.09.006](https://doi.org/10.1016/j.jsb.2012.09.006).
+Existence checked only.
+
+(bf115)=
+[BF115] Lohmann, Weigelt and Wirnitzer, "Speckle masking in astronomy: triple
+correlation theory and applications", Applied Optics, 1983.
+[doi:10.1364/ao.22.004028](https://doi.org/10.1364/ao.22.004028). Checked
+against the abstract.
+
+(bf116)=
+[BF116] Bendory, Boumal, Ma, Zhao and Singer, "Bispectrum inversion with
+application to multireference alignment", IEEE Transactions on Signal
+Processing, 2018.
+[doi:10.1109/tsp.2017.2775591](https://doi.org/10.1109/tsp.2017.2775591).
+Checked against the abstract.
+
+(bf117)=
+[BF117] Perry, Weed, Bandeira, Rigollet and Singer, "The sample complexity of
+multireference alignment", SIAM Journal on Mathematics of Data Science, 2019.
+[doi:10.1137/18m1214317](https://doi.org/10.1137/18m1214317). Checked against
+the abstract.
+
+(bf118)=
+[BF118] Bandeira, Charikar, Singer and Zhu, "Multireference alignment using
+semidefinite programming", Innovations in Theoretical Computer Science, 2014.
+[doi:10.1145/2554797.2554839](https://doi.org/10.1145/2554797.2554839).
+Existence checked only.
+
+(bf120)=
+[BF120] Talwar, Viberg and Paulraj, "Blind separation of synchronous
+co-channel digital signals using an antenna array. I. Algorithms", IEEE
+Transactions on Signal Processing, 1996.
+[doi:10.1109/78.502331](https://doi.org/10.1109/78.502331). Existence checked
+only.
+
+(bf121)=
+[BF121] van der Veen and Paulraj, "An analytical constant modulus algorithm",
+IEEE Transactions on Signal Processing, 1996.
+[doi:10.1109/78.502327](https://doi.org/10.1109/78.502327). Existence checked
+only.
+
+(bf122)=
+[BF122] Godard, "Self-recovering equalization and carrier tracking in
+two-dimensional data communication systems", IEEE Transactions on
+Communications, 1980.
+[doi:10.1109/tcom.1980.1094608](https://doi.org/10.1109/tcom.1980.1094608).
+Existence checked only.
+
+(bf123)=
+[BF123] Youla and Webb, "Image restoration by the method of convex projections:
+Part 1, theory", IEEE Transactions on Medical Imaging, 1982.
+[doi:10.1109/tmi.1982.4307555](https://doi.org/10.1109/tmi.1982.4307555).
+Existence checked only.
+
+(bf124)=
+[BF124] Kalman, "A new approach to linear filtering and prediction problems",
+Journal of Basic Engineering, 1960.
+[doi:10.1115/1.3662552](https://doi.org/10.1115/1.3662552). Existence checked
+only.
+
+(bf125)=
+[BF125] Rabiner, "A tutorial on hidden Markov models and selected applications
+in speech recognition", Proceedings of the IEEE, 1989.
+[doi:10.1109/5.18626](https://doi.org/10.1109/5.18626). Existence checked
+only.
+
+(bf126)=
+[BF126] Parsons, Liu, Ali and Cheng, "Optimized beam sculpting with
+generalized fringe-rate filters", Astrophysical Journal, 2016.
+[doi:10.3847/0004-637x/820/1/51](https://doi.org/10.3847/0004-637x/820/1/51).
+Existence checked only.
