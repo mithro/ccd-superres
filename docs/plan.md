@@ -65,7 +65,9 @@ simulator has to represent and which reconstruction is built first.
 
 This phase is deliberately large. It has two parts: deep research into the
 fields and sensors (B1 to B7), and collection of the data the simulator runs
-on (R1 to R18). All of it comes before the simulation build.
+on (R1 to R18), together with open-ended scouting for approaches nobody has
+named yet (S1 to S6) and the candidates it has seeded (X1 onwards). All of
+it comes before the simulation build, and scouting continues through it.
 
 ### Deep research
 
@@ -91,6 +93,48 @@ every claim marked as taken from a source, derived here, or assumed.
 
 Each item ends with a short list of changes it recommends to the design, the
 simulator parameters and the staged plan.
+
+### Scouting: finding what nobody has named yet
+
+Tim asked that the project explore things he has not thought of, not only
+the fields he mentioned. Scouting is a standing item with a method, not a
+one-off search, and it runs for the whole project.
+
+| Item | Method | Output | State |
+|---|---|---|---|
+| S1 | **List every assumption in the current design and ask what breaks it.** Lensless, visible light, an image sensor as the detector, reflected light as the signal, a rigid scan at constant speed, one sensor, air in the gap, a passive chip, brightness-only readings, one reading per pixel per frame. For each: what if it were false, and who already works that way? | `docs/research/scouting.md`, section "Assumptions" | Not started |
+| S2 | **Work backwards from the physical limits.** For each hard limit in the design (detail finer than the wavelength does not travel, pixels are coarse, light is noisy, positions are unknown), list every known way any field has got round it, whether or not it looks practical here. | `docs/research/scouting.md`, section "Limits" | Not started |
+| S3 | **Search neighbouring literatures** that image small things by any means: microscopy, chip inspection and failure analysis, metrology, remote sensing, medical imaging, seismology, astronomy, hard-disk and optical-disc reading, printing and lithography run in reverse. Follow citations in both directions from the papers found in B1 to B4. | `docs/research/scouting.md`, section "Fields", with a table of every field looked at, including those rejected and why | Not started |
+| S4 | **Ask what else the chip itself offers.** It is an electrical device made of known materials, and can respond to light in ways other than reflecting it. | `docs/research/scouting.md`, section "Signals" | Not started |
+| S5 | **Let the simulator search.** Once the comparison runner exists, optimise scan path, lighting pattern, mask and exposure code against the simulator, and look at what the optimiser finds that nobody proposed. | Approach files under `approaches/found/`, results under `results/` | Not started |
+| S6 | **Triage.** Every candidate from S1 to S5 gets one paragraph: the idea, the best published result, what it would need, and a verdict of promote, park or reject. A promoted candidate becomes a numbered research item below and, if it survives that, a named approach in the simulator. | The candidate table in `docs/research/scouting.md` | Not started |
+
+Candidate items already seeded. Each is a question to test, not a
+recommendation, and each write-up goes to `docs/research/` under the name
+given.
+
+| Item | Candidate | Question it must answer | Write-up | State |
+|---|---|---|---|---|
+| X1 | Near-field scanning optical microscopy and other scanning-probe methods | What do instruments that already work at a 100 nm gap do to hold it, and can any of it be done over a whole sensor and not one tip? | `near-field-probes.md` | Not started |
+| X2 | Solid immersion and high-index layers on the sensor | Does a layer of high refractive index between chip and sensor shorten the effective wavelength enough to matter, and can it be brought close enough? | `immersion.md` | Not started |
+| X3 | Evanescent-wave coupling, plasmonic and metamaterial superlenses | Can a thin structured layer carry the fading near-surface field further, or convert it to travelling light, at visible wavelengths and useful areas? | `superlens.md` | Not started |
+| X4 | Moire and structured-illumination methods | How far below the wavelength and the pixel can beating a known fine pattern against the unknown one reach, including non-linear variants? | `structured-illumination.md` | Not started |
+| X5 | Scatterometry and optical critical dimension metrology as used in chip factories | What accuracy do they reach on 100 nm structures with visible light, what do their models need, and what fails on unknown layouts? | `scatterometry.md` | Not started |
+| X6 | Coherent diffraction imaging, and holography with a separate reference beam | Does a reference beam make phase recovery easier or more robust than recovering it from brightness alone, and can one be arranged without a lens? | `holography.md` | Not started |
+| X7 | Shorter wavelengths: deep ultraviolet, extreme ultraviolet and X-ray ptychography as used on chips | What have they achieved on real chips, what does the source cost, and is any part within reach of a small instrument? | `short-wavelength.md` | Not started |
+| X8 | The chip's own response: fluorescence, heating, photocurrent and electrical response to a scanned or patterned light, as in laser-stimulated failure analysis | Can the chip act as its own detector, so resolution is set by something other than the light collected? What does that need from the chip (power, connections)? | `chip-response.md` | Not started |
+| X9 | Electron-based imaging, for comparison | What does a scanning electron microscope deliver for the same task, at what cost and speed? This is the baseline the optical instrument must justify itself against. | `electron-comparison.md` | Not started |
+| X10 | Quantum and correlation imaging | Do ghost imaging, intensity correlations or entangled light offer a real resolution or noise gain here, or only in principle? | `correlation-imaging.md` | Not started |
+| X11 | Learned and physics-informed reconstruction, and differentiable simulation | Where do learned priors and networks trained on the simulator beat the classical solvers, how are their results kept honest, and can the whole forward model be made differentiable so that instrument settings are optimised by gradient? | `learned-reconstruction.md` | Not started |
+| X12 | Event and single-photon sensors | Do sensors that report changes or single photons with precise timing suit a continuously moving scan better than a framed sensor? | `event-and-photon-sensors.md` | Not started |
+| X13 | Designing the scan path and the lighting by optimisation | What scan paths, lighting sequences and codes does an optimiser choose against the simulator, and how much better are they than the hand-designed ones? | `optimised-design.md` | Not started |
+| X14 | Several sensors, or sensor and chip both moving | Does a second sensor at another angle or distance, or rotating the chip, add information one scan cannot? | `multi-view.md` | Not started |
+| X15 | Tomography and depth | Chips are layered. Can many angles separate the layers, as computed tomography does, and is the top layer all that reflected light sees? | `depth.md` | Not started |
+| X16 | Thermal and mechanical contrast | Do photothermal or acoustic methods driven by pulsed light reach finer detail than the light itself? | `photothermal.md` | Not started |
+
+New findings add rows here. An item is never deleted: one that leads nowhere
+is marked "Rejected" with a link to the reason, so the same ground is not
+covered twice.
 
 ### Data collection
 
@@ -127,7 +171,7 @@ a short page under `docs/data/` saying what was found and how good it is.
 
 | Item | What changes | State |
 |---|---|---|
-| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 | Not started |
+| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 and of every promoted scouting candidate | Not started |
 | C1a | Replace assumed numbers in the design, the calculator and the explorer with the collected data of R1 to R17, each with its source | Not started |
 | C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) | Not started |
 | C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. |
@@ -207,3 +251,6 @@ Nothing in this section starts before G4.
   ready.
 - A pull request that completes or starts an item changes its state on this
   page.
+- The plan is a living document. Any finding that suggests a new approach,
+  field or data source adds an item, in the same pull request as the
+  finding.
