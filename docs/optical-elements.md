@@ -594,7 +594,7 @@ Forms reported in the literature or available as parts:
 |---|---|---|
 | Gratings built into the chip's metal layers over each pixel | Acceptance ±18°, built to sharpen contact images of tissue [[O9](#ref-o9), [O10](#ref-o10)] | Shows the principle works. Needs a custom chip. |
 | Etched silicon collimator arrays | Used to pick out unscattered light through tissue [[O11](#ref-o11)] | Right scale. Custom fabrication. |
-| Stacked hole plates and lithographic collimators | "Stack of pinholes" in black plastic [[O12](#ref-o12)]; 300 µm thick collimator made by X-ray lithography [[O13](#ref-o13)] | Buildable at tens of micrometres. A good first experiment. |
+| Stacked hole plates and lithographic collimators | "Stack of pinholes" in black plastic [[O12](#ref-o12)]; 300 µm thick collimator made by X-ray lithography [[O13](#ref-o13)] (the abstract confirms deep X-ray lithography and a thickness well under 1 mm; the 300 µm figure is **Unverified**) | Buildable at tens of micrometres. A good first experiment. |
 | Glass capillary plates | Pores of a few micrometres, depth 40 or more times the width (catalogue values, to be checked) | Right dimensions. Walls reflect at grazing angles unless blackened. |
 | Fibre-optic plates | See section 6.1 | Carry the image, but ordinary plates accept all angles. |
 | Louvre (privacy) film | Slats tens of micrometres apart, restricts one direction only | Too coarse, and one-directional. Not recommended. |
@@ -1471,10 +1471,12 @@ decay of detail finer than the wavelength [[O35](#ref-o35)], for 200 nm periods 
 about protective layers on finished chips, are **Unverified** general
 knowledge. The last column is a **Judgement**.*
 
-The wavelengths that chip factories themselves use for this job show where
-the comfortable limits are: 193 nm lasers [[O47](#ref-o47)], extreme ultraviolet light
-with a wavelength of 13.5 nm [[O48](#ref-o48), [O49](#ref-o49)], and X-rays [[O50](#ref-o50)], all with
-ptychographic reconstruction.
+The wavelengths that published instruments for imaging chip-scale
+structures use show where the comfortable limits are: a 193 nm laser
+[[O47](#ref-o47)], extreme ultraviolet light with a wavelength of 29.5 nm
+[[O48](#ref-o48)] and of 13.5 nm [[O49](#ref-o49)], and X-rays
+[[O50](#ref-o50)], all with ptychographic reconstruction. These are research
+instruments, not routine factory tools.
 The method is the same as proposed here. Only the wavelength differs.
 
 ### 9.5 Measuring 100 nm features without resolving them
