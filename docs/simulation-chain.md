@@ -2,6 +2,35 @@
 
 Status: plan for review. Level 0 is implemented. Levels 1 to 4 are not.
 
+## In plain words
+
+A simulation is only useful if it can be believed. A fast, simple simulation
+can be wrong without anyone noticing, and an accurate one is too slow to use
+every day. So the project builds five simulations of the same instrument,
+from a quick formula to a full calculation of how light waves move through
+every layer, and checks each one against its neighbour on cases where both
+ought to agree. The quick ones are used for everyday exploring, the slow ones
+say how far the quick ones can be trusted, and corrections found by the slow
+ones are passed down to the quick ones.
+
+The five, from simplest to most exact:
+
+- **Level 0, formulas.** Instant estimates of sharpness and of how many
+  readings each spot gets.
+- **Level 1, blur and sample.** Treats the surface as a flat picture that is
+  blurred and then sampled by moving pixels. Fast enough to produce full
+  sets of readings and reconstruct them.
+- **Level 2, rays.** Follows light as straight lines, so it knows about
+  height, shadows and the shapes of the layers on the sensor.
+- **Level 3, waves.** Treats light as a wave, so it shows the spreading and
+  the interference stripes that rays cannot.
+- **Level 4, full physics.** Solves the complete equations of light in the
+  real materials. Exact, but only affordable for tiny patches.
+
+Terms are collected in the [glossary](glossary.md).
+
+## Overview
+
 The simulator is built as a chain of five levels. Each level is more accurate
 and slower than the one before it, every level reads the same description of
 the scene and the sensor, and each neighbouring pair is checked against each
@@ -42,6 +71,8 @@ flowchart TD
 ## Where each level is valid
 
 ![Validity range of each simulation level](diagrams/level-validity.svg)
+
+*Figure: where each simulation level can be trusted. The size of the smallest thing that matters in the scene runs along the bottom, from nanometres to millimetres. Each bar covers the sizes at which that level gives the right answer. Only the full-physics level covers the smallest sizes, and neighbouring bars overlap, which is where they are checked against each other.*
 
 The horizontal axis is the smallest dimension that matters in the scene:
 feature size, gap, or structure inside a pixel. The ranges are indicative and
