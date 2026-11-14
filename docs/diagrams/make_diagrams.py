@@ -512,6 +512,51 @@ def samples_vs_resolution():
     save(fig, "samples-vs-resolution")
 
 
+# --------------------------------------------------------------------------
+# 8. Sub-pixel coverage for an example scan setting
+# --------------------------------------------------------------------------
+def subpixel_coverage():
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr.sampling import Scan, Sensor, phase_coverage, sample_phases
+
+    sensor = Sensor()
+    cases = [
+        ("Exactly as specified", Scan(fps=10, fraction_per_s=0.2)),
+        ("Sensor tilted (tan θ = 1/16)", Scan(fps=10, fraction_per_s=0.2,
+                                               tilt_tan=1 / 16)),
+        ("No tilt, natural jitter (0.5 px rms)", Scan(fps=10, fraction_per_s=0.2,
+                                                      jitter_px=0.5)),
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(10.5, 4.3), sharey=True)
+    for ax, (title, scan) in zip(axes, cases):
+        ph = np.mod(np.round(sample_phases(sensor, scan), 9), 1.0)
+        cov = phase_coverage(ph)
+        ax.add_patch(Rectangle((0, 0), 1, 1, fc="#ffffff", ec=INK2, lw=1))
+        ax.plot(ph[:, 0], ph[:, 1], "o", color=BLUE, ms=5, mec=SURFACE, mew=0.8,
+                clip_on=False, zorder=3)
+        ax.set_aspect("equal")
+        ax.set_xlim(-0.03, 1.03)
+        ax.set_ylim(-0.03, 1.03)
+        ax.set_xticks([0, 0.5, 1])
+        ax.set_yticks([0, 0.5, 1])
+        ax.set_xlabel("position along scan (pixels)")
+        ax.set_title(title, loc="left", fontsize=10, color=INK)
+        ax.text(0, -0.24, f"{cov.distinct_phases} distinct positions\n"
+                f"largest hole {cov.largest_hole_px:.2f} px "
+                f"(perfect grid {cov.ideal_hole_px:.2f})",
+                transform=ax.transAxes, fontsize=9, color=INK, va="top")
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+    axes[0].set_ylabel("position across scan (pixels)")
+    fig.suptitle("Where the 50 samples of one surface point fall inside a pixel "
+                 "(20% of sensor length per second, 10 frames per second)",
+                 x=0.02, y=0.99, ha="left", fontsize=11)
+    fig.tight_layout(rect=(0, 0.06, 1, 0.95))
+    save(fig, "subpixel-coverage")
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -520,4 +565,5 @@ if __name__ == "__main__":
     gap_requirement()
     sensor_stack()
     samples_vs_resolution()
+    subpixel_coverage()
     print("wrote diagrams to", OUT)

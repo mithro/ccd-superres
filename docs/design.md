@@ -1,6 +1,7 @@
 # Scanning lensless sensor super-resolution simulator: design
 
-Status: draft for review. Nothing in this document has been implemented yet.
+Status: draft for review. Only the scan sampling calculator (section 5.4) has
+been implemented so far.
 Numbers marked "illustrative" come from the analytic model in section 4, not
 from simulation runs.
 
@@ -439,6 +440,96 @@ Sources for this section:
   builder's replies in the comments (first-generation module, OV5647).
   <https://hackaday.com/2021/08/09/using-a-laser-to-blast-away-a-bayer-array>
 
+### 5.4 Scan sampling calculator
+
+Questions such as "if we move 20% of the sensor size every second and sample
+at 10 frames per second, how many samples does each surface point get?" are
+answered by a calculator in the package, `ccdsr/sampling.py`. It is the first
+piece of code in the repository because every later choice of speed, frame
+rate and exposure goes through it.
+
+```
+python -m ccdsr.sampling --fraction-per-s 0.2 --fps 10
+```
+
+Inputs: sensor size and pixel pitch, speed (as a fraction of sensor length per
+second, or in micrometres per second), frame rate, exposure time, tilt,
+rolling-shutter readout time, and random position jitter per frame.
+
+| Output | Formula | Tim's example (IMX219, 20% per second, 10 frames per second) |
+|---|---|---|
+| Speed | fraction × sensor length | 735 µm/s |
+| Shift per frame | speed / frame rate / pitch | 65.6 pixels |
+| Time a point spends under the sensor | sensor length / speed | 5 s |
+| Samples per surface point | frame rate / fraction per second | 50 |
+| Motion blur | speed × exposure / pitch | 65.6 pixels with continuous exposure |
+| Exposure for a quarter-pixel blur | 0.25 × pitch / speed | 0.38 ms |
+| Distinct sub-pixel positions | counted from the sample positions | 5 |
+| Largest unsampled hole in a pixel | radius of the largest empty circle | 0.51 pixels (a perfect grid of 50 samples would give 0.10) |
+| Data rate | pixels × frame rate | 81 million samples per second |
+| Area rate | speed × sensor width | 2.0 mm² per second |
+
+Three things follow from the example.
+
+**Samples per point is simply frame rate divided by the fraction moved per
+second.** Each frame contributes one sample of a given point, taken by
+whichever pixel is over it at the time.
+
+**The 50 samples are not automatically 50 different sub-pixel positions.** A
+shift of 65.6 pixels per frame leaves a remainder of 0.6 pixels, which repeats
+every 5 frames, so the samples pile up on 5 positions along the scan and a
+single position across it. The figure shows this, and two ways out.
+
+![Sub-pixel positions of the samples of one surface point](diagrams/subpixel-coverage.svg)
+
+**Continuous exposure smears the image at this speed.** The sensor moves 65.6
+pixels during one frame period. Sub-pixel reconstruction needs each sample
+frozen to a fraction of a pixel, which here means an exposure or a light pulse
+of about 0.4 ms. The slow baseline in section 5.2 avoids this by moving a
+quarter pixel per frame, at the cost of taking a hundred times longer to cover
+the same area. The calculator exists to trade these off.
+
+For comparison with section 4.2: the slow baseline collects about 13 000
+samples per pixel-sized area in one pass, and this example collects 50.
+
+### 5.5 Natural misalignment as a resource
+
+Tim's point is that with noise in the motion and continuous movement, samples
+are never perfectly aligned, and that this should be used. The design takes
+that position:
+
+- **Imperfect motion fills the pixel on its own.** The right-hand panel above
+  has no tilt at all. A random position error of half a pixel per frame spreads
+  the 50 samples over the whole pixel in both directions, giving a largest
+  hole of 0.18 pixels against 0.51 for perfectly regular motion. Regular
+  motion is the bad case, because it can repeat.
+- **It only helps if the positions are known afterwards.** A sample at an
+  unknown position is blur. A sample at a known irregular position is as
+  useful as one on a grid. So positions are treated as unknowns to be
+  estimated from the data (section 6.4), never as commanded values to be
+  trusted. The reconstruction takes arbitrary sample positions, so irregular
+  sampling costs nothing extra.
+- **The estimate can be far better than the motion.** Each frame holds
+  millions of pixels and overlaps its neighbour almost completely, so the
+  shift between frames can be measured to a small fraction of a pixel even
+  when the stage itself wanders by many pixels.
+- **Tilt becomes optional rather than required.** Deliberate tilt gives the
+  most even coverage (0.12 pixels in the middle panel). Natural wobble gives
+  less even but adequate coverage without it. Using both is the safe choice,
+  and the calculator reports the coverage for any combination.
+
+Limits to keep in view:
+
+- Jitter helps sampling only between frames. Movement during an exposure is
+  still blur, so the short-exposure requirement above stands.
+- With a rolling shutter, speed changes during one frame's readout distort
+  that frame. The trajectory model in section 6.4 must therefore describe
+  position against time, not one shift per frame.
+- Noise in the pixel values does not add sampling diversity. It only sets the
+  noise floor of section 4.
+- Small jitter is not enough. With 0.1 pixels of random error the largest hole
+  is still 0.38 pixels, because the regular 5-position pattern dominates.
+
 ## 6. Reconstruction
 
 ### 6.1 Pipeline
@@ -523,6 +614,11 @@ of a pixel. The plan:
 3. Reconstruct, then refine the trajectory by registering each frame against
    the model's prediction from the current surface estimate. Repeat.
 
+The trajectory is modelled as position against time (a smooth curve with a
+few parameters per frame), so that it covers both the frame-to-frame
+misalignment that section 5.5 relies on and the within-frame distortion of a
+rolling shutter.
+
 Per-pixel gain and offset are refined the same way, since every pixel sees the
 same surface statistics over a long scan.
 
@@ -574,6 +670,7 @@ docs/
   design.md               this document
   diagrams/               diagram sources (Python) and rendered SVG and PNG
 ccdsr/                    the package, one file per module above
+  sampling.py             scan sampling calculator (implemented)
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study
 results/                  committed figures and summary tables
