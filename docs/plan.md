@@ -278,7 +278,7 @@ Nothing in this section starts before G4.
 
 This section is the single place where the documentation standards are
 written down. Tim sets them, and a new one is added here when he gives it.
-There are five so far. Every page in the documentation, and every
+There are six so far. Every page in the documentation, and every
 research write-up, follows them, and the table at the end of this section records
 which pages do so far.
 
@@ -333,6 +333,15 @@ Tim's requirement is proper, clear diagrams, not only text.
   so it can be regenerated and corrected.
 - **Parts are labelled and axes carry units.**
 - **Each figure has a caption that stands alone.**
+- **Clicking any figure enlarges it.** Every image and flow chart on every
+  page opens in a viewer that fills the window, where it can be zoomed and
+  moved. This is done for the whole site by
+  [`docs/_static/image-zoom.js`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.js)
+  and
+  [`docs/_static/image-zoom.css`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.css),
+  loaded from
+  [`docs/conf.py`](https://github.com/mithro/ccd-superres/blob/main/docs/conf.py),
+  so a new figure needs nothing added to its page.
 
 ### Tables
 
@@ -353,6 +362,26 @@ text in cells.
 - **Prose stays out of cells.** Explanation goes in the text around the
   table. A table that compares options in words, such as a list of
   approaches, is a text table and is kept separate from data tables.
+
+### Original units, then scaled
+
+When a page describes a system or a result from another field, it gives
+the figure first in that field's own units, and then scaled to this
+instrument. Tim's rule: "When looking at radar and astronomy, you should
+use the original terms (kilometers, parsecs, etc) and then the virtually
+scaled terms (to nm)."
+
+- **Original first, scaled second, side by side.** In a table the two are
+  neighbouring columns, each with its unit in the header, or in a unit
+  column beside the value where the rows differ too much for one unit.
+- **The page states its scaling rule once**, with the numbers it uses,
+  and labels the scaled values as derived here. The
+  [radar page](research/synthetic-aperture-radar.md#how-radar-sizes-are-scaled-to-the-instrument)
+  scales by the ratio of wavelengths.
+- **A figure that cannot be scaled honestly is left in its original units
+  and marked as not scaled**, for example when the source does not give
+  the wavelength. Quantities with no length in them, such as angles and
+  ratios, are quoted once.
 
 ### Links
 
@@ -383,7 +412,7 @@ not started are planned files; each becomes a link when its item is done.
 | [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Yes: twenty figures from [`docs/diagrams/make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py) and two flow charts, with units, labelled parts and stand-alone captions. Sections 3.3, 4.4, 4.5 and 11 to 13 remain text and tables. | Yes: data tables have one quantity per column with units in the header and right-aligned numbers, data in paragraphs was moved into tables, and comparisons in words are separate text tables |
 | [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Yes: 18 scripted figures and three flow charts, at least one per field and per derived result | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Ptychography and lensless coherent imaging](research/ptychography.md) | Yes: written in plain words throughout, terms in a table or the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label, each entry links to its source and says whether its numbers were read in the full text, the abstract or a summary. Identifiers were checked to exist. | Seven scripted figures and one flow chart | Yes: data tables with units in the headers and right-aligned numbers, kept separate from the text tables |
-| [Radar and synthetic aperture methods](research/synthetic-aperture-radar.md) | Yes: written in plain words throughout, terms explained in a table or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label, each entry says whether the abstract or the full text was read, and unverified textbook rules are marked | Seven scripted figures from [`make_sar_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_sar_diagrams.py) and one flow chart | Yes: data tables with units in the headers and right-aligned numbers, kept separate from the text tables |
+| [Radar and synthetic aperture methods](research/synthetic-aperture-radar.md) | Yes: written in plain words throughout, terms explained in a table or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label, each entry says whether the abstract or the full text was read, and unverified textbook rules are marked | Seven scripted figures from [`make_sar_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_sar_diagrams.py) and one flow chart | Yes: data tables with units in the headers and right-aligned numbers, kept separate from the text tables. Radar figures are given in their own units and then scaled to 405 nm |
 | [Multi-frame reconstruction](research/multi-frame-reconstruction.md) | Yes: written in plain words throughout with no separate summary section, terms explained on the page, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label, and each reference says whether the full text or only the abstract was read. Reviewed once by an independent reviewer against the paper texts, and corrected. | Eleven scripted figures and two flow charts | Yes: data tables with units in the headers and right-aligned numbers, separate from the text tables |
 | [Calibration and test methods](calibration-and-test.md) | Yes: summary, terms explained or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label. Journal sources were checked to exist by DOI. Web sources are marked as read in summary. | Fifteen scripted figures and four flow charts | Yes: data tables with units in the headers and a source column, kept separate from the text tables |
 | [Beamforming and array processing](research/beamforming.md) | Yes: written in plain words throughout, terms in a table or the glossary, the meaning of each table given in the text after it | Yes: 113 sources, each confirmed to exist, each marked as checked by abstract or by existence only. Own results labelled. No full texts read. | Six scripted figures and one flow chart | Yes: data tables with units in the headers and right-aligned numbers, kept separate from the text tables |
