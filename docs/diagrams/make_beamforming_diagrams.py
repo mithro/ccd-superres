@@ -939,7 +939,8 @@ def positions_demo(length=48, count=1000, seeds=(5, 6, 7, 8)):
     for cells in (16, 32, 64):
         row = [2 ** cells] + [_count_layouts(cells, m) for m in (2, 3, 4)]
         print(f"  {cells} cells: " + "  ".join(
-            f"{v:.3g} ({np.log2(float(v)):.1f} bits)" for v in row))
+            (f"{v:,}" if v < 1e7 else f"{v:.3g}")
+            + f" ({np.log2(float(v)):.1f} bits)" for v in row))
 
 
 if __name__ == "__main__":

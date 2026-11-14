@@ -355,7 +355,7 @@ measure slightly different things (brightness in the second, the strength
 of the wave in the third and fourth), so the comparison shows the
 principle and is not an exact ratio.
 
-The cost is that the reference fills most of the pixel's capacity, and its
+The cost is that the reference fills half of the pixel's capacity, and its
 own graininess is the noise floor. That leads to a limit.
 
 ### 3.3 What cannot be done after the light is detected
@@ -566,8 +566,9 @@ below each curve's peak. Toy calculation with a perfect model of the array
 and noise one tenth the size of the signal.*
 
 **Table 5.2: depth of the dip between the two scatterers**, in decibels.
-Derived here (`adaptive_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). A dip of more than 3 dB counts
-as separated. A value near zero means one merged blob.
+Derived here (`adaptive_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). The dip is measured from the lower of the two
+values of the curve at the true positions, not from its peaks. A dip of
+more than 3 dB counts as separated. A value near zero means one merged blob.
 
 | Method | Independent shots (dB) | Every shot alike (dB) |
 |---|--:|--:|
@@ -1140,7 +1141,7 @@ parts of the instrument, are not known.** Text table.
 |---|---|---|---|---|
 | Search over candidates, with a simulator as judge | Simulate what the array would record for each candidate answer, and keep the candidates that match the recording. Unknowns of the surroundings are searched together with the answer | Ocean acoustics, as matched-field processing (see the [survey](../reconstruction-methods.md)) and "focalization". Sea-bed surveys, which report how probable every candidate is and not one answer | The search grows quickly with the number of unknowns. A simulator that is wrong in some detail gives a confident wrong answer | [[BF110](#bf110), [BF111](#bf111), [BF112](#bf112)] |
 | Weigh every candidate position, do not choose one | For each frame, work out how well every possible position fits. Let the frame contribute to the picture at every position, in proportion to the fit | Electron microscopy of single molecules, where every one of a great many very noisy images has an unknown orientation | Works at noise levels where choosing a single best position fails. The number of frames needed still grows steeply with noise (below) | [[BF113](#bf113), [BF114](#bf114)] |
-| Use quantities that do not depend on position | From each frame compute only numbers that a shift cannot change, average them over all frames, and rebuild the scene from the averages | Astronomy through turbulent air, radio astronomy's closure quantities (section 6.1), and the mathematics of "multireference alignment" | At high noise the frames needed grow as the cube of the noise power | [[BF115](#bf115), [BF116](#bf116), [BF117](#bf117), [BF118](#bf118), [BF63](#bf63)] |
+| Use quantities that do not depend on position | From each frame compute only numbers that a shift cannot change, average them over all frames, and rebuild the scene from the averages | Astronomy through turbulent air, radio astronomy's closure quantities (section 6.1), and the mathematics of "multireference alignment" | At high noise the frames needed grow as the cube of the noise power [[BF116](#bf116), [BF117](#bf117)] | [[BF115](#bf115), [BF116](#bf116), [BF117](#bf117), [BF118](#bf118), [BF63](#bf63)] |
 | Eliminate by what the answer is allowed to be | Keep only candidates that obey known rules: the signal takes one of a few values, or has constant strength, or is never negative, or is confined to a known region | Radio communications, where overlapping digital signals are separated with no knowledge of the array. Image restoration by projecting onto each rule in turn | The rules must be true. A rule that is nearly true eliminates the right answer | [[BF120](#bf120), [BF121](#bf121), [BF122](#bf122), [BF123](#bf123)] |
 | Eliminate by how things change in time | The scene, the instrument and the noise change at different rates. Sort what is recorded by its rate of change | Tracking of moving things, speech recognition, radio astronomy's filtering by fringe rate, airborne radar | Needs a correct statement of how fast each thing can change | [[BF124](#bf124), [BF125](#bf125), [BF126](#bf126), [BF102](#bf102)] |
 
@@ -1157,8 +1158,9 @@ were checked against abstracts for this page.
   Doubling the noise power in each frame then calls for eight times as
   many frames, where known positions would call for twice as many.
 
-That cube law is the worst case, in which nothing at all is known about
-the shifts. This instrument is far better placed, for three reasons.
+That cube law is stated for a signal with no special structure, and it is
+the worst case for the shifts, in which nothing at all is known about
+them. This instrument is far better placed, for three reasons.
 (**Judgement.**)
 
 - The positions are roughly known in advance: the stage moves at a nearly
@@ -1177,25 +1179,38 @@ slow changes in the gap. (**Judgement**, to be tested in the simulator.)
 ### 8.2 A toy calculation
 
 [The script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py) (`positions_demo`) builds a scene of 48 samples made of
-bars of two brightness levels, and records it 1,000 times. Each recording
-is the scene moved to a position that is not given to the methods, with
-fresh noise added. The position advances by about one sample per frame
-with a random error of half a sample each time, as a stage moving at a
-nearly steady rate would. Four methods rebuild the scene.
+bars of two brightness levels, each 3 to 6 samples wide and with edges
+softened over three samples, and records it 1,000 times. Each recording
+is the whole scene moved to a position that is not given to the methods,
+with fresh noise added. The scene is joined end to end in a ring, so what
+leaves one end comes back at the other, and every frame sees all of it.
+The position advances by about one sample per frame with a random error of
+half a sample each time, as a stage moving at a nearly steady rate would.
+"Contrast" below means the typical size of the scene's variation (its
+root-mean-square), which is about 0.4 of the step between the two levels.
+So noise of twice the contrast is noise of about 0.8 of that step.
+
+Four methods rebuild the scene. The three that are not told the positions
+all start from the same nearly blank picture, the plain average of the
+first 50 frames.
 
 - **Positions known.** The frames are moved back by their true positions
-  and averaged. This is the best any method can do.
+  and averaged. This is the best any method can do without rules about
+  the scene.
 - **One best guess per frame.** Each frame is matched against the current
   picture, moved to its single best-fitting position and averaged, and
   this is repeated. This is elimination in its hardest form: all positions
   but one are discarded.
 - **Every position weighed.** Each frame contributes at every position in
   proportion to how well it fits there (the second strategy of table 8.1).
-- **Every position weighed, jumps ruled out.** As the third, and positions
-  that would need the stage to jump between one frame and the next are
-  given no weight (the fifth strategy). The calculation passes forwards
-  and backwards along the sequence of frames, as speech recognisers do
-  [[BF125](#bf125)].
+  This method is told the true size of the noise.
+- **Every position weighed, jumps ruled out.** As the third, and each move
+  from one frame to the next is weighed by how likely the stage is to have
+  made it (the fifth strategy). Moves of more than two samples away from
+  the average step get no weight. This method is told the true size of the
+  noise, the average step, and roughly the spread of the steps. The
+  calculation passes forwards and backwards along the sequence of frames,
+  as speech recognisers do [[BF125](#bf125)].
 
 ![Left: a noisy recorded frame and two rebuilt scenes against the true scene. Right: error of four methods against noise](../diagrams/beam-positions-demo.svg)
 
@@ -1213,7 +1228,8 @@ noise in every sample.*
 **Table 8.2: error in the rebuilt scene, as a percentage of the scene's
 contrast**, mean of four runs with different scenes and noise. Derived
 here. Noise is given in multiples of the scene's contrast in a single
-frame.
+frame. A blank picture scores exactly 100 per cent on this measure, so a
+value above 100 means the method has built a picture out of noise.
 
 | Noise in one frame (× contrast) | Positions known (%) | One best guess per frame (%) | Every position weighed (%) | Weighed, jumps ruled out (%) |
 |--:|--:|--:|--:|--:|
@@ -1228,22 +1244,34 @@ knowing the positions costs nothing. At twice the contrast, choosing one
 position per frame is already nearly four times worse than the best
 possible, weighing every position is twice as bad, and ruling out jumps
 brings the result to within a third of the best possible. At higher noise
-every method falls behind the best possible, and the time rule keeps a factor of about two over weighing alone. Single runs
-of the last method differed from these means by up to about a third.
+every method falls behind the best possible. At three times the contrast the
+time rule still halves the error of weighing alone. At four times,
+choosing one position per frame is worse than a blank picture, and at six
+times so is weighing alone. At six times even the best method is at 50 per cent against
+19 per cent with positions known. Single runs of the last method differed
+from these means by up to about a third, and with only four runs the first
+column also wanders a little from its exact value (the noise divided by
+the square root of 1,000).
+
+What the toy does not test is the last method when the average step and
+the spread of the steps have to be found from the data as well.
 
 ### 8.3 Eliminating layouts a chip cannot have
 
 A chip layer is mostly made of two materials, and its design rules forbid
-features narrower than a minimum width. Both are rules of the kind in the
+features narrower than a minimum width (**Assumption**, which question 4
+of section 11 puts to Tim). Both are rules of the kind in the
 fourth row of table 8.1, and their strength can be counted.
 
 **Table 8.3: number of possible layouts of a row of cells, each of one of
 two materials, before and after a minimum-width rule.** Derived here
-(`positions_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). The second column of each pair
-gives the same count as a number of yes-or-no questions: the count is two
-to that power.
+(`positions_demo` in [the script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)). Each count is followed
+by the same count as a number of yes-or-no questions: the count is two to
+that power. The rule is applied to the features at the two ends of the row
+as well, so the counts are slightly low for a row cut out of a larger
+layout.
 
-| Cells in the row | All layouts | Yes-or-no questions | Minimum width 2 cells | Yes-or-no questions | Minimum width 3 cells | Yes-or-no questions | Minimum width 4 cells | Yes-or-no questions |
+| Cells in the row | All layouts | Questions, all layouts | Layouts, minimum width 2 cells | Questions, width 2 | Layouts, minimum width 3 cells | Questions, width 3 | Layouts, minimum width 4 cells | Questions, width 4 |
 |--:|--:|--:|--:|--:|--:|--:|--:|--:|
 | 16 | 65,536 | 16.0 | 1,220 | 10.3 | 176 | 7.5 | 52 | 5.7 |
 | 32 | 4.29 × 10⁹ | 32.0 | 2.69 × 10⁶ | 21.4 | 79,730 | 16.3 | 9,088 | 13.1 |
@@ -1252,9 +1280,11 @@ to that power.
 If the picture is drawn with cells a quarter of the minimum feature width
 (25 nm cells for 100 nm features), the width rule alone removes more than
 half of what has to be found out: 28 questions in place of 64 for a row of
-64 cells. This is the same saving that lets radio receivers separate
+64 cells. It is the same kind of rule that lets radio receivers separate
 overlapping digital signals knowing only that each takes one of a few
-values [[BF120](#bf120), [BF121](#bf121)].
+values [[BF120](#bf120)]. A related rule, that each signal has constant
+strength, is used in [[BF121](#bf121)]. (Unverified: general knowledge of
+both.)
 
 Two cautions belong here.
 
@@ -1271,7 +1301,8 @@ Two cautions belong here.
 ### 8.4 What time gives
 
 Each thing in the measurement changes in time in its own way. This text
-table lists them. (Derived here, apart from the sources given.)
+table lists them. (The middle column is **Assumption** about the hardware.
+The last column is derived here, apart from the sources given.)
 
 | Thing | How it changes during a scan | What that allows |
 |---|---|---|
@@ -1293,7 +1324,7 @@ array and time together [[BF102](#bf102)].
 - **Hard elimination fails first.** In the toy, discarding all but one
   position per frame was the first method to break down as noise rose.
   Giving candidates weights, and keeping the unlikely ones in play, about
-  halved the error at every higher noise level. "Eliminate" should mean "give almost no weight"
+  halved the error at two and three times the contrast. "Eliminate" should mean "give almost no weight"
   wherever there is noise.
 - **A wrong simulator eliminates the truth.** Matched-field processing is
   known for failing when the model of the ocean is slightly off (Unverified:
@@ -1328,7 +1359,7 @@ plan's scouting uses.
 | Sensors whose pixels are true wave receivers, on a silicon photonics chip | [[BF107](#bf107), [BF108](#bf108)] | An optical array in the full radio sense | Reject for now. Published arrays are 4 × 4 pixels, with resolution limited by pixel spacing [[BF107](#bf107)], and 8 × 8 pixels [[BF108](#bf108)]. Noted for B5 |
 | Sorting the light by its shape before detecting it, which removes the usual penalty for two close points | Quantum measurement theory [[BF31](#bf31)] | In principle, separation of close features at no extra noise cost | Reject for now. Needs precise optics in front of the sensor, and is stated for two glowing points, not a reflecting surface |
 | Treat fixed sensor patterns and the moving scene as separable in space and time together | Airborne radar [[BF102](#bf102)], as a loose parallel | Another view of self-calibration | Park. It leads to the same conditions as section 6.4 |
-| Weigh every candidate position of every frame, and rule out sequences that need a jump | Electron microscopy and tracking, section 8 | In the toy, an error three to four times lower than choosing one position per frame, once the noise exceeds the scene's contrast | Promote as a simulator experiment. Added to the plan as X-B2-5 |
+| Weigh every candidate position of every frame, and rule out sequences that need a jump | Electron microscopy and tracking, section 8 | In the toy, an error three to four times lower than choosing one position per frame, at noise of two and three times the scene's contrast, when the stage's average step is known | Promote as a simulator experiment. Added to the plan as X-B2-5 |
 | Build the picture from quantities that a shift cannot change | Astronomy and multireference alignment, section 8.1 | A reconstruction that never needs the positions, as a cross-check on one that solves for them | Park. Its published cost in frames is high, and the positions here are roughly known |
 | Use the chip's two materials and minimum width as a rule inside the fitting | Blind separation of digital radio signals, section 8.3 | More than half of what must be found out is removed, by count | Promote, with the rules as a stated input. Part of X-B2-5 |
 
@@ -1383,20 +1414,23 @@ Each study ends with the changes it recommends. Text table.
   and scatter strongly. The result needs testing at simulation levels 3
   and 4 before it is relied on.
 - **Every calculation here is a toy.** One dimension or a 12 × 12 sensor,
-  whole-pixel steps, ideal pixels, no blur. The toy of section 8.2 gives
-  every sample the same noise and every frame the same blur, and its
-  figures are means of four runs. They show which effects exist
+  whole-pixel steps, ideal pixels, no blur between scene and reading. The
+  toy of section 8.2 gives every sample the same noise, lets every frame
+  see the whole scene, and tells two of its methods the size of the noise
+  and one of them the average step. Its figures are means of four runs. They show which effects exist
   and roughly how large they are. They are not predictions.
 - **The pixel's real response is unknown**, as throughout the project.
   Tables 2.2b and 4.2 use an ideal pixel and bracket the uncertainty with
   two assumptions.
 - **The sharper methods were tested with a perfect model.** Their known
   weakness is sensitivity to model error, which the toy does not include.
-- **This page was reviewed independently before merging.** A reviewer who
-  was given the page, the script and the sources, but not the author's
-  conclusions, recomputed the tables, compared the figures with the text
-  and compared the cited claims with abstracts. The corrections are
-  listed in the [review record](../review.md).
+- **This page was reviewed independently before merging**, in two rounds:
+  first sections 1 to 7 and 9 to 13, then section 8 together with the
+  corrections from the first round. Each reviewer was given the page, the
+  script and the sources, but not the author's conclusions, and recomputed
+  the tables, compared the figures with the text and compared cited claims
+  with abstracts. What was found and what was left unchecked is in the
+  [review record](../review.md).
 - **Sibling studies may overlap.** Motion-based filling of the array
   belongs to B1, streaking in line-scan cameras to B3, and reference-free
   recovery of the wave to B4. Where they reach different conclusions, the

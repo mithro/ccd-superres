@@ -180,8 +180,10 @@ wavelength with elastic waves.
 
 The [beamforming and array processing](research/beamforming.md) study was
 reviewed on 14 November 2026, before it was merged, in
-[pull request 24](https://github.com/mithro/ccd-superres/pull/24). The
-reviewer was given the page, its figure script
+[pull request 24](https://github.com/mithro/ccd-superres/pull/24). There
+were two rounds, by two different reviewers. The second covered section 8,
+which was written after the first round, and checked the corrections made
+after the first. Each reviewer was given the page, its figure script
 [`make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)
 and the sources, and not the author's conclusions.
 
@@ -191,6 +193,7 @@ and the sources, and not the author's conclusions.
 |---|---|---|---|---|--:|---|
 | [Study page](research/beamforming.md), sections 1 to 7 and 9 to 13 | Yes | All tables, by running the script and by independent arithmetic | All 28 then marked as checked by abstract, and 6 more | 5 of 5 | 27 | Reviewed, fixed |
 | [Figure script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py) | Yes | Run, and the scan patterns of the gain calculation varied | Not applicable | Not applicable | Counted above | Reviewed, fixed |
+| [Study page](research/beamforming.md), section 8, and every table and caption changed after the first round | Yes | All, by running the script. Table 8.3 by listing every layout, and tables 2.3, 3.2 and 5.4 and the figures of section 7 by independent arithmetic | 3 of 3 new ones marked as checked by abstract. The 13 other new sources for title, authors, journal and year only | 6 of 6 | 16 | Reviewed, fixed |
 | Rows added to the [plan](plan.md), [index](index.md), [diagrams page](diagrams.md) and [glossary](glossary.md) | Yes | Not applicable | Not applicable | Not applicable | Counted above | Reviewed, fixed |
 
 ### Findings that changed what the page says
@@ -207,7 +210,10 @@ and the sources, and not the author's conclusions.
 | B2-8 | Sources | Gap | Several statements cited to sources checked only for existence carried no "Unverified" label. One source marked as checked by abstract (BF36) was not supported by its abstract. Four abstract-checked statements went further than the abstract. | A blanket rule added under "How claims are marked", six sources promoted to checked by abstract, BF36 demoted, the four statements reworded. |
 | B2-9 | Whole page | Gap | Ten paragraphs opened with the label "In words:", which Tim has asked not to use. | Labels removed and the text folded in. |
 
-The other findings were smaller: wording of captions, a panel label, a
+| B2-10 | [Section 8.2](research/beamforming.md#82-a-toy-calculation) | Gap | "Contrast" was not defined (it is the typical variation of the scene, about 0.4 of the step between its two levels). Errors above 100 per cent, which are worse than a blank picture, were compared as if they meant something. The text did not say that two methods are told the size of the noise and one is told the stage's average step. | All three stated. Comparisons limited to the noise levels where they mean something. |
+| B2-11 | [Section 8.3](research/beamforming.md#83-eliminating-layouts-a-chip-cannot-have) | Gap | A source on signals of constant strength was cited for a rule about signals with few values, and "the same saving" claimed more than the sources show. | Reworded and marked Unverified. |
+
+The second round found no wrong number. The other findings were smaller: wording of captions, a panel label, a
 column split in two, a flow chart drawn in the wrong order, and bare
 mentions of the script that were not links. All were fixed.
 
@@ -217,5 +223,7 @@ mentions of the script that were not links. All were fixed.
 |---|---|---|
 | Full texts of any paper | Only abstracts were available. | A statement that goes beyond an abstract rests on the author's general knowledge and is Unverified. |
 | The sources marked "existence checked only" against their abstracts, apart from the six promoted | Time. | The page treats everything said about them as Unverified. |
+| The 13 new sources of section 8 marked "existence checked only" against their abstracts | Only their titles, authors, journals and years were checked. | The page treats everything said about them as Unverified. |
+| The last method of [section 8.2](research/beamforming.md#82-a-toy-calculation) when the stage's average step is not given | Not calculated. | Its advantage is shown only for a known average step. |
 | The derivation of [section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) against a wave calculation | It needs simulation levels 3 and 4. | The beam-layout result is an estimate until then. |
 
