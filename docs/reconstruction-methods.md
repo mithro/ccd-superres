@@ -305,6 +305,10 @@ with height above the surface, for 405 nm light. All values are derived here
 from the formula above (function `evanescent_table`). For scale, the gap in
 the design is 30 000 nm or more.*
 
+![Two plots: fading of fine detail with height, and the share of a fringe a pixel records](diagrams/recon-limits-curves.svg)
+
+*Figure: two of the hard limits as curves, for 405 nm light. Left: how much of the light carrying a fine pattern is left at each height above the surface. The vertical scale is stretched so that each step down is ten times less. Finer patterns (steeper lines) fade faster, and all of them are gone long before the height of the sensor. Right: how much of a fringe a 1.12 µm pixel records, against the period of the fringe, for four values of how soft the pixel's edges are. The curves show the upper envelope of the response. At a 200 nm period (dashed line) a sharp-edged pixel keeps about 5 %, and a soft-edged one keeps almost nothing. Both plots are derived here from the formulas in this section (function `limits_curves`).*
+
 For the target, 100 nm lines, only a tenth of the wave is left 84 nm above
 the surface. At a height of 1 µm it is down by a factor of 10¹². Lighting the
 surface at a slant shifts the range of detail that does travel, so that the
@@ -438,6 +442,10 @@ receivers are, and with what delay) to resolve sources closer than the array's o
 | Delay and sum | Shift and add: place each sample where its pixel was and average |
 | Inverse beamforming, DAMAS | The regularised least-squares solve of the design document: find the surface that best explains all the samples, with a mild preference for smooth answers |
 | Steering in direction | With coherent light: numerical refocusing of the recorded fringes |
+
+![Delay-and-sum beamforming beside shift-and-add of sensor frames](diagrams/recon-beamforming-map.svg)
+
+*Figure: beamforming beside the instrument's simplest reconstruction. Left: a wave arrives at a row of receivers at a slant, so it reaches each one at a different time. Delaying each receiver's signal by the right amount lines the signals up, and their sum is strong only for that direction. Right: the sensor moves a fraction of a pixel between frames, so the same surface point (orange) falls in a different place within a pixel (blue) each time. Shifting each frame back by its known movement and adding puts the samples on a grid finer than the pixels. Illustrative, not to scale.*
 
 **What this shows.** The design's reconstruction already is inverse
 beamforming. Shift and add is the delay-and-sum beamformer, and the
@@ -590,6 +598,10 @@ pairs than antennas. This is self-calibration [[M27](#m27), [M28](#m28)].
 | Gridding of irregular samples [[M102](#m102)] | Accumulating samples onto the fine grid |
 | Corrections for a non-flat array [[M29](#m29)] | Corrections for sensor tilt and gap variation |
 
+![A pair of radio antennas beside one light direction in and one out at the chip surface](diagrams/recon-baselines-map.svg)
+
+*Figure: what one measurement captures. Left: a pair of radio antennas compares its two signals, which measures one ripple of the sky's brightness. The wider the spacing, the finer the ripple. Right: in the instrument, laser light arriving from one direction and scattered light leaving towards one pixel together measure one ripple of the surface. The steeper the two angles, the finer the ripple. Many pairs fill in the coverage chart of section 2.1. Illustrative, not to scale.*
+
 **What transfers.** Three things. First, the habit of drawing the coverage
 chart for every proposed configuration before building it. It shows at a
 glance which detail a set of light directions and gaps can and cannot
@@ -650,6 +662,10 @@ better than the resolution, and builds an image from millions of positions
 | Coherent plane-wave compounding | Synthetic aperture from several light directions |
 | Localising isolated bubbles | Locating isolated features and edges (section 4.4) |
 
+![Overlap between two sonar pings beside overlap between two sensor frames](diagrams/recon-overlap-map.svg)
+
+*Figure: how movement is measured from the data. Left: a sonar array at two successive pings. The part of the array inside the dashed box occupies the same place both times and hears the same echo, so comparing the two gives the movement. Right: the sensor at two successive frames. It moves only a fraction of a pixel, so almost the whole sensor overlaps. Twelve elements are drawn in each row. The real sensor has 8 million pixels. Illustrative, not to scale.*
+
 **What transfers.** The registration plan in the design document is sonar
 micronavigation. Sonar manages one five-hundredth of a wavelength from an
 overlap of a few array elements. Here the overlap between frames is millions
@@ -681,6 +697,10 @@ lines of 5 m pixels offset by half a pixel, followed by interpolation,
 deconvolution and denoising [[M40](#m40)]. Computed tomography scanners use the same
 trick, offsetting the detector by a quarter of a pixel [[M52](#m52)]. The design's
 tilt of the sensor is the general form of this.
+
+![Three detector layouts and where their samples fall across one pixel width](diagrams/recon-sampling-map.svg)
+
+*Figure: why more rows give finer sampling across the scan. Each drawing shows a detector moving down the page, and the bar beneath it shows where the centres of its pixels (blue dots) fall within one pixel width. One line of pixels samples each pixel width once. Two lines offset by half a pixel, as on the SPOT 5 satellite, sample it twice. A two-dimensional array turned slightly samples it once per row: eight rows are drawn, and the real sensor has 2464. Positions are computed from the drawn geometry (function `sampling_map`).*
 
 **Jitter from parallax between lines.** Satellites with several detector
 lines see each ground point at slightly different times. Differences between
@@ -803,6 +823,10 @@ lensless coded ptychography systems already cited on the optical elements
 page, which resolved 308 nm lines while translating the sample over a sensor
 with a thin scattering layer on it [[M105](#m105)].
 
+![Overlapping probe positions in ptychography beside the sensor sliding over a chip under a fixed light pattern](diagrams/recon-ptychography-map.svg)
+
+*Figure: ptychography beside the instrument. Left: a patch of laser light, called the probe, is placed on the object at overlapping positions, and one pattern of brightness is recorded for each. Because neighbouring patches share part of the object, only one object fits all the recordings. Right: in the instrument the light pattern is fixed to the sensor and plays the part of the probe, the chip surface slides underneath and plays the part of the object, and each frame is one recording. The areas seen in successive frames (blue bars) overlap almost completely. Illustrative, not to scale.*
+
 **The condition that matters.** Translation gives new information only if
 something in the system is not the same everywhere. With a perfectly uniform
 parallel beam and a bare sensor, every frame is the same pattern shifted, and
@@ -861,6 +885,10 @@ wave and the wave scattered by detail. Brightness is unchanged if the
 scattered wave is replaced by its mirror image in phase, so a direct
 refocusing gives the true image with an out-of-focus ghost on top of it (the
 twin image). Removing the ghost means recovering the phase.
+
+![Four rows: a surface of dark bars, the recorded brightness, a direct refocus with ripples, and a clean refocus after phase recovery](diagrams/recon-twin-image-demo.svg)
+
+*Figure: a one-dimensional calculation of the ghost image and its removal, for 405 nm light. Row 1 is a surface with dark bars. Row 2 is what a sensor 40 µm above it records: the bars are scrambled into fringes. Row 3 refocuses that one recording by computation. The bars return to their places, but ripples from the ghost image are spread across the picture. Row 4 uses recordings at three gaps to recover the phase first, and the ripples are gone. Derived here (function `twin_image_demo`): the error against the true surface falls from 0.126 to 0.036. Best case, with no noise and gaps known exactly.*
 
 **The methods.** Alternate between the planes where something is known,
 enforcing the measured brightness in each [[M76](#m76), [M77](#m77)]. Or state the whole
@@ -944,6 +972,10 @@ fringe. Seismic practice is to fit coarse detail first and add finer detail
 in stages [[M85](#m85)]. Here that means: linear reconstruction, then coherent
 reconstruction, then the full model, each started from the last.
 
+![Mismatch against position error for fine stripes and for coarse stripes](diagrams/recon-multiscale-demo.svg)
+
+*Figure: why fitting starts with coarse detail. Each curve shows how badly a striped pattern matches the data when it is placed at the wrong position, against the size of the position error. With fine stripes only (orange) the mismatch falls to zero every 0.4 µm, so a fit started more than a fraction of a stripe from the truth settles on a false match. With coarse stripes only (blue) there is one valley several micrometres wide, and a fit started anywhere in it slides to the true position. Fitting the coarse detail first puts the fine fit inside the right valley. Derived here (function `multiscale_demo`).*
+
 **Cost.** The highest of any option. One iteration is two full simulations
 per light direction. A three-dimensional electromagnetic simulation of a
 patch a few micrometres across at 5 nm cells takes minutes on tens of cores
@@ -1002,6 +1034,10 @@ Two features packed three times closer than the limit are cheap to separate.
 Six packed the same way are out of reach. A dense grating is the limit of
 many features, and is not recoverable at all. So priors rescue isolated
 pairs and small clusters, and do not rescue dense wiring.
+
+![Three rows: true metal lines, a rippled band-limited picture, and a cleaner picture with a two-value prior](diagrams/recon-few-materials-demo.svg)
+
+*Figure: what the weakest prior adds. Row 1 is a surface of metal lines 120 to 700 nm wide, shown grey in all rows. Row 2 is the best picture from the measured band alone, with 405 nm light from all directions: the lines are found, but their edges are soft and ripples appear between them. Row 3 uses the same data and requires every point to be one of two materials: the edges become sharp and the ripples shrink. Derived here (function `few_materials_demo`): the error falls from 0.151 to 0.086. Best case, with no noise.*
 
 **What a chip offers as prior knowledge**, from weakest to strongest:
 
@@ -1139,7 +1175,11 @@ gap problem back.
 a change smaller than one step, however many samples are averaged, unless
 noise of about half a step or more is present before the digitiser. Then the
 steps blur out and averaging recovers arbitrarily small changes
-[[M109](#m109), [M110](#m110)]. This matters here because the fine fringes are weak (5 % of
+[[M109](#m109), [M110](#m110)]. ![Average of many digitised readings against the true level, with and without noise](diagrams/recon-dither-demo.svg)
+
+*Figure: why a little noise before the digitiser helps. The digitiser rounds each reading to a whole step. Across: the true signal level. Up: the average of 2000 readings. With no noise (orange) every reading rounds the same way, so the average stays stuck on a step however many readings are taken. With noise of half a step (blue) the readings round up and down in the right proportion, and the average follows the true level (dashed). Derived here (function `dither_demo`).*
+
+This matters here because the fine fringes are weak (5 % of
 their true contrast or less after the pixel, section 2.1) and are recovered
 by averaging thousands of samples. The table compares the size of one
 digitiser step with the noise already present, measured in electrons of
@@ -1242,6 +1282,10 @@ along that length is applied to the point in turn:
   hardware form of recording the data for every stage in one pass (section
   7.2). The Bayer filter that is already on the sensor is a small-scale
   version.
+
+![Three drawings: a tilted sensor giving many gaps, a sensor divided into strips, and two sensor halves viewing a feature](diagrams/recon-array2d-map.svg)
+
+*Figure: three uses of the sensor's second dimension. Left, side view: a sensor that is slightly tilted has a small gap at one end and a large gap at the other, so a surface point passing underneath is recorded at every gap in between. Middle, top view: strips of the sensor prepared differently each record the same surface point in turn. Right, side view: the left and right halves of the sensor see a feature from different sides. If the surface is assumed to be higher than it is (dashed line), the two halves place the feature at different positions, and the difference gives its true depth. Illustrative, not to scale. The strip materials are examples.*
 
 **4. Depth from parts of the array.** Radar forms separate images from
 separate parts of its aperture and compares them. If the focus distance is
@@ -1375,6 +1419,10 @@ and the pattern. For 405 nm beams at 70° the pattern period is 215 nm
 (derived here: the wavelength divided by twice the sine of 70°), so detail with periods near 215 nm appears on the sensor as
 fringes many micrometres wide, which the pixels record without loss.
 
+![Four rows: a fine surface ripple, a fine light pattern, a flat pixel reading under plain light, and a coarse ripple under the beam pair](diagrams/recon-mixing-demo.svg)
+
+*Figure: how a pair of beams makes fine detail visible to coarse pixels. Row 1 is surface detail with a 230 nm period. Row 2 is the fringe pattern of a beam pair, with a 215 nm period. Row 3 is what a pixel records as it passes over the surface under plain light: the pixel (black bar) covers five ripples and averages them to almost nothing. Row 4 is the same under the beam pair: the two fine patterns drift in and out of step every 3.3 µm, and that slow ripple is wider than a pixel and is recorded at about twenty times the strength. Derived here (function `mixing_demo`) from a simplified model in which brightness is the light pattern times the surface. It is not a wave simulation, which is still to be done.*
+
 This is the coherent form of the fringe lighting on the optical elements
 page, and of structured-illumination microscopy [[M106](#m106)]. Several beam pairs
 at different angles cover different bands of detail, and the set of bands is
@@ -1393,12 +1441,19 @@ the wave-optics level of the simulator is used to test.
 
 ### 4.4 Detecting is easier than resolving
 
-A single 100 nm line on a plain background is not resolved by any step
-before step 3. It is still seen. It scatters light, and it appears as a line
+A single 100 nm line on a plain background is narrower than the finest
+detail any step before step 3 can show at its true width. It is still seen. It scatters light, and it appears as a line
 about half a wavelength wide whose brightness depends on its true width. Its
 position can be measured to a few nanometres and its width inferred from its
 brightness, given a model. Two such lines 100 nm apart look like one
-brighter line. So the instrument's capabilities separate into three:
+brighter line under straight-down light, and in the best case begin to
+separate with light from all directions. A dense row of such lines is harder
+than a pair, and stays at the limit (section 3.2). So the instrument's
+capabilities separate into three:
+
+![Three plots: one line, two close lines and two separated lines, each through two cut-offs](diagrams/recon-detect-resolve-demo.svg)
+
+*Figure: seeing a line is easier than separating two. Grey blocks are the true lines, each 100 nm wide. The curves are the best possible picture with 405 nm laser light straight down (orange) and from all directions (blue). Left: a single line is seen in the right place under both, only wider than it is. Middle: two lines 100 nm apart merge into one hump under straight-down light and separate under light from all directions. Right: at 250 nm apart both separate them. Derived here (function `detect_resolve_demo`). Best case, with known phase and no noise.*
 
 | Task | What limits it | Plausible with 405 nm light | Status |
 |---|---|---|---|
