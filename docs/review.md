@@ -468,7 +468,7 @@ search, printing and the [explorer](explorer.md) are unaffected.
 | 1 | Error | On a touch screen, tapping beside the picture to close it also tapped whatever lay underneath on the page, which could follow a link or open a different picture. | The viewer now acts on the tap itself and swallows it. Retested on an emulated phone at the two places the reviewer gave. |
 | 2 | Gap | Escape and the zoom keys stopped working once keyboard focus had left the viewer's buttons, for example after a right click. | Keys are listened for on the whole page while the viewer is open. Retested. |
 | 3 | Gap | An image given a set width could not be opened from the keyboard: Enter went to the image file. No page has one today. | Handled. |
-| 4 | Gap | The buttons and the caption lay over the edge of 75 pictures in the fitted view. | The fitted view leaves room for both. Retested on 95 pictures over six pages: none overlap. |
+| 4 | Gap | In the fitted view, at a window of 1280 by 720, the caption lay over the edge of 40 of the 136 pictures and the buttons over 35. | The fitted view leaves room for both. Retested on 95 pictures over six pages: none overlap. |
 | 5 | Gap | Five files left behind by installing the package had been committed. | Removed, and ignored by git. |
 | 6 | Minor | Ctrl with + or - was taken by the viewer, blocking the browser's own zoom. | Left to the browser. |
 | 7 | Minor | The flow chart extension's own full-screen view copied our markings, so Enter there opened a second viewer on top. | Our viewer only opens from the page body. Retested. |
