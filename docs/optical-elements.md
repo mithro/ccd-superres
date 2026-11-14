@@ -1,31 +1,5 @@
 # Filters, gratings and other optical elements
 
-Status: exploration for review. Nothing here is implemented in the simulator.
-The numbers come from the analytic model of the design document, from a small
-one-dimensional diffraction calculation in
-[`diagrams/make_optics_diagrams.py`](diagrams/make_optics_diagrams.py), and
-from the published literature. Each is labelled with which. Section 13 lists
-what these estimates leave out.
-
-Sections 2 to 8 survey the options in general. Tim has since stated the
-target: features of about 100 nm on silicon chips, with a strong preference
-for more computation over more hardware, and all processing done offline on
-powerful computers with graphics cards. The goal is to reconstruct the picture, in
-several stages if need be. Section 9 works out what that target takes, and the
-summary and the staged path in section 10 are written for it.
-
-This page answers one question: what could be added to the scanning lensless
-sensor, in the light, in the gap or on the sensor face, to improve the result?
-It is written to be read after the [design document](design.md), and section 11
-gives the parameters that would carry the recommended options into the
-simulator.
-
-## In plain words
-
-This part is written for a reader with no background in optics. The numbered
-sections after it carry the full technical detail, and each of them opens
-with a short plain-language lead.
-
 **What the project does.** A camera chip (an image sensor) has its lens taken
 off and is slid slowly, very close, over a surface. The chip takes thousands
 of pictures as it moves. Each picture is blurry, but every point on the
@@ -98,8 +72,28 @@ surface at anything close to this scale. The figures on this page are
 estimates from formulas and small calculations, not measurements. Section 13
 lists what they leave out.
 
-*Sources: this summary restates the numbered sections below, where each
+*Sources: this opening restates the numbered sections below, where each
 claim is sourced or labelled.*
+
+Status: exploration for review. Nothing here is implemented in the simulator.
+The numbers come from the analytic model of the design document, from a small
+one-dimensional diffraction calculation in
+[`diagrams/make_optics_diagrams.py`](diagrams/make_optics_diagrams.py), and
+from the published literature. Each is labelled with which. Section 13 lists
+what these estimates leave out.
+
+Sections 2 to 8 survey the options in general. Tim has since stated the
+target: features of about 100 nm on silicon chips, with a strong preference
+for more computation over more hardware, and all processing done offline on
+powerful computers with graphics cards. The goal is to reconstruct the picture, in
+several stages if need be. Section 9 works out what that target takes, and the
+summary and the staged path in section 10 are written for it.
+
+This page answers one question: what could be added to the scanning lensless
+sensor, in the light, in the gap or on the sensor face, to improve the result?
+It is written to be read after the [design document](design.md), and section 11
+gives the parameters that would carry the recommended options into the
+simulator.
 
 ## Words used on this page
 
@@ -122,7 +116,7 @@ of claims there is a line in italics beginning "Sources:".
 | [[O7](#ref-o7)] and similar | A published source in [section 14](#14-references). Each key links to its entry, and each entry links to the source. Figures quoted from a paper are from its abstract unless stated. |
 | BornWolf, R1 and similar | A source in the shared [references](references.md) page. |
 | design, section N | Taken from the [design document](design.md), which gives its own sources. |
-| **Derived here** | Worked out on this page from the stated starting points. Where a calculation was needed it is in the script `docs/diagrams/make_optics_diagrams.py`, and the function is named. |
+| **Derived here** | Worked out on this page from the stated starting points. Where a calculation was needed it is in the script [`docs/diagrams/make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), and the function is named. |
 | **Estimate** | A number from a simplified model, good for comparing options and not confirmed by a more exact simulation. |
 | **Assumption** | A value chosen to make progress, with no source. |
 | **Unverified** | Believed from general knowledge or catalogues and not checked against a primary source. |
@@ -182,7 +176,7 @@ left on.*
 
 *Sources for the table and figure: "Nothing added" is the design's law
 above. The square-root law for angle restriction is **Derived here**
-(section 2, checked by the function `tube_footprint` in the diagram script),
+(section 2, checked by the function `tube_footprint` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py)),
 and is the same scaling as the classic best size of a pinhole [[O65](#ref-o65)]. The
 interference row is the range reported for lensless microscopes
 [[O1](#ref-o1), [O2](#ref-o2), [O3](#ref-o3), [O6](#ref-o6), [O7](#ref-o7)]. The near-field row follows from the textbook result
@@ -268,10 +262,10 @@ gap.
 
 ## 2. What an added element can and cannot do
 
-*In plain words: there are only three places to put something, and four
+There are only three places to put something, and four
 facts of physics decide what it can do there. The short of it is that the
 blur happens while the light crosses the gap, so anything that helps must
-act before or during the crossing.*
+act before or during the crossing.
 
 ![Where each kind of element sits](diagrams/optics-element-positions.svg)
 
@@ -372,18 +366,18 @@ recovers at a 30 µm gap:
 The last row assumes a plain LED with a bandwidth of 20 nm.
 
 *Sources: all three figures are **Derived here**, by the function
-`transfer_functions` in the diagram script. The noise floor of one part in a
+`transfer_functions` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The noise floor of one part in a
 thousand is the illustrative value of the design document. The 20 nm
 bandwidth of an LED is an **Assumption**, typical of catalogue values.*
 
 ## 3. Angle restriction: tubes and collimators
 
-*In plain words: a dark tube in front of a pixel works like blinkers, so the
+A dark tube in front of a pixel works like blinkers, so the
 pixel sees only what is straight ahead. One big tube around the whole sensor
 does not sharpen anything, because every pixel still looks out through the
 same wide opening. A separate small tube over each group of pixels does
 sharpen the picture, about ten-fold, at the price of nearly all the light.
-The wave nature of light stops the tubes being made too narrow.*
+The wave nature of light stops the tubes being made too narrow.
 
 Tim's suggestion: put the sensor at the bottom of a deep absorbing tube so
 that only light travelling nearly straight up reaches it. The idea is sound.
@@ -454,7 +448,7 @@ each side:
 *Sources: the first three rows are **Derived here** from straight-line ray
 geometry. The fourth is the standard geometric view factor between two
 parallel squares, in its limit for a deep tube. The exact form is computed
-by the function `tube_throughput` in the diagram script, and the formula
+by the function `tube_throughput` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), and the formula
 used there is **Unverified** against a published catalogue of view
 factors.*
 
@@ -509,7 +503,7 @@ photon noise dominates, the chance variation in the number of light
 particles counted, so it falls as the square root of the light. The last column is `wavelength × (L / w)` for green light.
 
 *Sources: every column is **Derived here**. Angles are from the tube shape,
-light kept from `tube_throughput` in the diagram script, signal-to-noise as
+light kept from `tube_throughput` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), signal-to-noise as
 the square root of the light kept (the rule for photon noise, Janesick in
 the shared [references](references.md#textbooks-and-standard-methods)), and
 the last column from the diffraction limit above.*
@@ -562,7 +556,7 @@ patch. Finding it is a job for the simulator.
 *Sources: the table, the best width of about 1.3 × √(wavelength × gap) and
 the cut-off are **Derived here**, from the one-dimensional diffraction
 calculation in the functions `tube_footprint` and `half_light_width` of the
-diagram script. Section 13 lists what that calculation leaves out.*
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). Section 13 lists what that calculation leaves out.*
 
 Since a tube several micrometres wide covers many pixels, the pixels beneath
 it can be added together, which recovers some of the lost light: a 5 µm tube
@@ -625,12 +619,12 @@ tube width.
 
 ## 4. Elements in the light
 
-*In plain words: this section covers changes to the lighting only. Flashing
+This section covers changes to the lighting only. Flashing
 the light freezes the motion of the scan. Using a parallel beam of one pure
 colour turns the blur into a pattern a computer can undo. Lighting in fine
 stripes or random grains lets fine detail show up as broad patterns.
 Lighting from several directions, or in several colours, fills in what one
-alone misses.*
+alone misses.
 
 ### 4.1 Pulsed and coded light
 
@@ -657,12 +651,12 @@ pixels. Middle: one flash of 0.4 milliseconds leaves a smear of a quarter of
 a pixel but uses 0.4 percent of the light. Bottom: a known irregular pattern
 of flashes leaves a smear with a known shape, which computation can undo,
 and uses nearly half the light. The pattern drawn is an example made by
-the diagram script, not an optimised code.*
+the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), not an optimised code.*
 *Sources: the shift per frame and the exposure needed are from the
 [design, section 4.8](design.md#48-motion-blur-cause-model-and-reversal). That an LED can be switched faster than 0.4 ms from an output
 pin is **Unverified** general knowledge.*
 
-In plain words: a short flash freezes motion, as a camera flash does.
+A short flash freezes motion, as a camera flash does.
 
 A step further is a coded pulse train: switch the light on and off in a known
 irregular pattern during each frame. A single long exposure erases some
@@ -680,7 +674,7 @@ of a fraction of a percent.
 
 ### 4.2 Collimated single-colour light
 
-In plain words: light a smooth surface with a tidy beam of one colour and
+Light a smooth surface with a tidy beam of one colour and
 the sensor records a pattern of ripples in place of a blur. The ripples
 contain the fine detail, and also the heights of the surface, and a
 computer can work back from them to the surface.
@@ -698,7 +692,7 @@ the wave. Fourth chart: the brightness 100 µm away, where the sensor is.
 Every feature, including the 5 nm lines, has spread into ripples of several
 percent. These ripples are what the sensor records, and the reconstruction
 works back from them to the first two charts. **Derived here**, by the
-function `hologram_demo` of the diagram script, for green light.*
+function `hologram_demo` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), for green light.*
 
 Light a smooth surface with a parallel (collimated) beam of one colour and
 the reflected light crosses the gap as a wave that keeps its fine detail.
@@ -779,7 +773,7 @@ examples are arithmetic from the rules.*
 
 ### 4.3 Fringe and speckle lighting
 
-In plain words: light the surface with fine stripes, and detail too fine to
+Light the surface with fine stripes, and detail too fine to
 cross the gap shows up as broad bands that do cross it, in the way two
 overlapping net curtains show broad moiré bands.
 
@@ -822,7 +816,7 @@ fixing the fringes to the sensor is derived here from the model, not taken
 from a publication, and needs confirming in the simulator.
 
 *Sources: the three figures are **Derived here**, by the function
-`fringe_demo` in the diagram script.*
+`fringe_demo` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 The limit is that one fringe period opens only one narrow window of feature
 sizes (the orange curve in the chart of section 2). Covering all sizes needs
@@ -845,7 +839,7 @@ Section 9.7 takes up speckle again for the coherent, slanted lighting of the
 
 ### 4.4 Several light angles
 
-In plain words: lighting from different directions shows different things.
+Lighting from different directions shows different things.
 On a rough surface the shadows reveal slopes. On a smooth one, each
 direction brings a different part of the fine detail within the sensor's
 reach.
@@ -865,7 +859,7 @@ model, and a list of directions for the shading model.
 
 ### 4.5 Several colours
 
-In plain words: each colour gives a different pattern of ripples from the
+Each colour gives a different pattern of ripples from the
 same surface, so several colours give several independent looks for free.
 
 Changing the colour changes the diffraction pattern without moving anything.
@@ -878,7 +872,7 @@ three colours in one frame (section 5.3).
 
 ### 4.6 Gratings and Talbot self-imaging
 
-In plain words: a grating is a plate of fine evenly spaced lines. Lit with a
+A grating is a plate of fine evenly spaced lines. Lit with a
 tidy beam, a sharp copy of its lines appears in mid-air at set distances
 behind it. That can throw a fine pattern of light onto the surface with no
 lens. It cannot carry a picture of the surface back to the sensor.
@@ -900,7 +894,7 @@ up. Brighter colours are brighter light. The grating has lines 10 µm apart
 and is lit from the left by a parallel beam of green light. Its pattern of
 bright bands blurs, then re-forms shifted by half a period at 200 µm, and
 re-forms as a sharp copy at 400 µm, the Talbot distance. **Derived here**,
-by the function `talbot_carpet` of the diagram script.*
+by the function `talbot_carpet` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 | Use | Verdict |
 |---|---|
@@ -910,12 +904,12 @@ by the function `talbot_carpet` of the diagram script.*
 
 ## 5. Elements on the sensor face
 
-*In plain words: three things can sit on the sensor itself. A cover with a
+Three things can sit on the sensor itself. A cover with a
 tiny hole over each pixel makes the pixels effectively smaller, which only
 helps if the sensor nearly touches the surface. A rough or finely patterned
 layer scrambles the light in a way that keeps fine detail, and is the basis
 of the published work closest to this project. And the colour filter already
-on the sensor can be put to use.*
+on the sensor can be put to use.
 
 ![Three things that can sit on the sensor face](diagrams/optics-sensor-face.svg)
 
@@ -1011,11 +1005,11 @@ in place.*
 
 ## 6. Elements in the gap
 
-*In plain words: four things could go between the sensor and the surface. A
+Four things could go between the sensor and the surface. A
 block of glass fibres carries the image and makes the mechanics easier but
 does not sharpen it. A part-reflecting flat plate turns height into
 brightness. A liquid shortens the light's waves, which sharpens everything a
-little. Special layered "lenses" from research are not practical here.*
+little. Special layered "lenses" from research are not practical here.
 
 ![Three things that can sit in the gap](diagrams/optics-gap-elements.svg)
 
@@ -1084,10 +1078,10 @@ entirely.
 
 ## 7. Polarisers and spectral filters
 
-*In plain words: a polariser passes only light vibrating in one direction,
+A polariser passes only light vibrating in one direction,
 as polarising sunglasses do, and a spectral filter passes only a narrow band
 of colour. Neither makes the picture sharper. Both clean up the signal that
-the other methods work with.*
+the other methods work with.
 
 Neither changes the gap law. Both improve the quality of the signal that the
 other methods work with.
@@ -1120,16 +1114,16 @@ the light.
 
 ## 8. Height
 
-*In plain words: the project also wants the height of the surface, in
+The project also wants the height of the surface, in
 nanometres. Height does not show in an ordinary picture. The methods that
 use interference turn a height change of one nanometre into a brightness
 change of about one percent, which is easily measured. Judging height from
-how blurred the picture is gives a signal thirty times weaker or worse.*
+how blurred the picture is gives a signal thirty times weaker or worse.
 
 The design document lists three ways height can reach a pixel. With the
 elements above there are six. The chart compares how much signal one nanometre
 of height produces. The values are order-of-magnitude estimates from simple
-formulas, given in the diagram script.
+formulas, given in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).
 
 ![Signal produced by one nanometre of height, by mechanism](diagrams/optics-height-signal.svg)
 
@@ -1162,7 +1156,7 @@ What each mechanism needs, and what limits it:
 
 *Sources: every figure in the "Signal per nanometre" column is an
 **Estimate** from the simple formulas in the function `height_signal` of the
-diagram script. The mechanisms are from the sources cited in each row and
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The mechanisms are from the sources cited in each row and
 from the [design, section 4.5](design.md#45-height).*
 
 All the interference mechanisms put a nanometre of height above the noise of a
@@ -1174,14 +1168,14 @@ interference mechanisms.
 
 ## 9. The target: 100 nm features on silicon chips
 
-*In plain words: this section asks what it takes to see 100 nm features on
+This section asks what it takes to see 100 nm features on
 a silicon chip. The answer has two parts. First, light itself sets a limit
 that depends on its wavelength and on how steeply it arrives and leaves:
 violet laser light gets close to 100 nm, and ultraviolet light or water in
 the gap gets there. Second, the sensor's pixels are much wider than the
 detail, so the detail has to be turned into broad patterns before the pixels
 can read it. A good deal can also be measured about 100 nm features without
-making a picture of them.*
+making a picture of them.
 
 Tim's target is features of about 100 nm on silicon chips. This section takes
 "100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
@@ -1262,7 +1256,7 @@ are assumptions: ±30° is a guess for a pixel with its microlens in place, and
 measured, and published work found it a real limitation [[O6](#ref-o6), [O22](#ref-o22)].
 
 *Sources: every entry in the table is **Derived here** from the formula, by
-the function `hundred_nm` in the diagram script. The slant angles of 65° and
+the function `hundred_nm` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The slant angles of 65° and
 72° and both collection angles are **Assumptions**.*
 
 Reading the table for the target:
@@ -1286,7 +1280,7 @@ one small disc at the centre. Slanted light moves the disc outward, and
 eight directions of light give eight discs. The orange circle is the limit
 reached, and the dashed circle is the target, lines and spaces of 100 nm.
 Only arrangement D, with water in the gap, covers the target. **Derived
-here**, by the function `frequency_coverage` of the diagram script, with
+here**, by the function `frequency_coverage` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), with
 the assumed angles of the table.*
 
 Published results quoted on this page, for comparison with those limits:
@@ -1312,7 +1306,7 @@ transparent samples. The only lensless result in reflection found is 2 µm
 
 ### 9.3 What the pixels can actually see
 
-In plain words: a pixel adds up all the light that falls on it. Stripes much
+A pixel adds up all the light that falls on it. Stripes much
 narrower than the pixel average out to an even grey, so the pixel cannot
 tell they are there. Three ways round this are given below.
 
@@ -1348,15 +1342,20 @@ it. Both scales step by factors of ten. The thick curves are upper limits
 and the thin curves the exact result, which drops to zero wherever a whole
 number of stripes fits the pixel. The dotted line on the left marks the
 200 nm period of the target detail, where a pixel records between 6 percent
-and almost nothing. The dotted line on the right marks the 3300 nm beat
-pattern made by lighting with a beam pair, which the pixel records almost
-in full whatever its edges are like. **Estimate**, by the function
-`pixel_fringe_response` of the diagram script.*
+and almost nothing. The dotted line on the right marks the beat pattern of
+about 4000 nm made by lighting with a beam pair (the example below), which
+the pixel records largely whatever its edges are like. **Estimate**, by the function
+`pixel_fringe_response` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 *Sources: **Derived here**. A pixel adds up the light across its width, and
 the contrast left in a stripe pattern averaged over a box of that width is
 the sinc function of width divided by period (textbook, [[O35](#ref-o35)]). The edge
-softness values and the Gaussian model of soft edges are **Assumptions**. The limit was raised by the
+softness values and the Gaussian model of soft edges are **Assumptions**.
+Edge softness here is the full width at half height of the Gaussian blur of
+the pixel's edges. The [reconstruction methods](reconstruction-methods.md)
+and [calibration and test](calibration-and-test.md) pages quote the same
+blur by its standard deviation (sigma), which is the full width divided by
+2.355, so "100 nm" on those pages is a softer edge than "100 nm" here. The limit was raised by the
 [design, section 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips).*
 
 The edge sharpness of the IMX219 is unknown. So the collection angles assumed
@@ -1373,12 +1372,25 @@ depend on the pixel edges.
    4.3). Fine detail then beats against those fringes and appears at the
    sensor as a coarse pattern. The table after this list gives an example:
    405 nm beams from opposite sides at
-   72° make fringes of 213 nm period, and chip detail of 200 nm period beats
-   against them with a period of about 3 µm (two patterns of nearly equal
+   72° make fringes of 213 nm period, and chip detail of 225 nm period beats
+   against them with a period of about 4 µm (two patterns of nearly equal
    spacing overlap into a broad one, the moiré effect), which the pixels
-   read at nearly full contrast. These figures are **Derived here**: the
-   fringe period is wavelength / (2 × sin 72°), and the beat period is
-   1 / (1/200 − 1/213) nm. This is the standard remedy when the detector is coarser
+   can read whatever their edges are like. These figures are **Derived
+   here**: the fringe period is wavelength / (2 × sin 72°), and the beat
+   period is 1 / (1/213 − 1/225) nm.
+
+   In wave terms, the detail deflects part of one beam into a new direction
+   (58° from straight ahead in this example), and that deflected light meets
+   the mirror reflection of the other beam at the sensor, where the two make
+   the coarse pattern. Two conditions follow. The deflected light has to be
+   light that can travel across the gap, which is the limit of section 9.2:
+   a 225 nm period is the finest that a 72° beam and a ±58° collection angle
+   allow, and a 200 nm period (lines and spaces of exactly 100 nm) is just
+   beyond what 405 nm light can carry in air at any angle (the limit is
+   203 nm). And the pixels have to respond to both steep beams. An earlier
+   version of this page used 200 nm detail in this example, which the simple
+   multiply-the-brightnesses picture allows but the wave limit does not; it
+   was corrected in the [review](review.md). This is the standard remedy when the detector is coarser
    than the detail [[O14](#ref-o14)]. It needs both beams on together. Lighting from one
    direction at a time does not do it.
 2. **Where the scattered light lands.** Across a gap of about a millimetre,
@@ -1398,27 +1410,30 @@ The example of mechanism 1, calculated and then in numbers:
 
 *Figure: how a beam pair lets coarse pixels record fine detail,
 calculated. Position on the chip runs across all four charts, in
-nanometres. First chart: the chip detail, lines and spaces of 100 nm.
+nanometres. First chart: the chip detail, lines and spaces of 112 nm (a
+period of 225 nm).
 Second chart: the stripes of light made by two 405 nm beams slanted at 72°
 from opposite sides, with a period of 213 nm. Third chart: the light leaving
 the chip, which is the first two multiplied together. Its fine wiggles are
-overlaid by a broad rise and fall every 3300 nm. Fourth chart: what pixels
+overlaid by a broad rise and fall about every 4000 nm. Fourth chart: what pixels
 1120 nm wide record. In even light (grey bars) every pixel reads nearly the
 same and the lines are invisible. In stripe light (orange bars) the readings
 rise and fall with the broad pattern, so the presence and position of the
 fine lines is recorded. This is a simplified picture that multiplies
-brightnesses. The full wave calculation belongs to the simulator. **Derived
-here**, by the function `beam_pair_beat` of the diagram script.*
+brightnesses. It gives the right beat period only for detail that the light
+can carry across the gap (a period of about 225 nm or more here); the full
+wave calculation belongs to the simulator. **Derived
+here**, by the function `beam_pair_beat` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 | Quantity | Value | Unit | How it is found |
 |---|---:|---|---|
 | Wavelength of the two beams | 405 | nm | Chosen: a violet laser diode |
 | Slant of each beam from straight ahead | 72 | degrees | Assumption |
 | Period of the light fringes on the chip | 213 | nm | Wavelength / (2 × sin 72°) |
-| Period of the chip detail | 200 | nm | Lines and spaces of 100 nm |
-| Period of the beat pattern at the sensor | 3300 | nm | 1 / (1/200 − 1/213) |
+| Period of the chip detail | 225 | nm | Lines and spaces of 112 nm, the finest a 72° beam and ±58° collection allow |
+| Period of the beat pattern at the sensor | 3970 | nm | 1 / (1/213 − 1/225) |
 | Width of one pixel | 1120 | nm | IMX219 |
-| Pixels per beat period | 2.9 | pixels | 3300 / 1120 |
+| Pixels per beat period | 3.5 | pixels | 3970 / 1120 |
 
 Consequences for this page:
 
@@ -1464,7 +1479,7 @@ The method is the same as proposed here. Only the wavelength differs.
 
 ### 9.5 Measuring 100 nm features without resolving them
 
-In plain words: a star is far too small for a telescope to show its shape,
+A star is far too small for a telescope to show its shape,
 yet it is easy to see that it is there, exactly where it is, and how bright
 it is. In the same way a 100 nm feature can be found, located and measured
 without a picture that shows its shape.
@@ -1480,7 +1495,7 @@ width can be read from the strength. Right: the same 100 nm line at two
 positions 40 nm apart. The two signals differ clearly (dashed curve,
 enlarged 4 times), so the position can be found far more finely than the
 blur. **Derived here**, by the function `locate_without_resolving` of the
-diagram script, with a Gaussian blur as an **Assumption**.*
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), with a Gaussian blur as an **Assumption**.*
 
 A feature does not have to be resolved to be found, counted or measured. This
 is where computation can stand in for hardware, and several published results
@@ -1535,7 +1550,7 @@ Three practical points apply to all of these:
 
 ### 9.7 Randomness as a tool
 
-In plain words: a rough, random part costs almost nothing to make, because
+A rough, random part costs almost nothing to make, because
 it needs no precision. The computer can work out what the part is from the
 data, as long as the part stays the same from one frame to the next. So
 randomness is a way to buy with computation what would otherwise need
@@ -1576,12 +1591,13 @@ pixel of travel (orange) they spread over all positions, which is what the
 reconstruction needs. Middle: a speckle pattern, the random grainy light
 that a 405 nm laser makes after frosted glass, drawn over a square 4000 nm
 on a side. The white bar is the width of one pixel. The grains are about
-225 nm across, fine enough to make broad beat patterns with 100 nm detail.
+225 nm across, fine enough to make broad beat patterns with detail near
+the 110 nm line width that section 9.2 gives as the limit.
 Right: dither. The true signal (dashed) rises smoothly from 0 to 3 counts.
 A sensor that rounds to whole counts and has no noise (grey) reports steps,
 however many readings are averaged. With noise of half a count (orange) the
 average of 2000 readings follows the true signal. **Derived here**, by the
-function `randomness_demo` of the diagram script.*
+function `randomness_demo` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 Randomness added on purpose:
 
@@ -1619,10 +1635,10 @@ quoted for each stage.
 
 ## 10. Recommendation: a staged path, the current leading candidate
 
-*In plain words: the first table compares every option on this page. After
+The first table compares every option on this page. After
 it comes the recommended path for 100 nm features on silicon chips, in five
 stages numbered 0 to 4. Each stage gives a useful result and prepares the
-next. All of it is done in simulation first.*
+next. All of it is done in simulation first.
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -1815,9 +1831,9 @@ matt surfaces.
 
 ## 11. Parameters for the simulator
 
-*In plain words: this section is for whoever writes the simulation program.
+This section is for whoever writes the simulation program.
 It lists the settings the program would need so that every option on this
-page can be switched on and tried.*
+page can be switched on and tried.
 
 Proposed additions to the design's configuration, so the recommended options
 become settings and not separate programs. Names are suggestions.
@@ -1879,16 +1895,16 @@ project's simulation chain.*
 | 3 | Two unknown maps, reflectance and height, each with its own kernel per gap and colour | Linear least squares over both maps | Collimated light on weak surfaces, reference flat, several colours |
 | 4 | Complex wave: surface, propagation, mask, intensity | Iterative phase recovery | Coded masks, rough or strongly stepped surfaces |
 
-Level 1 additions also belong in the analytic model (`ccdsr/resolution.py`)
+Level 1 additions also belong in the analytic model ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py))
 and the trade-off explorer: tube width and depth as two more controls, with
 the light lost feeding the signal-to-noise control.
 
 ## 12. Getting light in, and the questions that decide the choice
 
-*In plain words: the sensor sits over the surface like a lid, so getting
+The sensor sits over the surface like a lid, so getting
 light underneath it is a problem in itself. There are four ways to do it,
 and each suits different methods. The section ends with the questions whose
-answers would settle the remaining choices.*
+answers would settle the remaining choices.
 
 With an opaque surface and a sensor covering it, the light has few ways in.
 The choice of method and the choice of lighting constrain each other.
@@ -1937,10 +1953,10 @@ starts.
 
 ## 13. Limits of these estimates
 
-*In plain words: the numbers on this page come from simplified formulas and
+The numbers on this page come from simplified formulas and
 small calculations, not from measurements. This section lists what was
 simplified or assumed, so that no figure is trusted further than it should
-be.*
+be.
 
 - The tube diffraction calculation is one-dimensional (a slit, not a square
   or round bore), assumes small angles, and treats the walls as perfect

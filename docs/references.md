@@ -1,7 +1,5 @@
 # References
 
-## In plain words
-
 This page is the shared list of sources for the documentation. Every fact,
 number and formula in these pages should point to an entry here, or be
 marked as something worked out in this project or assumed. The rules are in
