@@ -62,6 +62,7 @@ link here the first time they use a term that is not explained on the spot.
 | Iteration | One round of an improve-and-check loop. Most reconstruction methods repeat such a round tens or hundreds of times. |
 | Iterative | Said of a calculation that guesses an answer, compares it with the data, improves the guess and repeats. |
 | Laser diode | A small electronic light source that gives coherent light of a single colour. |
+| Least squares | Finding the answer whose predicted measurements differ least from the real ones, judged by the sum of the squared differences. |
 | LED | A small electronic light source that gives a band of colour and is not coherent. |
 | Lensless | With no lens between the surface and the sensor. |
 | Line time | The time a sensor takes to read one row of pixels, 18.9 millionths of a second for the IMX219. |
@@ -108,6 +109,7 @@ link here the first time they use a term that is not explained on the spot.
 | Scatterometry | Measuring the dimensions of a regular pattern that is too fine to see, by fitting a model to how it reflects light at different colours and angles. |
 | Self-calibration | Calibration done from the ordinary measurement data, with no separate test. |
 | Sensor | The camera chip: a grid of pixels that turn light into electrical readings. |
+| Shift and add | The simplest way to combine many frames: place every reading where its pixel was at that moment, and average the readings that land in the same place. |
 | Signal-to-noise | How large the wanted signal is compared with the noise. Higher is better. |
 | Sinc | The mathematical shape that describes how much of each detail size a box-shaped smear lets through. It falls steadily and touches zero at certain sizes. |
 | Sparse | Made of few, well-separated features. |
