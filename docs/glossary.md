@@ -22,6 +22,7 @@ link here the first time they use a term that is not explained on the spot.
 | Blur kernel | The shape that a single point of the surface is smeared into by the time it is recorded. A wide kernel means a blurry picture. |
 | Bond wires | The fine wires around the edge of a chip that connect it to its package. They stand higher than the chip surface. |
 | Calibration | Measuring a part of the instrument, such as a mask or the light pattern, so that the reconstruction can allow for it. |
+| Candidate | One possible answer that is being tested: a possible surface, layout or set of scan positions. |
 | Coherence length | The distance over which the waves of a light source stay in step. The purer the colour, the longer it is: wavelength squared divided by the spread of wavelengths. |
 | Coherent light | Light whose waves stay in step with each other, such as laser light. It can form interference patterns. Ordinary lamp light is not coherent. |
 | Collection angle | The widest angle, away from straight ahead, at which a pixel still responds to light. |
@@ -66,6 +67,7 @@ link here the first time they use a term that is not explained on the spot.
 | Iteration | One round of an improve-and-check loop. Most reconstruction methods repeat such a round tens or hundreds of times. |
 | Iterative | Said of a calculation that guesses an answer, compares it with the data, improves the guess and repeats. |
 | Laser diode | A small electronic light source that gives coherent light of a single colour. |
+| Layout rules (design rules) | The limits a chip factory sets on what can be drawn: the grid that edges must sit on, and the narrowest line and space allowed. |
 | Least squares | Finding the answer whose predicted measurements differ least from the real ones, judged by the sum of the squared differences. |
 | LED | A small electronic light source that gives a band of colour and is not coherent. |
 | Lensless | With no lens between the surface and the sensor. |
@@ -78,6 +80,7 @@ link here the first time they use a term that is not explained on the spot.
 | Microlens | The tiny lens built on top of each pixel of a sensor to gather light into it. |
 | Micrometre (µm) | A thousandth of a millimetre. A human hair is roughly 80 µm across. |
 | Mirror-like (specular) surface | A smooth surface that reflects light in one direction, like polished silicon. |
+| Misfit | A single number for how badly a candidate disagrees with the measurement: the squared differences between predicted and measured readings, each divided by the noise expected, added up. For the true answer it comes out close to the number of readings. |
 | Mixed states | A description of light, in ptychography, as a mixture of a few patterns instead of one. It accounts for imperfect coherence and for vibration during an exposure. |
 | Motion blur | Smearing caused by the sensor moving while a pixel is adding up light. |
 | Nanometre (nm) | A thousandth of a micrometre, a millionth of a millimetre. 100 nm is roughly a thousandth of the width of a human hair. |

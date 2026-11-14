@@ -22,6 +22,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
+| [Reconstruction by elimination](constrained-reconstruction.md) | Using the simulator to test candidate surfaces and positions and rule out the physically impossible: material limits, layout rules and a smooth sensor path | First version in one dimension |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
 | [Glossary](glossary.md) | Plain-language meanings of the terms used across the documentation | Kept current |
 | [References](references.md) | The shared list of sources, and how claims are labelled as sourced, derived, estimated or assumed | Kept current |
@@ -44,6 +45,7 @@ calibration-and-test
 calculator
 explorer
 level1
+constrained-reconstruction
 diagrams
 glossary
 references

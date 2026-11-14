@@ -67,6 +67,24 @@ python docs/diagrams/make_optics_diagrams.py
 | `optics-randomness-demo` | Random flash timing, a speckle pattern and dither | Random simulation, fixed seed |
 | `optics-illumination-geometries` | Four ways to light the surface under the sensor | Illustrative |
 
+## Reconstruction by elimination figures
+
+The figures on the [reconstruction by elimination](constrained-reconstruction.md)
+page come from their own script, which also prints every number quoted on
+that page:
+
+```
+python docs/diagrams/make_constrained_diagrams.py
+```
+
+The script is [`docs/diagrams/make_constrained_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_constrained_diagrams.py).
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `constrained-materials` | Bar groups reconstructed with no constraint, with reflectance limits and with two known materials | Level 1 simulator, seed 1 |
+| `constrained-elimination` | Misfit of all 4,096 candidate layouts, and layouts left against light | Level 1 simulator, seed 2 and seeds 100 to 139 |
+| `constrained-temporal` | A wandering scan path with two estimates, and leftover position error for three methods | Level 1 simulator, seeds 0 to 7 |
+
 ## Reconstruction methods figures
 
 The figures on the [reconstruction methods](reconstruction-methods.md) page

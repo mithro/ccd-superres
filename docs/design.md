@@ -1427,6 +1427,35 @@ How the work is split across cores:
 The command-line tools take a worker count and a tile size, and run the same
 way on a laptop with one worker as on a cluster.
 
+### 6.6 Reconstruction by elimination
+
+Tim's idea, taken up as a named approach to compare with the others: use the
+simulator inside the reconstruction. Candidate surfaces and candidate scan
+positions are proposed, the simulator predicts what each would have measured,
+and a candidate is thrown away if its prediction contradicts the readings or
+if it could not exist in the real world. This is meant to work without exact
+position information, because impossible positions are eliminated in the same
+way as impossible surfaces.
+
+| Kind of knowledge | Examples | What the simulator must model |
+|---|---|---|
+| Physical | Reflectance between 0 and 1; the few materials on a chip; layout rules such as a drawing grid and minimum widths | Material reflectances; layouts as scenes |
+| Temporal | The surface does not change during a scan; a sensor with mass moves along a smooth path; drift, vibration and lamp flicker each behave differently in time | Motion with wander, drift and vibration; light level changing in time |
+
+*Table 6.6. The knowledge used to eliminate candidates. Assumption: which of
+these are known well enough on a real chip is an open question, collected by
+plan items R6, R7 and R11.*
+
+A first version runs in the one-dimensional level 1 simulator and is reported
+on its own page, [reconstruction by elimination](constrained-reconstruction.md).
+There, reflectance limits and two known materials recover bars that the plain
+fit loses, listing all 4,096 layouts of a small region leaves only the true
+one in good light, and requiring a smooth path finds position errors of a
+whole pixel to about 2 nm. Those tests use bars of 0.48 µm and wider, not the
+100 nm target. Radar does the position part under the name autofocus
+([radar study, section 5.4](research/synthetic-aperture-radar.md#54-proposing-candidates-and-eliminating-the-impossible)).
+The work is plan item D2b.
+
 ## 7. Software design
 
 ```mermaid

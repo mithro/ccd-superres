@@ -61,6 +61,8 @@ class Scan1D:
     exposure_fraction: float = 0.0         # share of a frame the light is on (0 = frozen)
     code: tuple[int, ...] | None = None    # on-off pattern within the exposure, or None
     jitter_px: float = 0.0                 # random position error per frame (rms)
+    wander_px: float = 0.0                 # smooth wandering of the path (rms)
+    wander_frames: float = 20.0            # how many frames a wander lasts (its smoothness)
     start_nm: float = 0.0
 
 
@@ -161,12 +163,28 @@ def blur(surface, dx_nm, optics: Optics1D, scan: Scan1D):
 
 # ---------------------------------------------------------------- sampling
 
+def smooth_wander(n_frames, length_frames, rng):
+    """A smooth random path of unit rms: white noise smoothed over ``length_frames``.
+
+    Stands for the slow drift and sway of a moving stage with inertia, as
+    opposed to an independent error on every frame.
+    """
+    white = rng.standard_normal(n_frames + 8 * int(np.ceil(length_frames)))
+    t = np.arange(-4 * int(np.ceil(length_frames)), 4 * int(np.ceil(length_frames)) + 1)
+    path = np.convolve(white, np.exp(-0.5 * (t / length_frames) ** 2), mode="valid")[:n_frames]
+    path = path - path.mean()
+    return path / np.sqrt(np.mean(path**2))
+
+
 def sample_positions(scan: Scan1D, pitch_nm, rng=None):
     """Centre of every pixel in every frame, on the surface."""
     frame = scan.start_nm + np.arange(scan.n_frames) * scan.shift_px * pitch_nm
     if scan.jitter_px > 0:
         rng = np.random.default_rng() if rng is None else rng
         frame = frame + rng.normal(0, scan.jitter_px * pitch_nm, scan.n_frames)
+    if scan.wander_px > 0:
+        rng = np.random.default_rng() if rng is None else rng
+        frame = frame + smooth_wander(scan.n_frames, scan.wander_frames, rng) * scan.wander_px * pitch_nm
     return frame[:, None] + np.arange(scan.n_pixels)[None, :] * pitch_nm
 
 
@@ -312,7 +330,7 @@ def nominal_positions(frames: Frames1D, shift_px=None):
 
 
 def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smoothness=(1.0, 1e-2),
-                       max_step_px=0.5):
+                       max_step_px=0.5, path_stiffness=0.0, reconstruct=None):
     """Estimate where each frame really was, from the readings alone.
 
     Alternates two steps. First, reconstruct the surface with the current
@@ -325,6 +343,16 @@ def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smo
     The spacing of the pixels within a frame is known, so only one offset per
     frame is solved. A shift of all frames together cannot be seen in the data
     and is left as it started.
+
+    ``path_stiffness`` adds what is known about time: a stage with inertia
+    cannot jump between frames, so the offsets must form a smooth path. Each
+    round then fits a smooth curve through the per-frame steps, trusting each
+    frame in proportion to how much detail it saw, and penalising bending
+    (second differences) with this weight. Zero leaves every frame free.
+
+    ``reconstruct`` replaces the surface step: a function ``(frames,
+    positions, level) -> surface``. It is how a constrained reconstruction is
+    used inside the loop.
 
     Returns ``(positions, offsets_history)`` where the history has one row of
     per-frame offsets (nanometres, relative to the start) per round.
@@ -339,14 +367,20 @@ def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smo
     history = []
     for level in levels:
         pos = start + offsets[:, None]
-        est, _ = least_squares(frames, smoothness=level, positions_nm=pos)
+        if reconstruct is None:
+            est, _ = least_squares(frames, smoothness=level, positions_nm=pos)
+        else:
+            est = reconstruct(frames, pos, level)
         spectrum = np.fft.fft(est) * h
         s = sampling_matrix(pos, n, dx)
         predicted = (s @ np.fft.ifft(spectrum).real).reshape(m.shape)
         slope = (s @ np.fft.ifft(spectrum * slope_filter).real).reshape(m.shape)
-        step = np.sum(slope * (m - predicted), axis=1) / np.maximum(np.sum(slope**2, axis=1), 1e-30)
+        info = np.sum(slope**2, axis=1)
+        step = np.sum(slope * (m - predicted), axis=1) / np.maximum(info, 1e-30)
         limit = max_step_px * frames.optics.pitch_nm
         offsets = offsets + np.clip(step, -limit, limit)
+        if path_stiffness > 0:
+            offsets = _smooth_path(offsets, info, path_stiffness)
         offsets -= offsets.mean()
         history.append(offsets.copy())
     return start + offsets[:, None], np.array(history)
@@ -371,6 +405,16 @@ def position_precision_limit(frames: Frames1D):
     light = _scale(frames)
     variance = ((light * level if frames.noise.photon else 0.0) + frames.noise.read_e**2) / light**2
     return float(np.sqrt(np.mean(1 / np.sum(slope**2 / variance, axis=1))))
+
+
+def _smooth_path(values, weights, stiffness):
+    """Smooth curve through ``values``: weighted least squares with a bending penalty."""
+    n = values.size
+    w = weights / np.mean(weights)
+    d = np.zeros((n - 2, n))
+    idx = np.arange(n - 2)
+    d[idx, idx], d[idx, idx + 1], d[idx, idx + 2] = 1.0, -2.0, 1.0
+    return np.linalg.solve(np.diag(w) + stiffness * d.T @ d, w * values)
 
 
 def align_positions(frames: Frames1D, positions_nm):
