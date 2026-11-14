@@ -16,6 +16,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
 | [Filters, gratings and other optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
 | [Reconstruction methods](reconstruction-methods.md) | Survey of methods from radar, astronomy, ptychography and other fields, what each could reach, a ranked shortlist and a staged reconstruction plan | Survey for review |
+| [Multi-frame reconstruction in satellites and astronomy](research/multi-frame-reconstruction.md) | Deep research study B3: how scanning cameras handle motion smear, how many shifted frames are combined and at what noise cost, how well shifts are measured, and eleven ideas new to the project | Study for review |
 | [Calibration and test methods](calibration-and-test.md) | What must be known about the instrument and how well, what is solved from the scan and what needs an outside measurement, how resolution is measured, the tests against invented detail, and the common benchmark for every approach | Plan for review |
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
@@ -37,6 +38,7 @@ design
 simulation-chain
 optical-elements
 reconstruction-methods
+research/multi-frame-reconstruction
 calibration-and-test
 calculator
 explorer

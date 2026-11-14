@@ -89,3 +89,27 @@ python docs/diagrams/make_calibration_diagrams.py
 | `calib-frc-demo` | A prior that invents detail passes a split-data test and fails against the truth | Two-dimensional toy calculation |
 | `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
 | `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
+
+## Multi-frame reconstruction figures
+
+The figures on the
+[multi-frame reconstruction](research/multi-frame-reconstruction.md) page
+come from
+[`make_multiframe_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_multiframe_diagrams.py),
+which also prints the derived numbers quoted in that page's tables:
+
+```
+python docs/diagrams/make_multiframe_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `mf-tdi-map` | A satellite's time-delay-integration sensor beside the scanning sensor read row by row | Illustrative |
+| `mf-tdi-mismatch` | Contrast left after summing rows when the scan speed is wrong | Uniform-smear formula, derived on the page |
+| `mf-drizzle-kernel` | Contrast kept by interlacing, drizzle and shift-and-add against detail size | Published drizzle kernel formulas |
+| `mf-random-dither-noise` | Noise cost of filling a finer grid from randomly placed frames | Random simulation, fixed seed |
+| `mf-pixel-cost` | Contrast an ideal pixel keeps, and the noise cost of restoring it, against grid refinement | Ideal sharp-edged pixel formula |
+| `mf-accuracy-chart` | Published shift-measurement accuracies in pixels beside what this instrument needs | Published figures, cited on the page |
+| `mf-shift-bound` | Best possible shift accuracy against image contrast for one row, 100 rows and a frame | Standard noise bound with stated assumptions |
+| `mf-lucky-weighting` | Signal to noise from keeping the sharpest frames against weighting all frames | Random simulation, fixed seed |
+| `mf-selfcal-tracks` | Pixel columns crossed by a surface point for straight and tilted scans | Sensor geometry |
