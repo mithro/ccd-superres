@@ -45,3 +45,16 @@ python docs/diagrams/make_reconstruction_diagrams.py
 | `recon-fourier-coverage` | Which surface detail reaches the sensor for each kind of lighting | Scalar far-field formula |
 | `recon-passband-demo` | Bar groups through ideal cut-offs | One-dimensional calculation |
 | `recon-sparsity-conditioning` | Noise cost of resolving crowded point features | One-dimensional calculation, best case |
+| `recon-limits-curves` | Fading of fine detail with height, and the share of a fringe a pixel records | Scalar formulas |
+| `recon-beamforming-map` | Delay and sum beside shift and add | Illustrative |
+| `recon-baselines-map` | An antenna pair beside one light direction in and one out | Illustrative |
+| `recon-overlap-map` | Overlap between sonar pings beside overlap between frames | Illustrative |
+| `recon-sampling-map` | Sample positions across the scan for three detector layouts | Computed from the drawn geometry |
+| `recon-ptychography-map` | Ptychography's probe, object and positions beside the instrument's | Illustrative |
+| `recon-twin-image-demo` | Ghost image of a refocused recording and its removal with three gaps | One-dimensional wave calculation, no noise |
+| `recon-multiscale-demo` | Mismatch against position error for fine and coarse stripes | One-dimensional calculation |
+| `recon-few-materials-demo` | A band-limited picture with and without a two-material prior | One-dimensional calculation, no noise |
+| `recon-dither-demo` | Averaged digitised readings with and without noise | Random simulation, fixed seed |
+| `recon-array2d-map` | Tilt, strips and sub-apertures of a two-dimensional sensor | Illustrative |
+| `recon-mixing-demo` | A fine surface ripple turned into a coarse one by a beam pair | Simplified intensity model, not a wave simulation |
+| `recon-detect-resolve-demo` | One line and two lines through two cut-offs | One-dimensional calculation, no noise |
