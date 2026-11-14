@@ -395,41 +395,70 @@ sensor), a single-sample signal-to-noise of 50 and full feature contrast:
 These are estimates from level 0 of the simulation chain. Where they sit
 below a wavelength, only level 4 can confirm them.
 
-What the target therefore demands:
+The table covers two different regimes, and the target can be approached
+through either. They are set side by side here with the same numbers as
+section 9 of the optical elements study (`docs/optical-elements.md`, in pull
+request 2), which analyses the second regime in detail.
 
-- **A gap of about 100 to 140 nm, or light with a wavelength near 200 nm.**
-  There is no third option for forming an image. At a gap of 1 µm in visible
-  light, the contrast of a 200 nm period reaching the detector is about
-  $10^{-13}$, and no number of samples recovers that. A thousand times more
-  data moves the limit only from 140 nm to 260 nm.
-- **The gap is measured from the light-sensitive silicon, not from the top of
-  the sensor.** The microlenses, colour filter and coatings on an IMX219
-  pixel are together of the order of a micrometre thick (section 5.3), which
-  is several times the whole gap budget. A near-field instrument needs them
-  removed and the bare face held within about 100 nm of the chip over the
-  area in use, which means a tilt below about 30 millionths of a radian
-  across a 3.7 mm sensor, and a chip surface that is itself flat to that
-  level. This is the hardware-heavy route.
-- **Pixel edges sharp to about 50 nm or better.** A 1.12 µm pixel spans more
-  than five periods, so it sees the pattern only through its edges. In this
-  model a mask with a 100 nm opening does not improve the limit, because the
-  light it blocks costs as much signal as the sharper response gains. Real
-  pixel edges are set by how charge spreads in the silicon and are not known
-  for this sensor. Level 4 is needed to estimate them.
-- **Light arriving at a slant relaxes the wavelength rule.** With the beam at
-  an angle $\theta$ from straight on, a period down to
-  $\lambda / (1 + \sin\theta)$ still leaves the surface as an ordinary
-  beam. Violet light at a steep slant therefore reaches a period just above
-  200 nm, and near-ultraviolet light (365 nm) at 60 degrees reaches 196 nm,
-  with the gap no longer critical. Recovering the pattern then means
-  combining many lighting directions by computation, which fits the design
-  principle. The calculator models only straight-on light so far. The
-  options for getting light into a lensless arrangement are covered in the
-  optical elements study (`docs/optical-elements.md`, in pull request 2) and
-  are not repeated here.
+| | Near field | Far field, slanted coherent light |
+|---|---|---|
+| Applies to | Any surface and any light, including matt surfaces and straight-on light longer than the period | Mirror-like surfaces such as silicon, under laser light arriving at a steep slant from several directions |
+| How the detail reaches the detector | As the fading field next to the surface | As ordinary beams, because slanted light turns fine detail into angles that still travel |
+| Gap | 100 to 140 nm from the light-sensitive silicon (rows 1 and 4 to 6 of the table above) | Not the limit. About a millimetre is fine, and is needed to let the light in. |
+| What sets the limit | Gap, then pixel edge sharpness | Period = wavelength / (sine of the light's slant + sine of the widest angle the sensor collects) |
+| 405 nm light | 123 nm gap | 290 nm period (145 nm lines) at a 65 degree slant collecting ±30 degrees; 225 nm period (113 nm lines) at 72 degrees collecting ±58 degrees |
+| 365 nm light | 128 nm gap | 260 nm period (130 nm lines) and 203 nm period (101 nm lines) for the same two cases |
+| 405 nm light, water in the gap | Not modelled | About 169 nm period (84 nm lines) |
+| Best conceivable | No limit in principle | Wavelength / 2: a sensor collecting right out to grazing angles under grazing light. 203 nm period at 405 nm. |
+| Hardware | Layers stripped from the sensor, gap and tilt held to tens of nanometres. Very heavy. | A few laser diodes at fixed angles. Light. |
+| Computation | The linear solve of section 6 | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions as unknowns |
+
+The two analyses agree. The calculator's "mirror-like" rows are the special
+case of the right-hand column with straight-on light and a sensor that
+collects every angle, which is why they give "period no finer than the
+wavelength" and "any gap at 193 nm". Earlier wording in this section, that
+only a 100 nm gap or light near 200 nm would do, held for straight-on light
+only.
+
+What this means for the target:
+
+- **The far-field regime is the one that fits the preference for computation
+  over hardware**, and it is the recommended route. With a 405 nm laser diode
+  it reaches lines of about 110 to 145 nm, close to the target but not at
+  it. Lines and spaces of 100 nm need about 365 nm or shorter, or liquid in
+  the gap, together with steep light and a wide collection angle. Lensless
+  imaging of this kind in reflection is undemonstrated below about 2 µm, as
+  the optical elements study notes.
+- **The near-field regime is not realistic for this project.** The
+  microlenses, colour filter and coatings on an IMX219 pixel are together of
+  the order of a micrometre thick (section 5.3), several times the whole gap
+  budget. The bare face would have to stay within about 100 nm of the chip,
+  a tilt below about 30 millionths of a radian across a 3.7 mm sensor, and
+  finished chips carry protective layers thicker than that. It stays in the
+  model as the reference case and because it is what a matt surface would
+  need.
+- **Computation cannot rescue the wrong regime.** At a gap of 1 µm under
+  straight-on visible light, the contrast of a 200 nm period reaching the
+  detector is about $10^{-13}$. A thousand times more data moves the
+  near-field gap limit only from 140 nm to 260 nm.
+- **The pixel's own response is the shared unknown.** In the far field the
+  pattern arrives at the detector as interference stripes as fine as the
+  detail itself, 200 nm for the target, and a 1.12 µm pixel spans more than
+  five of them. It sees them only through the sharpness of its edges: about
+  6% of the contrast for ideally sharp edges, and nothing useful once the
+  edges are soft over 100 nm. This is the same quantity the optical elements
+  study calls the collection angle, seen from the other side: a pixel that
+  responds to light out to ±58 degrees is a pixel that responds to stripes
+  down to about 240 nm at 405 nm. Neither figure is known for this sensor.
+  It can be measured with a laser at a few angles, and estimated at level 4.
+  In this model a mask with a 100 nm opening does not improve on an ideally
+  sharp pixel, because the light it blocks costs as much signal as the
+  sharper response gains, but it would help a pixel whose edges are soft.
 - **A wave model for everything.** The matt-surface blur used by levels 0 and
   1 is the wrong physics for polished silicon. The answer for this target
-  comes from levels 3 and 4.
+  comes from levels 3 and 4. The calculator does not yet model slanted light
+  or a limited collection angle. Getting light into the arrangement is
+  covered in the optical elements study and is not repeated here.
 
 There is also a route that does not form an image at all, and it is the one
 that best matches the preference for computation. Chip factories measure line
@@ -447,8 +476,9 @@ this route cannot do is show an unknown, arbitrary pattern at 100 nm.
 So the first thing to settle with Tim is what "looking for 100 nm features"
 has to deliver: a picture of an unknown layout, or the detection, location
 and measurement of features on a chip whose design rules or layout are known.
-The first needs the near field or short-wavelength slanted light. The second
-can lean almost entirely on computation.
+The first needs slanted laser light at 405 nm or shorter and is at the edge
+of what is possible at 100 nm. The second can lean almost entirely on
+computation.
 
 ## 5. Baseline parameters
 
@@ -982,10 +1012,9 @@ Open questions for Tim:
    layout, or detecting, locating and measuring features on a chip whose
    layout or design rules are known? Section 4.6 shows these lead to very
    different instruments, and only the second can lean mainly on computation.
-2. Which of these is acceptable as hardware: removing the layers on the
-   sensor face and holding it about 100 nm from the chip, ultraviolet light,
-   or light from many slanted directions? At least one is needed to form an
-   image of a 200 nm period.
+2. Is ultraviolet light (365 nm) or liquid in the gap acceptable? Slanted
+   405 nm laser light alone reaches lines of about 110 to 145 nm, and one of
+   those two is needed to image 100 nm lines and spaces.
 3. Is it still acceptable that the first hardware validates the method at
    micrometre scale (section 4.1), with the simulator used to specify the
    100 nm instrument?
