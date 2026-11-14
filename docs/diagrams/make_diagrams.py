@@ -6,7 +6,8 @@ Run from the repository root:
 
 Writes SVG (used by docs/design.md) and PNG copies next to this file.
 The numbers used here are the illustrative baseline from the design
-document, not results from the simulator.
+document. The figures whose names start with ``level1`` are results from the
+level 1 simulator, with fixed random seeds.
 """
 
 from pathlib import Path
@@ -982,9 +983,9 @@ def level1_crosscheck():
         measured_t.append((blurred.max() - blurred.min()))
         surface = l1.sinusoid(period, dx, n, contrast=0.5)
         errs = [l1.sinusoid_amplitude(l1.simulate(surface, dx, optics, scan, noise, seed=s), period)[0]
-                - 0.5 for s in range(60)]
+                - 0.5 for s in range(400)]
         measured_err.append(np.std(errs))
-        predicted_err.append(l1.predicted_contrast_noise(None, period, optics, scan, noise))
+        predicted_err.append(l1.predicted_contrast_noise(period, optics, scan, noise, contrast=0.5))
     fine = np.geomspace(400, 20000, 600)
     fig, (a, b) = plt.subplots(1, 2, figsize=(10.4, 4.3))
     a.loglog(fine, gap_transfer(fine, 300.0) * box_envelope(fine, 1120.0), color=INK2, lw=1.2,
@@ -995,9 +996,9 @@ def level1_crosscheck():
     a.set_ylim(1e-4, 1.6)
     a.set_ylabel("share of contrast that survives")
     a.set_title("Blur", loc="left", fontsize=11)
-    b.loglog(fine, [l1.predicted_contrast_noise(None, q, optics, scan, noise) for q in fine], color=BLUE,
+    b.loglog(fine, [l1.predicted_contrast_noise(q, optics, scan, noise, contrast=0.5) for q in fine], color=BLUE,
              lw=1.6, label="predicted from the formulas")
-    b.loglog(periods, measured_err, "o", color=ORANGE, ms=6, label="level 1: scatter over 60 noisy runs")
+    b.loglog(periods, measured_err, "o", color=ORANGE, ms=6, label="level 1: scatter over 400 noisy runs")
     b.axhline(0.5, color=INK2, lw=0.9, ls=(0, (2, 3)))
     b.text(19000, 0.62, "error as large as the pattern's own contrast (0.5): lost", fontsize=8.5,
            color=INK2, ha="right")
@@ -1111,7 +1112,7 @@ def level1_motion():
     true_off = (frames.positions_nm - nominal)[:, 0]
     est_off = (estimated - nominal)[:, 0]
     true_off, est_off = true_off - true_off.mean(), est_off - est_off.mean()
-    rec = {k: l1.least_squares(frames, positions_nm=p)[0]
+    rec = {k: l1.least_squares(frames, positions_nm=l1.align_positions(frames, p))[0]
            for k, p in [("assumed", nominal), ("estimated", estimated)]}
 
     jitters = np.array([0, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.7, 1.0])
@@ -1120,8 +1121,8 @@ def level1_motion():
         rows = []
         for seed in range(5):
             f, n, e = run(float(j), seed)
-            c = [l1.bar_contrast(l1.least_squares(f, positions_nm=p)[0], groups[3], dx)
-                 for p in (f.positions_nm, n, e)]
+            c = [l1.bar_contrast(l1.least_squares(f, positions_nm=l1.align_positions(f, p))[0],
+                                 groups[3], dx) for p in (f.positions_nm, n, e)]
             rows.append([l1.position_error(f, n), l1.position_error(f, e), *c,
                          l1.position_precision_limit(f)])
         table.append(np.mean(rows, axis=0))
@@ -1139,14 +1140,15 @@ def level1_motion():
            transform=a.transAxes, fontsize=9, va="top", color=INK)
     x = np.arange(surface.size) * dx / 1e3
     lo, hi = groups[2][1] - 60, groups[3][2] + 60
-    b.plot(x[lo:hi], surface[lo:hi] + 2.6, color=INK, lw=1.2)
-    b.plot(x[lo:hi], rec["assumed"][lo:hi] + 1.25, color=ORANGE, lw=1.2)
+    b.plot(x[lo:hi], rec["assumed"][lo:hi] + 1.6, color=ORANGE, lw=1.2)
     b.plot(x[lo:hi], rec["estimated"][lo:hi], color=BLUE, lw=1.2)
-    for y, name in [(3.72, "true surface"), (2.5, "reconstructed with assumed positions"),
-                    (1.12, "reconstructed with estimated positions")]:
+    b.plot(x[lo:hi], surface[lo:hi] + 3.2, color=INK, lw=1.2)
+    for y, name in [(4.35, "true surface"), (3.0, "reconstructed with assumed positions"),
+                    (1.42, "reconstructed with estimated positions")]:
         b.text(x[lo], y, name, fontsize=9, color=INK)
-    b.set_ylim(-0.2, 4.2)
-    b.set_yticks([])
+    b.set_ylim(-0.2, 4.7)
+    b.set_yticks([0, 1])
+    b.set_ylabel("reflectance (each trace offset upward)")
     b.set_xlabel("position along the scan (µm)")
     b.set_title("1.2 µm and 0.8 µm bar groups", loc="left", fontsize=10.5)
     c.plot(jitters, table[:, 2], "-", color=INK2, lw=1.2, label="true positions known")
@@ -1162,6 +1164,45 @@ def level1_motion():
     fig.tight_layout()
     save(fig, "level1-motion")
     return jitters, table, float(np.std(est_off - true_off))
+
+
+def level1_numbers():
+    """Print the numbers quoted on the level 1 page that no figure carries."""
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr import level1 as l1
+    from ccdsr import level1_2d as l2
+
+    l1m, dx, surface, groups, frames = _level1_bars()
+    rms = lambda est: float(np.sqrt(np.mean((est - surface) ** 2)))
+    print("Bar example, seed 1. Pixel and gap transfer at 0.5 µm:",
+          round(float(abs(np.sinc(1120 / 500))), 3),
+          round(float(l1.transfer(np.array([1 / 500.0]), l1.Optics1D(gap_nm=300, pitch_nm=1e-3))[0].real), 3))
+    for name, est in [("shift and add", l1.shift_and_add(frames)[0]), ("Wiener 1e-3", l1.wiener(frames)),
+                      ("Wiener 1e-4", l1.wiener(frames, 1e-4)), ("least squares", l1.least_squares(frames)[0])]:
+        print(f"  {name:14s} rms {rms(est):.3f} contrast",
+              [round(l1.bar_contrast(est, g, dx), 2) for g in groups])
+
+    print("Speed believed wrong, no jitter, seed 1 (believed/true, error before nm, after nm, "
+          "contrast of 0.8 µm bars: true positions, assumed, estimated and aligned):")
+    scan = l1.Scan1D(n_pixels=64, n_frames=160, shift_px=0.37)
+    f = l1.simulate(surface, dx, l1.Optics1D(gap_nm=300), scan, l1.Noise1D(), seed=1)
+    contrast = lambda pos: l1.bar_contrast(
+        l1.least_squares(f, positions_nm=l1.align_positions(f, pos))[0], groups[3], dx)
+    for ratio in (1.001, 1.01, 1.03, 1.05):
+        wrong = l1.nominal_positions(f, 0.37 * ratio)
+        est, _ = l1.estimate_positions(f, wrong)
+        print(f"  {ratio:.3f} {l1.position_error(f, wrong):7.1f} {l1.position_error(f, est):5.1f} "
+              f"{contrast(f.positions_nm):.2f} {contrast(wrong):.2f} {contrast(est):.2f}")
+
+    print("Two dimensions at one-pass density (87 frames), tilt asin(1/16), seed 1:")
+    picture, g2 = l2.line_groups([1960, 1400, 980, 700], 70.0, (256, 512))
+    tilt = float(np.rad2deg(np.arcsin(1 / 16)))
+    f2 = l2.simulate(picture, 70.0, l2.Optics(gap_nm=300), l2.Scan2D(n_frames=87, tilt_deg=tilt), seed=1)
+    est2, _ = l2.least_squares(f2)
+    print("  contrast", [round(l2.group_contrast(est2, g, 70.0), 2) for g in g2],
+          "rms", round(float(np.sqrt(np.mean((est2 - picture) ** 2))), 3))
 
 
 if __name__ == "__main__":
@@ -1185,4 +1226,5 @@ if __name__ == "__main__":
     level1_crosscheck()
     level1_2d()
     level1_motion()
+    level1_numbers()
     print("wrote diagrams to", OUT)

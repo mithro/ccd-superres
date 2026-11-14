@@ -7,7 +7,10 @@ between frames. The structure is the same as the one-dimensional version in
 :mod:`ccdsr.level1`: blur once, read off at every pixel position, add noise,
 reconstruct.
 
-Lengths are in nanometres. The grid is periodic in both directions.
+Lengths are in nanometres. The grid is periodic in both directions. The light
+collected scales with the pixel's light-sensitive area, so with ``aperture_nm``
+set it goes as the square of aperture over pitch (the one-dimensional module
+uses the first power).
 
 The reconstruction functions are given the readings, the sample positions and
 the blur model. They never see the surface.
@@ -16,6 +19,8 @@ the blur model. They never see the surface.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -238,8 +243,10 @@ def least_squares(frames: Frames2D, smoothness=1e-2, iterations=300, tol=1e-6, p
 
     Finds the picture whose predicted readings best match the recorded ones,
     with a mild preference for smoothness. ``positions_nm`` replaces the
-    recorded positions, for testing the effect of position errors. Returns the
-    estimate and the number of iterations used.
+    recorded positions, for testing the effect of position errors.
+    ``smoothness`` is relative to the mean sampling weight over the whole grid
+    (readings per grid cell). A warning is raised if the solver stops before reaching
+    ``tol``. Returns the estimate and the number of iterations used.
     """
     ny, nx = frames.shape
     n = ny * nx
@@ -248,7 +255,8 @@ def least_squares(frames: Frames2D, smoothness=1e-2, iterations=300, tol=1e-6, p
     h = _grid_transfer(frames.shape, frames.dx_nm, frames.optics, frames.scan)
     m = frames.readings.ravel() / _scale(frames.optics, frames.noise)
     sts = (s.T @ s).tocsr()
-    mean_w = sts.diagonal().mean()
+    diag = sts.diagonal()
+    mean_w = diag.mean()
     lam = smoothness * mean_w
     ly, lx = np.meshgrid(np.fft.fftfreq(ny), np.fft.fftfreq(nx), indexing="ij")
     lap = (2 * np.sin(np.pi * ly)) ** 2 + (2 * np.sin(np.pi * lx)) ** 2
@@ -264,8 +272,11 @@ def least_squares(frames: Frames2D, smoothness=1e-2, iterations=300, tol=1e-6, p
     op = LinearOperator((n, n), matvec=normal, dtype=float)
     pre = LinearOperator((n, n), matvec=lambda v: filt(v, 1 / precond_diag), dtype=float)
     count = [0]
-    x, _ = cg(op, rhs, rtol=tol, maxiter=iterations, M=pre,
-              callback=lambda _: count.__setitem__(0, count[0] + 1))
+    x, info = cg(op, rhs, rtol=tol, maxiter=iterations, M=pre,
+                 callback=lambda _: count.__setitem__(0, count[0] + 1))
+    if info != 0:
+        warnings.warn(f"least_squares stopped after {count[0]} iterations without reaching tol={tol}",
+                      RuntimeWarning, stacklevel=2)
     return x.reshape(ny, nx), count[0]
 
 

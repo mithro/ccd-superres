@@ -12,13 +12,23 @@ Lengths are in nanometres. The fine grid is periodic, so a scene should be
 padded if its ends matter.
 
 The reconstruction functions are given only what an instrument would have:
-the readings, the sample positions (true ones here; estimating them from the
-data is a later step), and the model of the blur. They never see the surface.
+the readings, sample positions (the true ones unless others are passed in;
+:func:`estimate_positions` works them out from the readings), and the model
+of the blur. They never see the surface.
+
+Conventions. A frame taken later sits at a larger position. The motion smear
+is centred on the frame's position, and slot ``k`` of an exposure code lies
+at ``(k + 0.5) / n - 0.5`` of the smear length from that centre, so earlier
+slots are at smaller positions. Shortening or coding the exposure does not
+reduce the light here: ``full_e`` is the signal actually collected, and the
+cost in light has to be put in by the caller.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -237,8 +247,12 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
     with a mild preference for smoothness. No matrix is formed for the blur:
     it is applied by Fourier transform, and sampling is a sparse matrix.
 
-    ``smoothness`` is relative to the mean sampling weight, so it keeps its
-    meaning when the number of frames changes.
+    ``smoothness`` is relative to the mean sampling weight over the whole grid
+    (readings per grid cell), so it keeps its meaning when the number of
+    frames changes. Adding unsampled margin to a scene lowers that mean and
+    with it the effective smoothing; raise ``smoothness`` in proportion to
+    compare like with like. A warning is raised if the solver
+    stops before reaching ``tol``.
 
     ``positions_nm`` replaces the recorded positions. The recorded ones are the
     true positions; pass the nominal or estimated ones to see the effect of
@@ -251,7 +265,9 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
     m = frames.readings.ravel() / _scale(frames)
     w = np.ones(m.size) if weights is None else np.asarray(weights, dtype=float).ravel()
     sws = (s.T @ s.multiply(w[:, None])).tocsr()
-    lam = smoothness * sws.diagonal().mean()
+    diag = sws.diagonal()
+    mean_w = diag.mean()
+    lam = smoothness * mean_w
     freq = np.fft.fftfreq(n)
     lap = (2 * np.sin(np.pi * freq)) ** 2
 
@@ -265,7 +281,7 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
         return kt(sws @ k(v)) + lam * np.fft.ifft(np.fft.fft(v) * lap).real
 
     rhs = kt(np.asarray(s.T @ (w * m)).ravel())
-    precond_diag = sws.diagonal().mean() * np.abs(h) ** 2 + lam * lap + 1e-12 * sws.diagonal().mean()
+    precond_diag = mean_w * np.abs(h) ** 2 + lam * lap + 1e-12 * mean_w
 
     def precond(v):
         return np.fft.ifft(np.fft.fft(v) / precond_diag).real
@@ -273,8 +289,11 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
     op = LinearOperator((n, n), matvec=normal, dtype=float)
     pre = LinearOperator((n, n), matvec=precond, dtype=float)
     count = [0]
-    x, _ = cg(op, rhs, rtol=tol, maxiter=iterations, M=pre,
-              callback=lambda _: count.__setitem__(0, count[0] + 1))
+    x, info = cg(op, rhs, rtol=tol, maxiter=iterations, M=pre,
+                 callback=lambda _: count.__setitem__(0, count[0] + 1))
+    if info != 0:
+        warnings.warn(f"least_squares stopped after {count[0]} iterations without reaching tol={tol}",
+                      RuntimeWarning, stacklevel=2)
     return x, count[0]
 
 
@@ -334,12 +353,14 @@ def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smo
 
 
 def position_precision_limit(frames: Frames1D):
-    """Best possible rms error of a frame's position, in nanometres.
+    """Reference limit for the rms error of a frame's position, in nanometres.
 
-    The Cramér-Rao bound for sliding one frame along a known surface: the
-    noise of the readings divided by the summed slope of the blurred surface
-    under the frame. Uses the true surface, so it is for scoring only.
-    Returns the rms over frames.
+    The Cramér-Rao bound for sliding one frame along a surface that is known
+    exactly: the noise of the readings divided by the summed slope of the
+    blurred surface under the frame. An estimator that also has to work out
+    the surface, as :func:`estimate_positions` does, is not bound by it in a
+    strict sense, so treat it as a yardstick. Uses the true surface, so it is
+    for scoring only. Returns the rms over frames.
     """
     n, dx = frames.n_grid, frames.dx_nm
     spectrum = np.fft.fft(frames.truth["surface"]) * _grid_transfer(n, dx, frames.optics, frames.scan)
@@ -350,6 +371,18 @@ def position_precision_limit(frames: Frames1D):
     light = _scale(frames)
     variance = ((light * level if frames.noise.photon else 0.0) + frames.noise.read_e**2) / light**2
     return float(np.sqrt(np.mean(1 / np.sum(slope**2 / variance, axis=1))))
+
+
+def align_positions(frames: Frames1D, positions_nm):
+    """Positions shifted as a whole so that their mean error is zero. For scoring only.
+
+    The data cannot tell a shift of every frame together from a shift of the
+    surface, so an estimate is free to carry one. Removing it before
+    reconstructing puts the picture where the true surface is, so that it can
+    be scored against the truth in fixed windows.
+    """
+    positions = np.asarray(positions_nm, dtype=float)
+    return positions - np.mean((positions - frames.positions_nm)[:, 0])
 
 
 def position_error(frames: Frames1D, positions_nm):
@@ -400,8 +433,8 @@ def sinusoid_amplitude(frames: Frames1D, period_nm):
     return float(amp / coef[0]), float(np.arctan2(-coef[2], coef[1]))
 
 
-def predicted_contrast_noise(frames_or_none, period_nm, optics: Optics1D, scan: Scan1D,
-                             noise: Noise1D, mean=0.5):
+def predicted_contrast_noise(period_nm, optics: Optics1D, scan: Scan1D, noise: Noise1D, mean=0.5,
+                             contrast=0.0):
     """Analytic rms error of the contrast estimated by :func:`sinusoid_amplitude`.
 
     For ``M`` readings with noise ``sigma`` each (relative to full signal),
@@ -409,13 +442,23 @@ def predicted_contrast_noise(frames_or_none, period_nm, optics: Optics1D, scan: 
     ``sigma * sqrt(2 / M)``. Dividing by the transfer ``T`` and the mean gives
     the error in contrast. This is the one-dimensional counterpart of the
     level 0 criterion ``T * contrast * snr * sqrt(samples) >= 1``.
+
+    ``contrast`` is the true contrast of the pattern. Contrast is the fitted
+    amplitude divided by the fitted mean, and the error of the mean matters
+    once the blurred contrast ``b = T * contrast`` is not small: the variance
+    is multiplied by ``1 + b**2 / 2 - b**2 * p``, where ``p`` is the share of
+    the noise variance that comes from the light itself (photon noise makes
+    the two errors move together). With the default of 0 the factor is 1.
     """
     aperture = optics.pitch_nm if optics.aperture_nm is None else optics.aperture_nm
     light = noise.full_e * aperture / optics.pitch_nm
     electrons = light * mean
-    sigma_e = np.sqrt((electrons if noise.photon else 0.0) + noise.read_e**2)
+    photon_var = electrons if noise.photon else 0.0
+    sigma_e = np.sqrt(photon_var + noise.read_e**2)
     sigma = sigma_e / light
     m = scan.n_frames * scan.n_pixels
     smear = scan.shift_px * optics.pitch_nm * scan.exposure_fraction
     t = np.abs(transfer(np.array([1 / period_nm]), optics, smear, scan.code))[0]
-    return float(sigma * np.sqrt(2 / m) / (t * mean))
+    b = t * contrast
+    factor = 1 + b**2 / 2 - b**2 * photon_var / sigma_e**2
+    return float(sigma * np.sqrt(2 / m) / (t * mean) * np.sqrt(factor))
