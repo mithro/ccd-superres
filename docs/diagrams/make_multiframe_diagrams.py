@@ -229,7 +229,7 @@ def drizzle_kernel():
 # --------------------------------------------------------------------------
 # 4. Noise cost of random shifts against the number of frames
 # --------------------------------------------------------------------------
-def random_dither_noise(trials=400, seed=7):
+def random_dither_noise(trials=5000, seed=7):
     """One dimension. To sample M times finer than the pixel pitch, M aliased
     copies of each spatial frequency must be separated. Frame n, shifted by
     x_n pixels, sees copy m with phase exp(2 pi i m x_n). The noise gain is
@@ -243,7 +243,7 @@ def random_dither_noise(trials=400, seed=7):
     for M, c in ((2, AQUA), (3, BLUE), (4, ORANGE)):
         med, hi = [], []
         for ratio in ratios:
-            N = int(round(ratio * M))
+            N = int(np.ceil(ratio * M - 1e-9))
             g = []
             for _ in range(trials):
                 x = rng.random(N)
@@ -258,13 +258,14 @@ def random_dither_noise(trials=400, seed=7):
     ax.axhline(1, color=INK2, lw=0.8, ls=":")
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_ylim(0.9, 300)
+    ax.set_ylim(0.6, 300)
     ax.set_xticks([1, 2, 4, 8, 12])
     ax.set_xticklabels(["1", "2", "4", "8", "12"])
     ax.set_xlabel("frames taken, as a multiple of the fewest that could work")
     ax.set_ylabel("noise, relative to a perfect\nevenly spaced pattern")
     ax.legend(frameon=False, fontsize=9, title="sampling wanted")
-    ax.text(1.02, 1.07, "perfect pattern", fontsize=8, color=INK2)
+    ax.text(2.6, 0.66, "dotted line: a perfect pattern", fontsize=8,
+            color=INK2, va="bottom")
     tidy(ax)
     save(fig, "random-dither-noise")
     print("Noise gain with random known shifts (median, 90th percentile):")
@@ -295,11 +296,11 @@ def pixel_cost():
     ax.text(1.1, 2.6e5, "orange line: readings of each pixel-sized patch\n"
             "in one slow pass (design, section 4.2)", fontsize=8.5,
             color=ORANGE, bbox=dict(fc=SURFACE, ec="none", pad=1.5))
-    for gg, lab, off in ((2.0, "Hubble, SPOT 5,\nSkySat: 2 to 2.5", (-38, 48)),
-                         (3.0, "PROBA-V: 3", (34, 16))):
-        ax.annotate(lab, (gg, 1.3), textcoords="offset points",
-                    xytext=off, fontsize=8, ha="center", color=INK2,
-                    arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.8))
+    # Published systems sample 2 to 3 times finer, so the detail they
+    # recover lies below those limits: a band, not a point on the curve.
+    ax.axvspan(1, 3, color=YELLOW, alpha=0.13, lw=0,
+               label="detail recovered by the published systems\n"
+               "of table 3.2 (sampling 2 to 3 times finer)")
     ax.set_yscale("log")
     ax.set_ylim(1, 1e6)
     ax.set_xlabel("how many times finer than the pixel grid the detail is")
@@ -308,12 +309,17 @@ def pixel_cost():
     tidy(ax)
     save(fig, "pixel-cost")
     print("Contrast kept by a full-width pixel, and extra readings needed:")
+    # Along a pixel axis the contrast is |sinc(g/2)|. For a pattern running
+    # along the diagonal of a square pixel each axis sees g/(2 sqrt 2), and
+    # the two factors multiply.
     for gg in (1, 1.5, 2, 3, 5, 6.6, 7, 9):
         m = abs(sinc(gg / 2))
         need = 1 / m ** 2 if m > 1e-9 else float("inf")
+        md = sinc(gg / (2 * np.sqrt(2))) ** 2
         print(f"  {gg:4.1f} times finer (period {2 / gg:5.2f} px = "
-              f"{2 * PITCH_UM * 1000 / gg:6.0f} nm): contrast {m:5.3f}, "
-              f"readings x{need:8.1f}")
+              f"{2 * PITCH_UM * 1000 / gg:6.0f} nm): along an axis contrast "
+              f"{m:5.3f}, readings x{need:8.1f}; along the diagonal contrast "
+              f"{md:6.4f}, readings x{1 / md ** 2:10.1f}")
 
 
 # --------------------------------------------------------------------------
@@ -322,13 +328,19 @@ def pixel_cost():
 ACCURACY = [
     # label, value in pixels, colour group
     ("ASTER satellite: wobble left before correction", 0.2, INK2),
-    ("ASTER satellite: after correction from its own lines", 0.08, BLUE),
+    ("ASTER satellite: after correction from its own lines (upper limit)",
+     0.08, BLUE),
     ("Satellite image pairs matched by correlation", 0.02, BLUE),
     ("Hubble: one star in one frame, random error", 0.02, AQUA),
     ("Drizzle test: star positions after combining", 0.018, AQUA),
-    ("Frame-to-frame motion for digital time-delay integration", 0.01, BLUE),
-    ("Hubble: left-over error tied to position inside a pixel", 0.002, AQUA),
-    ("Gaia: one bright star crossing one detector", 0.06 / 58.9, AQUA),
+    ("Digital time-delay integration: fitted motion (upper limit)",
+     0.01, BLUE),
+    ("Gaia: scatter actually found, one bright star on one detector",
+     0.3 / 58.9, AQUA),
+    ("Hubble: pixel-phase error left after solving (upper limit)",
+     0.002, AQUA),
+    ("Gaia: photon-noise floor for the same measurement",
+     0.06 / 58.9, SILICON),
 ]
 
 
@@ -343,14 +355,15 @@ def accuracy_chart(need_nm=10.0):
     y = np.arange(len(vals))
     ax.barh(y, vals, color=cols, height=0.62)
     for yi, v in zip(y, vals):
-        ax.text(v * 1.12, yi, f"{v:.2g} px = {v * PITCH_UM * 1000:.2g} nm",
-                va="center", fontsize=8.5)
+        ax.text(v * 1.12, yi, f"{v:.2g} px = {v * PITCH_UM * 1000:.3g} nm",
+                va="center", fontsize=8.5,
+                bbox=dict(fc=SURFACE, ec="none", pad=1.0))
     ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=8.5)
     ax.set_xscale("log")
     ax.set_xlim(5e-4, 3)
     need_px = need_nm / (PITCH_UM * 1000)
-    ax.axvline(need_px, color=ORANGE, lw=1.3)
+    ax.axvline(need_px, color=ORANGE, lw=1.3, zorder=0)
     ax.text(need_px * 1.08, len(vals) - 0.45,
             f"needed here: about {need_nm:.0f} nm", color=ORANGE, fontsize=8.5)
     ax.set_xlabel("position error (pixels of that instrument); nanometres are "
@@ -366,12 +379,15 @@ def accuracy_chart(need_nm=10.0):
 # --------------------------------------------------------------------------
 # 7. How well a shift can be measured: the best case
 # --------------------------------------------------------------------------
-def shift_bound(signal_e=5000.0, corr_px=3.0):
+def shift_bound(signal_e=2250.0, corr_px=3.0):
     """Cramer-Rao bound for a pure shift between two frames with known scene:
     sigma = noise / (rms gradient * sqrt(pixels)). Noise is photon noise on a
     mean signal of `signal_e` electrons. The scene is a texture with rms
     contrast c whose brightness changes over `corr_px` pixels, so the rms
-    gradient is taken as c * signal / corr_px. All three are assumptions."""
+    gradient is taken as c * signal / corr_px. All three are assumptions.
+    The default signal is half the 4500 electron full well the design assumes.
+    The reference is taken as noise-free (a combined picture). Matching one
+    noisy frame against another is worse by the square root of two."""
     noise = np.sqrt(signal_e)
     n = np.logspace(2, 7.2, 200)
     fig, ax = plt.subplots(figsize=(7.4, 4.3))
@@ -389,7 +405,7 @@ def shift_bound(signal_e=5000.0, corr_px=3.0):
         ax.text(npx * 0.86, 2.3e3, lab, fontsize=8, color=INK2, ha="right",
                 va="top")
     ax.axhline(10, color=INK, lw=1.0, ls="--")
-    ax.text(130, 12, "needed: about 10 nm", fontsize=8.5)
+    ax.text(1.1e6, 14, "dashed line:\nabout 10 nm needed", fontsize=8.5)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_ylim(0.01, 3e3)
@@ -404,7 +420,9 @@ def shift_bound(signal_e=5000.0, corr_px=3.0):
         row = ", ".join(f"{lab.replace(chr(10), ' ')}: {fn(npx):.5f} px = "
                         f"{fn(npx) * PITCH_UM * 1000:.2f} nm"
                         for npx, lab in marks)
-        print(f"  contrast {c:.0%}: {row}")
+        rows = (noise / (c * signal_e / corr_px) * PITCH_UM * 1000 / 10) ** 2 / COLS
+        print(f"  contrast {c:.0%}: {row}; rows for 10 nm: {rows:.1f} "
+              f"({1 / (max(rows, 1) * 18.9e-6):.0f} estimates per second)")
 
 
 # --------------------------------------------------------------------------
@@ -478,7 +496,7 @@ def selfcal_tracks():
                 ax.plot([0, 14], [y0, y0], color=col, lw=1.8, ls="--")
                 for xx in np.linspace(0.05, 13.95, 60):
                     hit.add((int(xx), int(y0), col))
-        for i, j, col in hit:
+        for i, j, col in sorted(hit):
             ax.add_patch(Rectangle((i, j), 1, 1, fc=col, ec="none", alpha=0.18))
     notes = ("each surface point meets one column only:\n"
              "a weak column and a dark stripe on the\nsurface look the same",
@@ -496,6 +514,106 @@ def selfcal_tracks():
         print(f"  tilt {t:3.1f} deg: {ROWS * np.tan(np.radians(t)):6.1f}")
 
 
+def candidate_elimination(cells=12, sigma=1.5, trials=20, seed=5):
+    """Ruling out candidate surfaces without measuring any position.
+
+    Toy calculation. The surface is a ring of ``cells`` cells, each one of
+    two materials (reading 0 or 1). Every frame is the surface slid round by
+    a whole number of cells, plus Gaussian noise of standard deviation
+    ``sigma`` (in units of the contrast between the two materials). All
+    2**cells two-material patterns are candidates. A candidate is scored by
+    how probable the frames are under it, added up over every position the
+    frame could have had, and it survives while it is within a factor of
+    1000 of the best candidate. Three levels of knowledge about position
+    are compared on the same data: none at all, "the sensor moves at a
+    steady unknown speed from an unknown start", and exact positions.
+    """
+    rng = np.random.default_rng(seed)
+    n = cells
+    ncand = 2 ** n
+    cand = ((np.arange(ncand)[:, None] >> np.arange(n)) & 1).astype(float)
+    weights = 1 << np.arange(n)
+    # shifted[c, s] is the index of candidate c slid round by s cells.
+    shifted = np.stack([(np.roll(cand, s, axis=1) @ weights).astype(int)
+                        for s in range(n)], axis=1)
+    # Design rule: every line and every space at least two cells wide.
+    runs_ok = np.array([
+        all(not (c[i] != c[i - 1] and c[i] != c[(i + 1) % n])
+            for i in range(n)) and 0 < c.sum() < n for c in cand])
+    allowed = np.flatnonzero(runs_ok)
+    marks = np.array([1, 2, 5, 10, 20, 50, 100, 200, 400, 800, 1600])
+    keep = np.log(1000.0)
+    names = ("none", "steady", "exact", "none + rule")
+    counts = {k: np.zeros((trials, marks.size)) for k in names}
+    s0v = np.array([(a, v) for a in range(n) for v in range(n)])
+    for t in range(trials):
+        truth = rng.choice(allowed)
+        start, speed = rng.integers(n), rng.integers(1, n)
+        ll_none = np.zeros(ncand)
+        ll_exact = np.zeros(ncand)
+        ll_path = np.zeros((ncand, len(s0v)))
+        for k in range(marks[-1]):
+            pos = (start + k * speed) % n
+            y = cand[shifted[truth, pos]] + sigma * rng.standard_normal(n)
+            d = -((y[None, :] - cand) ** 2).sum(axis=1) / (2 * sigma ** 2)
+            per_shift = d[shifted]                      # (candidate, shift)
+            ll_none += np.logaddexp.reduce(per_shift, axis=1)
+            ll_exact += per_shift[:, pos]
+            ll_path += per_shift[:, (s0v[:, 0] + k * s0v[:, 1]) % n]
+            if k + 1 in marks:
+                m = int(np.flatnonzero(marks == k + 1)[0])
+                lp = np.logaddexp.reduce(ll_path, axis=1)
+                for name, ll in (("none", ll_none), ("steady", lp),
+                                 ("exact", ll_exact)):
+                    counts[name][t, m] = (ll >= ll.max() - keep).sum()
+                la = ll_none[allowed]
+                counts["none + rule"][t, m] = (la >= la.max() - keep).sum()
+    med = {k: np.median(v, axis=0) for k, v in counts.items()}
+
+    fig, (a0, a1) = plt.subplots(1, 2, figsize=(10.5, 4.2),
+                                 gridspec_kw={"width_ratios": [1, 2.1]})
+    bars = [ncand, allowed.size]
+    a0.bar([0, 1], bars, color=[SILICON, AQUA], width=0.6)
+    for i, b in enumerate(bars):
+        a0.text(i, b * 1.15, f"{b}", ha="center", fontsize=10)
+    a0.set_yscale("log")
+    a0.set_ylim(1, 20000)
+    a0.set_xticks([0, 1])
+    a0.set_xticklabels(["any two-material\npattern",
+                        "lines and spaces\nat least 2 cells"], fontsize=9)
+    a0.set_ylabel("candidate surfaces (count)")
+    a0.set_title("Before any data", loc="left", fontsize=11)
+    tidy(a0)
+    styles = (("none", ORANGE, "-", "positions not known at all"),
+              ("none + rule", ORANGE, "--",
+               "not known, plus the 2-cell design rule"),
+              ("steady", BLUE, "-",
+               "steady unknown speed, unknown start"),
+              ("exact", INK2, ":", "positions known exactly"))
+    for name, col, ls, lab in styles:
+        a1.plot(marks, med[name], color=col, ls=ls, lw=2, marker="o", ms=4,
+                label=lab)
+    a1.axhline(n, color=GRID, lw=1.2)
+    a1.text(marks[-1], n * 1.25, f"{n} copies of the true pattern, slid along",
+            ha="right", fontsize=8.5, color=INK2)
+    a1.set_xscale("log")
+    a1.set_yscale("log")
+    a1.set_ylim(0.7, 20000)
+    a1.set_xlabel("frames used (count)")
+    a1.set_ylabel("candidates still possible (count)")
+    a1.set_title(f"After the frames (noise {sigma:g} x the contrast)",
+                 loc="left", fontsize=11)
+    a1.legend(frameon=False, fontsize=8.5, loc="upper right")
+    tidy(a1)
+    save(fig, "candidate-elimination")
+    print(f"Candidate elimination ({n} cells, noise {sigma} x contrast, "
+          f"median of {trials} trials):")
+    print(f"  candidates: all {ncand}, obeying the 2-cell rule {allowed.size}")
+    print("  frames  " + "  ".join(f"{k:>12s}" for k in names))
+    for m, k in enumerate(marks):
+        print(f"  {k:6d}  " + "  ".join(f"{med[q][m]:12.0f}" for q in names))
+
+
 def main():
     tdi_map()
     tdi_mismatch()
@@ -506,6 +624,7 @@ def main():
     shift_bound()
     lucky_weighting()
     selfcal_tracks()
+    candidate_elimination()
 
 
 if __name__ == "__main__":

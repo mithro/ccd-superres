@@ -110,6 +110,7 @@ python docs/diagrams/make_multiframe_diagrams.py
 | `mf-random-dither-noise` | Noise cost of filling a finer grid from randomly placed frames | Random simulation, fixed seed |
 | `mf-pixel-cost` | Contrast an ideal pixel keeps, and the noise cost of restoring it, against grid refinement | Ideal sharp-edged pixel formula |
 | `mf-accuracy-chart` | Published shift-measurement accuracies in pixels beside what this instrument needs | Published figures, cited on the page |
-| `mf-shift-bound` | Best possible shift accuracy against image contrast for one row, 100 rows and a frame | Standard noise bound with stated assumptions |
+| `mf-shift-bound` | Best possible shift error against the number of pixels used, for three scene contrasts | Standard noise bound with stated assumptions |
 | `mf-lucky-weighting` | Signal to noise from keeping the sharpest frames against weighting all frames | Random simulation, fixed seed |
 | `mf-selfcal-tracks` | Pixel columns crossed by a surface point for straight and tilted scans | Sensor geometry |
+| `mf-candidate-elimination` | Candidate surfaces left against frames used when positions are unknown, follow a steady path, or are known | Toy calculation, fixed seed |

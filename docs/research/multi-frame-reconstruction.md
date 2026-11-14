@@ -12,7 +12,7 @@ one sixtieth of the width of a hair. A 100 nm chip feature is one eleventh
 of that pixel. Positions therefore have to be known to about a hundredth of
 a pixel.
 
-This page is deep research study B3 of the [project plan](../plan.md#deep-research). It reaches six conclusions.
+This page is deep research study B3 of the [project plan](../plan.md#deep-research). It reaches seven conclusions.
 
 1. **Sum the rows in the computer, not on the chip.** Satellites shift the
    collected charge along the chip in step with the moving image. That only
@@ -21,14 +21,18 @@ This page is deep research study B3 of the [project plan](../plan.md#deep-resear
    row and lining the readings up afterwards removes the requirement, and
    turns speed error and wobble into things that are measured.
 2. **Combining frames reliably gives pictures sampled 2 to 3 times finer
-   than the pixel grid, and the published systems stop there** because they
-   have between 2 and 35 frames. This instrument has about ten thousand
-   readings of every pixel-sized patch, so it sits far outside that
-   experience. The limit that remains is the pixel itself, which wipes out
+   than the pixel grid, and the published systems stop there.** They stop
+   mainly because their optics or their pixels leave little finer detail
+   to recover, and also because they have only 2 to 35 frames. This
+   instrument has about ten thousand readings of every pixel-sized patch,
+   so it sits far outside that experience. The limit that remains is the pixel itself, which wipes out
    some detail sizes completely.
-3. **Positions good to a hundredth of a pixel are routine, and a thousandth
-   has been reached.** The best results come from treating the shape of the
-   pixel's response and the positions as unknowns that are solved together.
+3. **Positions good to a fiftieth of a pixel are routine. A hundredth,
+   which is what this project needs, is at the edge of published
+   practice.** Errors that repeat have been pushed down to a
+   five-hundredth of a pixel, by treating the shape of the pixel's response
+   and the positions as unknowns that are solved together. What then limits
+   the best instrument is how well the pixel's response is known.
 4. **Weighting beats choosing.** Astronomers who keep only their sharpest
    frames throw away most of their light. Weighting every reading by how
    sharp it is, separately for each size of detail, is never worse and
@@ -43,6 +47,16 @@ This page is deep research study B3 of the [project plan](../plan.md#deep-resear
    where the sampling is weak, a pixel response that changes with
    brightness, and sampling patterns matched to where the detail lies.
    They are listed in [section 6](#6-ideas-new-to-the-project).
+7. **Positions do not have to be measured before the picture is made.**
+   Astronomy has several ways to recover a picture from frames whose
+   positions are unknown: use quantities that do not change when a frame
+   is shifted, add up over every position a frame could have had, or
+   propose whole scenes and discard those the data or physics rule out.
+   Knowing that the camera moves smoothly in time cuts the number of
+   frames needed several times over. This is Tim's idea of eliminating
+   impossible solutions, and
+   [section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)
+   sets out what the field has shown and where it stops.
 
 None of this moves the physical limit set by the gap between sensor and
 surface or by the wavelength of light
@@ -63,7 +77,7 @@ Other terms are in the shared [glossary](../glossary.md).
 |---|---|
 | Push-broom | A camera with one line of pixels that builds a picture line by line as it is carried over the scene, like a broom pushed across a floor. |
 | Time-delay integration (TDI) | A sensor with many lines that moves the collected charge from line to line at the speed of the moving image, so one patch of scene is collected many times over and read once. |
-| Dither | Here: a small deliberate shift of the camera between exposures, so that the pixel grid lands in a different place each time. |
+| Dither | On this page: a small deliberate shift of the camera between exposures, so that the pixel grid lands in a different place each time. |
 | Undersampled | Said of a picture whose pixels are too coarse to record the finest detail the optics deliver. The lost detail does not vanish. It reappears as false coarse patterns, which is called aliasing. |
 | Drizzle | The standard astronomical method for combining dithered frames: each input pixel is shrunk and "rained" onto a finer output grid. |
 | Lucky imaging | Taking thousands of very short exposures through the unsteady atmosphere and keeping only the sharpest. |
@@ -100,7 +114,7 @@ points to the section with the evidence.
 |---|---|---|
 | How do push-broom and time-delay-integration sensors handle motion smear, and what does that say about our readout schemes? | They shift charge in step with the image, which needs the speed matched to a fraction of a percent and hides wobble inside the sum. Our readout should keep every row separate, with each row's exposure short, and do the sum afterwards. Charge shifting on the chip is only worth having if light is very scarce. | [Section 2](#2-motion-smear-how-scanning-cameras-handle-it) |
 | How are many undersampled, shifted, noisy frames combined, with what measured gain and at what noise cost? | By placing readings on a finer grid (interlacing, drizzle), by solving a linear system (Fourier and optimal linear methods), or by fitting a model of the scene. Measured sampling gains are 2 to 3. The noise cost is small when there are a few times more frames than the minimum, and severe at the minimum. | [Sections 3](#3-combining-many-undersampled-frames) and [4](#4-lucky-imaging-choosing-or-weighting-frames) |
-| How is the registration between frames estimated, and how accurate is it in practice? | By correlation of overlapping frames, refined by fitting a model of scene and instrument together. Practice reaches 0.02 pixels routinely and 0.001 to 0.002 pixels with a calibrated pixel response. | [Section 5](#5-registration-how-well-shifts-are-measured) |
+| How is the registration between frames estimated, and how accurate is it in practice? | By correlation of overlapping frames, refined by fitting a model of scene and instrument together. Practice reaches 0.02 pixels routinely for a single measurement and 0.005 to 0.01 pixels at best. Errors that repeat from one measurement to the next have been pushed to 0.002 pixels with a solved pixel response. The need here is 0.009 pixels. Pictures can also be recovered without measuring positions at all, at a cost in frames. | [Section 5](#5-registration-how-well-shifts-are-measured) |
 
 ## 2. Motion smear: how scanning cameras handle it
 
@@ -119,21 +133,31 @@ time-delay integration. The charge collected from one patch (blue dot,
 growing) is moved from row to row at the speed of the moving image and
 read once at the last row. Right: every row is read separately and a
 computer measures how far each reading has moved before adding them. Six
-rows are drawn. Real sensors have from 128 to 4500. Illustrative, from
+rows are drawn. Real sensors sum from 2 to 4500. Illustrative, from
 function `tdi_map`.*
 
-**Table 2.1: scanning instruments that sum along the motion.** Figures are
-from the sources in the last column.
+**Table 2.1: sensors that sum along the motion.** A dash means the source
+does not give the figure. The pixel size is the angle one pixel covers on
+the sky or ground, in millionths of a radian (µrad).
 
-| Instrument | Lines summed | Time to cross | Pixel size on the scene | What limits it | Source |
-|---|--:|--:|---|---|---|
-| Gaia star mapper (space) | 4500 | 4.42 s | 58.9 × 176.8 mas | Charge is moved at a fixed rate, so the spin rate must match. Bright stars use gates that shorten the sum to as few as 2 lines. | [[MF3](#mf3)] |
-| HiRISE (Mars orbiter) | 8, 32, 64 or 128 | not stated | 1 µrad, 0.25 to 0.32 m | Smear above a quarter pixel if pointing moves more than 0.25 µrad in about 10 ms. Fewer lines are chosen when wobble is expected. | [[MF5](#mf5)] |
-| ASTER short-wave infrared (Earth orbiter) | 6 separate lines, not summed | 356 ms between lines | not stated | Wobble between the lines shows as 0.2 pixels of mismatch | [[MF6](#mf6)] |
-| Orthogonal-transfer CCD (telescope) | follows the image in both directions | up to 100 shifts per second | not applicable | After 100 s of tracking about 3% of the charge spreads into a halo | [[MF16](#mf16)] |
+| Instrument | Lines summed, fewest | Lines summed, most | Time to cross all lines (s) | Pixel along the scan (µrad) | Pixel across the scan (µrad) | Source |
+|---|--:|--:|--:|--:|--:|---|
+| Gaia (space telescope), each detector | 2 | 4500 | 4.42 | 0.29 | 0.86 | [[MF3](#mf3)] |
+| HiRISE (Mars orbiter) | 8 | 128 | — | 1.0 | 1.0 | [[MF5](#mf5)] |
 
-mas is a thousandth of a second of arc, and µrad a millionth of a radian.
-Both are angles on the sky or ground.
+Gaia's pixel is given in the source as 58.9 × 176.8 thousandths of a
+second of arc, converted here. HiRISE's 1 µrad is 0.25 to 0.32 m on the
+ground.
+
+**What limits each instrument.** A text table, with two instruments that
+do not sum on the chip added for comparison.
+
+| Instrument | How it collects | What limits it | Source |
+|---|---|---|---|
+| Gaia | Charge is moved at a fixed rate | The spin rate of the spacecraft must match the charge rate. Bright stars use gates that shorten the sum to as few as 2 lines. | [[MF3](#mf3)] |
+| HiRISE | Sums 8, 32, 64 or 128 lines, chosen per picture | Smear above a quarter of a pixel if the pointing moves more than 0.25 µrad in about 10 ms. Fewer lines are chosen when wobble is expected. | [[MF5](#mf5)] |
+| ASTER short-wave infrared (Earth orbiter) | Six separate lines, read 356 ms apart and not summed | Wobble between the lines shows as 0.2 pixels of mismatch | [[MF6](#mf6)] |
+| Orthogonal-transfer CCD (telescope) | Follows the image in both directions with up to 100 charge shifts per second | After 100 s of tracking about 3% of the charge has spread into a halo | [[MF16](#mf16)] |
 
 Three weaknesses are documented.
 
@@ -148,16 +172,19 @@ $$
 $$
 
 In words: the smear grows with the number of lines summed, so the more
-lines, the tighter the speed must be held. This uniform-smear formula is
-**derived here** (function `tdi_mismatch`). Published analyses agree on the
-trend: contrast falls as speed error and line count rise
-[[MF11](#mf11), [MF12](#mf12)], one states that a 2% speed error costs 32%
-of the contrast at the finest sampled pattern when the count goes from 32
-to 96 lines [[MF13](#mf13)], and one that a 30% error with 16 lines leaves
-almost none [[MF12](#mf12)]. The formula here gives a larger loss than
-[[MF13](#mf13)] for the same case (contrast 0.84 at 32 lines and 0.04 at 96
-lines). The abstracts do not give their formulas, so the difference is
-unresolved and is marked **unverified**.
+lines, the tighter the speed must be held. This is the smooth-motion form
+of the standard formula for time-delay integration, which for charge that
+moves in whole steps is $\sin(\pi f N \delta) / (N \sin(\pi f \delta))$.
+The two agree to three decimal places for the cases in table 2.2
+(**derived here**, function `tdi_mismatch`; the independent review
+recomputed both). Published analyses agree on the trend: contrast falls as
+speed error and line count rise [[MF11](#mf11), [MF12](#mf12)]. One
+abstract states that a 2% speed error costs 32% of the contrast at the
+finest sampled pattern when the count goes from 32 to 96 lines
+[[MF13](#mf13)]. The formula here gives a much larger loss for that case
+(contrast 0.84 at 32 lines and 0.04 at 96). The abstract does not say how
+it defines the finest pattern, so the reading of [[MF13](#mf13)] is
+**unverified**, and the formula stands.
 
 ![Contrast lost to speed error when rows are summed without correction](../diagrams/mf-tdi-mismatch.svg)
 
@@ -165,7 +192,7 @@ unresolved and is marked **unverified**.
 contrast kept for the finest pattern a frame can sample (a period of two
 pixels), against the speed error, for four numbers of rows. Right: the
 largest speed error that keeps 90% of that contrast, against the number of
-rows. Uniform-smear formula, derived here, from function `tdi_mismatch`.*
+rows. Smooth-motion form of the standard formula, from function `tdi_mismatch`.*
 
 **Table 2.2: speed error allowed when rows are summed without correction**,
 for 90% contrast at a period of two pixels (a total slide of half a
@@ -212,7 +239,7 @@ experience ranks the choices. This is a text table. All entries are
 | Long exposure with the motion running | Reject for fine detail | It is TDI without the charge shifting: pure smear ([design, section 4.8](../design.md#48-motion-blur-cause-model-and-reversal)). |
 | Shorter sums for bright areas, longer for dark | Worth modelling | Gaia switches the number of lines summed, from 4500 down to 2, to suit each star's brightness [[MF3](#mf3)]. The digital equivalent is to weight or drop rows per region after the fact, at no hardware cost. |
 | Read only windows around what matters | Worth modelling as a second pass | Gaia sends down only small windows around detected stars [[MF3](#mf3)]. A fast coarse pass could choose the windows for a slow fine pass. |
-| Rolling shutter, each row exposed at its own time | An asset, not a defect | It makes the sensor 2464 push-broom lines with known time offsets of 18.9 µs ([design, section 5.7](../design.md#57-sensor-control-and-readout-as-a-replaceable-model)), which is the arrangement HiRISE and ASTER use to measure wobble [[MF5](#mf5), [MF6](#mf6)]. Two detector lines leave blind frequencies where the wobble repeats exactly between them. Thousands of rows at different offsets leave none (**derived here**). |
+| Rolling shutter, each row exposed at its own time | An asset, not a defect | It makes the sensor 2464 push-broom lines with known time offsets of 18.9 µs ([design, section 5.7](../design.md#57-sensor-control-and-readout-as-a-replaceable-model)), which is the arrangement HiRISE and ASTER use to measure wobble [[MF5](#mf5), [MF6](#mf6)]. Two detector lines leave blind frequencies where the wobble repeats exactly between them. Thousands of rows at different offsets leave none below the row rate of 52.9 kHz. Wobble at exact multiples of the row rate stays invisible (**derived here**). |
 
 **The price of digital summing is read noise.** Charge shifting reads once.
 Digital summing reads $N$ times and adds read noise each time
@@ -261,27 +288,45 @@ says how much of the source was read for this study.
 | Shift-and-add | Slides each pixel to its place and adds it onto a finer grid | Takes any shifts | Blurs by the pixel area a second time, and links the noise of neighbours | [[MF17](#mf17)] | Full text |
 | Drizzle | Shift-and-add with each pixel shrunk to a smaller "drop" first | Takes any shifts, rotation and distortion. Weights each reading by its quality. Tolerates missing readings. | Does not undo any blur. Noise in neighbouring output pixels is linked. | [[MF17](#mf17)] | Full text |
 | Fourier combination | Separates the overlapping false patterns algebraically, frequency by frequency | Exact, with no free settings | Needs pure shifts that are the same across the field | [[MF18](#mf18)] | Full text |
-| Iterated drizzle | Starts from drizzle and repeats until the result, re-sampled, matches the frames | Removes drizzle's small artefacts and its extra blur | More frames needed when shifts are badly placed | [[MF20](#mf20)] | Abstract |
+| Iterated drizzle | Starts from drizzle and repeats until the result, re-sampled, matches the frames | Removes drizzle's small artefacts and its extra blur | More frames needed when shifts are badly placed: with random shifts, at least twelve before it converged well | [[MF20](#mf20)] | Full text |
 | Optimal linear combination | For each output point, finds the weights on nearby readings that best trade wanted blur shape against noise | Returns the noise and the error in blur shape for every output point. Works as a design tool for scan patterns. | Costly. Needs the pixel response and blur known in advance. | [[MF21](#mf21), [MF22](#mf22)] | Full text |
 | Proper co-addition | Adds frames in the frequency domain, each weighted by its own transfer function | Loses no information for a steady scene, and its noise is independent from pixel to pixel | Assumes sampling is already adequate and noise is uniform | [[MF23](#mf23)] | Full text |
 | Regularised fit | Finds the fine picture that best explains all frames, with a penalty against roughness | Handles blur and noise together | Result depends on the penalty | [[MF50](#mf50), [Farsiu2004](../references.md)] | Abstract |
-| Learned combination | A neural network trained on examples | Best scores on satellite contests | Needs training data, and can invent detail | [[MF46](#mf46), [MF45](#mf45)] | Full text |
+| Learned combination | A neural network trained on examples | Beats interpolation on most scenes of a satellite test set | Needs training data, and can invent detail | [[MF46](#mf46), [MF45](#mf45)] | Full text |
 
 ### 3.2 Measured gains and what they cost in noise
 
 **Table 3.2: published gains from combining frames.** Sampling gain is the
-ratio of the pixel grid to the output grid.
+ratio of the pixel grid to the output grid. A dash means the source does
+not give a number.
 
-| System | Frames combined | Sampling gain | What was measured | Source | Read |
-|---|--:|--:|---|---|---|
-| Hubble Deep Field North | 9 pointings | 2.0 | Drops half a pixel wide. Photometry good to 0.015 magnitudes and star positions to 0.018 pixels in tests. | [[MF17](#mf17), [MF19](#mf19)] | Full text |
-| Hubble Deep Field South | many, at varied angles | 2.5 | Output pixel 0.4 of an input pixel, drop 0.5 | [[MF19](#mf19)] | Full text |
-| SPOT 5 satellite | 2 lines | 2.0 | 2.5 m pictures from two 5 m lines offset by half a pixel, followed by deblurring and noise removal. The paper notes only half the information of a true 2.5 m grid is present. | [[MF8](#mf8)] | Abstract |
-| SkySat satellite, standard product | not stated | 1.25 | The operator's own product | [[MF45](#mf45)] | Full text |
-| SkySat satellite, research methods | 35 | 2.0 | "A gain of 10 cm per pixel" in measured resolution over the standard product | [[MF44](#mf44), [MF45](#mf45)] | Full text |
-| PROBA-V satellite | several, days apart | 3.0 | 300 m frames combined and scored against real 100 m frames. Learned methods beat interpolation on most scenes. | [[MF46](#mf46)] | Full text |
-| Roman space telescope (simulated) | 4 to 6 | 4.4 | Output blur shape held to one part in a thousand where at least 5 frames overlap in the worst band. Fails where only 3 overlap. | [[MF22](#mf22)] | Full text |
-| Mobile phone camera | a burst | not stated | Natural hand tremor supplies the shifts. 100 ms of computing per 12-megapixel frame on the phone. | [[MF47](#mf47)] | Full text |
+| System | Frames, fewest | Frames, most | Sampling gain | Source | Read |
+|---|--:|--:|--:|---|---|
+| Hubble Deep Field North | 9 | 9 | 2.0 | [[MF17](#mf17), [MF19](#mf19)] | Full text |
+| Hubble Deep Field South | — | — | 2.5 | [[MF19](#mf19)] | Full text |
+| SPOT 5 satellite | 2 | 2 | 2.0 | [[MF8](#mf8)] | Abstract |
+| SkySat satellite, standard product | — | — | 1.25 | [[MF45](#mf45)] | Full text |
+| SkySat satellite, research methods | 35 | 35 | 2.0 | [[MF44](#mf44), [MF45](#mf45)] | Full text |
+| PROBA-V satellite | — | — | 3.0 | [[MF46](#mf46)] | Full text |
+| Roman space telescope (simulated) | 3 | 8 | 4.4 | [[MF22](#mf22)] | Full text |
+| Mobile phone camera | — | — | — | [[MF47](#mf47)] | Full text |
+
+**What each system measured.** A text table for the same systems.
+
+| System | What was measured |
+|---|---|
+| Hubble Deep Field North | Nine pointings, with drops half a pixel wide. In tests, brightness was good to 0.015 magnitudes and star positions scattered by 0.018 pixels. |
+| Hubble Deep Field South | Many pointings at varied angles. Output pixel 0.4 of an input pixel, drop 0.5. |
+| SPOT 5 | 2.5 m pictures from two 5 m lines offset by half a pixel, followed by deblurring and noise removal. The paper notes that only half the information of a true 2.5 m grid is present. |
+| SkySat, standard product | The operator's own product. |
+| SkySat, research methods | "A gain of 10 cm per pixel" in measured resolution over the standard product. The authors chose a factor of 2 as their goal. |
+| PROBA-V | Several 300 m frames taken days apart, combined and scored against real 100 m frames. A learned method beat interpolation on most scenes. |
+| Roman | The survey plan gives 6 to 8 frames in most places and as few as 3 near gaps. The method aims to hold the output blur shape to one part in a million in power, which is one part in a thousand in amplitude (square root, **derived here**). The aim is met with 5 frames only when the wanted blur is made broader, and fails with 3. |
+| Mobile phone camera | A burst of frames. Natural hand tremor supplies the shifts. 100 ms of computing per 12-megapixel frame on the phone. |
+
+Hubble stops at 2 to 2.5 because that grid already holds what its optics
+pass, and SkySat stops at 2 by choice. Only the Roman study pushes the
+method to where the number of frames is what limits it.
 
 The noise cost has three separate parts in this literature.
 
@@ -323,7 +368,9 @@ function `drizzle_kernel`.
 **Part 2: badly placed shifts amplify noise.** To sample $M$ times finer in
 one direction, at least $M$ frames are needed, and they must not land on
 the same sub-pixel positions. With exactly $M$ randomly placed frames the
-problem is close to unsolvable. With more, it settles quickly
+result is unreliable: typically 1.4 to 5 times noisier than a perfect
+pattern, and 6 to 80 times noisier in one case in ten (table 3.4). With
+more frames it settles quickly
 [[MF18](#mf18), [MF43](#mf43)]. The Hubble Fourier method found noise
 "rises only slowly" as long as shifts are within about a tenth of a pixel
 of the ideal pattern [[MF18](#mf18)]. The optimal-linear-combination
@@ -339,20 +386,22 @@ reproduces the trend with a small calculation.
 bottom, the number of frames as a multiple of the fewest that could work.
 Up the side, the noise of the combined picture relative to the same number
 of frames on a perfect pattern. Solid lines are the typical case and dashed
-lines the unlucky one in ten. One dimension, shifts known exactly, 400
+lines the unlucky one in ten. One dimension, shifts known exactly, 5000
 random trials per point, from function `random_dither_noise`. Derived
 here.*
 
 **Table 3.4: noise relative to a perfect pattern, random known shifts.**
-Median and (in brackets) the worst one case in ten. Derived here, function
-`random_dither_noise`, one dimension.
+"Typical" is the median of 5000 trials and "unlucky" the level exceeded
+in one trial in ten. Derived here, function `random_dither_noise`, one
+dimension. For 2 times finer with the fewest frames the exact answers are
+1.41 and 6.4, which the trials reproduce.
 
-| Frames, as a multiple of the minimum | 2 times finer | 3 times finer | 4 times finer |
-|--:|--:|--:|--:|
-| 1 | 1.4 (5.5) | 2.5 (26) | 5.1 (75) |
-| 2 | 1.11 (1.5) | 1.19 (2.0) | 1.29 (2.6) |
-| 4 | 1.05 (1.19) | 1.08 (1.21) | 1.10 (1.27) |
-| 12 | 1.02 (1.05) | 1.02 (1.05) | 1.03 (1.07) |
+| Frames, as a multiple of the fewest | 2 times finer, typical | 2 times finer, unlucky | 3 times finer, typical | 3 times finer, unlucky | 4 times finer, typical | 4 times finer, unlucky |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1 | 1.4 | 6.5 | 2.7 | 23 | 5.5 | 82 |
+| 2 | 1.11 | 1.53 | 1.20 | 1.97 | 1.27 | 2.28 |
+| 4 | 1.05 | 1.18 | 1.08 | 1.23 | 1.10 | 1.26 |
+| 12 | 1.02 | 1.05 | 1.02 | 1.06 | 1.03 | 1.06 |
 
 For this instrument the lesson is reassuring. With thousands of readings
 per patch it runs at hundreds of times the minimum, where random placement
@@ -396,32 +445,42 @@ what it was for coarse detail. The blue curve is a pixel sensitive across
 its full width. Its spikes are detail sizes it cannot see at all. The
 green curve is a pixel sensitive over half its width, which moves the
 blind sizes. The orange line is the number of readings one slow pass
-already collects. The published systems of table 3.2 sit at the bottom
-left. Derived here, function `pixel_cost`, ideal pixel with sharp edges.*
+already collects. The shaded band is the detail the published systems of
+table 3.2 recover. Patterns that run along a pixel axis. Derived here, function `pixel_cost`, ideal pixel with sharp edges.*
 
-**Table 3.5: what an ideal full-width 1.12 µm pixel passes.** Derived
-here, function `pixel_cost`.
+**Table 3.5: what an ideal full-width 1.12 µm square pixel passes**, for
+patterns that run along a pixel axis and along the pixel's diagonal.
+"Extra readings" is how many times more readings are needed to bring the
+noise back to what it was for coarse detail. ∞ marks a size the pixel
+cannot see at all. Derived here, function `pixel_cost`.
 
-| Times finer than the pixel grid | Period (pixels) | Period (nm) | Contrast kept | Extra readings needed |
-|--:|--:|--:|--:|--:|
-| 1.0 | 2.00 | 2240 | 0.64 | 2.5 |
-| 1.5 | 1.33 | 1493 | 0.30 | 11 |
-| 2.0 | 1.00 | 1120 | 0.00 | cannot be recovered |
-| 3.0 | 0.67 | 747 | 0.21 | 22 |
-| 5.0 | 0.40 | 448 | 0.13 | 62 |
-| 7.0 | 0.29 | 320 | 0.09 | 121 |
-| 9.0 | 0.22 | 249 | 0.07 | 200 |
+| Times finer than the pixel grid | Period (pixels) | Period (nm) | Contrast kept, along an axis | Extra readings, along an axis | Contrast kept, along the diagonal | Extra readings, along the diagonal |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1.0 | 2.00 | 2240 | 0.64 | 2.5 | 0.65 | 2.4 |
+| 1.5 | 1.33 | 1493 | 0.30 | 11 | 0.36 | 7.8 |
+| 2.0 | 1.00 | 1120 | 0.00 | ∞ | 0.13 | 61 |
+| 3.0 | 0.67 | 747 | 0.21 | 22 | 0.003 | 96 000 |
+| 5.0 | 0.40 | 448 | 0.13 | 62 | 0.014 | 4 800 |
+| 7.0 | 0.29 | 320 | 0.09 | 121 | 0.016 | 3 700 |
+| 9.0 | 0.22 | 249 | 0.07 | 200 | 0.003 | 117 000 |
 
-Three things follow, all **derived here**.
+Four things follow, all **derived here**.
 
-- The budget of about 13 000 readings per patch
+- Along the pixel axes, the budget of about 13 000 readings per patch
   ([design, section 4.2](../design.md#42-what-a-huge-number-of-samples-buys-and-what-it-does-not))
-  is more than enough to pay the pixel's charge out to 9 times finer than
-  the grid. The pixel is not what stops the instrument. The gap and the
-  wavelength are, as the design says.
-- The blind sizes are real and periodic: 1120 nm, 560 nm, 373 nm, 280 nm
-  and so on for a full-width pixel. A reconstruction will show gaps in its
-  detail at those sizes along the pixel axes unless something fills them.
+  covers the pixel's charge out to 9 times finer than the grid, with 65
+  readings' worth left over. Along the diagonal the charge is far higher
+  at some sizes, and at 3 and 9 times finer it is more than the whole
+  budget. So the pixel does not stop the instrument for lines that run
+  along its axes, and can for lines at other angles. Whether what is left
+  over is enough also depends on how much light each reading collects,
+  which this study does not fix (**judgement**).
+- The two directions are blind at different sizes. Chip layouts are mostly
+  lines along two axes at right angles, so the angle between the sensor
+  and the chip decides which sizes are lost.
+- Along the axes the blind sizes are 1120 nm, 560 nm, 373 nm, 280 nm and
+  so on for a full-width pixel. A reconstruction will show gaps in its
+  detail at those sizes unless something fills them.
   Readings from pixels with a different effective width do so: a turned
   sensor (the pixel is wider along its diagonal), binned readings, or
   motion smear of a known different length.
@@ -436,19 +495,29 @@ Three things follow, all **derived here**.
 Through the atmosphere, a short exposure is occasionally almost perfect.
 The chance of a good one falls steeply with telescope size: about
 $5.6\,e^{-0.1557 (D/r_0)^2}$ for a telescope $D$ wide when the air is
-steady over a width $r_0$ [[MF25](#mf25)]. In words: a telescope seven
-times wider than the steady patch gets a good frame about one time in
-400. Lucky imaging takes thousands of frames and keeps the best.
+steady over a width $r_0$, valid when $D$ is at least 3.5 times $r_0$
+[[MF25](#mf25)]. In words: a telescope seven times wider than the steady
+patch gets a good frame about one time in 370 (the formula evaluated at
+7, **derived here**). Lucky imaging takes thousands of frames and keeps the best.
 
 **Table 4.1: measured results of lucky imaging** on a 2.56 m telescope at
-12 to 36 frames per second, from the full text of [[MF24](#mf24)].
+12 to 36 frames per second, from the full text of [[MF24](#mf24)]. The
+last column is relative to keeping every frame. A dash means not stated.
 
-| Share of frames kept (%) | Sharpness gain (times) | Signal-to-noise against keeping everything | Note |
-|--:|--:|--:|---|
-| 100 | about 1.5 | 1.0 | Shift-and-add on the brightest point alone already helps |
-| 50 to 75 | about 2 | about equal to an ordinary long exposure | |
-| 10 | 2.4 | not stated | One field: 0.63 to 0.26 arc seconds |
-| 1 | up to 4 | 6.5 times worse | Not the 10 times worse that discarding 99% of the light suggests, because sharper images need less sky |
+| Share of frames kept (%) | Sharpness gain (times) | Signal-to-noise, relative |
+|--:|--:|--:|
+| 100 | 1.5 | 1.00 |
+| 10 | 2.4 | — |
+| 1 | 4 | 0.15 |
+
+The gains at 100% and 1% are approximate readings of the paper's figures.
+Its abstract gives 2.5 to 4 for the range of selections. Keeping every
+frame still gains, because the frames are lined up on their brightest
+point before adding. Keeping 50 to 75% gives about twice the sharpness of
+an ordinary long exposure at about the same signal-to-noise. At 10% one
+field went from 0.63 to 0.26 seconds of arc. Keeping 1% costs a factor of
+6.5 in signal-to-noise, not the factor of 10 that discarding 99% of the
+light suggests, because a sharper image is measured against less sky.
 
 The guide star that frames are judged and aligned on needs about 150
 detected photons per frame. Below that, frames are chosen on noise and
@@ -468,8 +537,8 @@ Later work shows that choosing whole frames is wasteful.
 - Proper co-addition gives the rule that covers all of these: add every
   frame, each weighted in the frequency domain by its own transfer
   function and its noise. The result holds all the information the frames
-  held about a steady scene, and is "as narrow, or narrower than the PSF
-  of the best image" [[MF23](#mf23)].
+  held about a steady scene, and is "typically as narrow, or narrower than
+  the PSF of the best image" [[MF23](#mf23)].
 
 The figure applies that rule to a stand-in for this instrument: a scan
 during which the blur varies, as it would if the gap or the vibration
@@ -514,32 +583,49 @@ estimated first, and photon noise varies with brightness.
 ### 5.1 What has been achieved
 
 **Table 5.1: published accuracy of position and shift measurement.** The
-last column converts the figure to this project's 1.12 µm pixel.
+third column converts the figure to this project's 1.12 µm pixel. The
+fourth says what kind of figure it is: a measured error, an upper limit
+("under" in the source), or a floor that noise alone would allow.
 
-| System and method | Error (pixels) | Equivalent here (nm) | Source | Read |
-|---|--:|--:|---|---|
-| ASTER: wobble before correction | 0.2 | 224 | [[MF6](#mf6)] | Abstract |
-| ASTER: after correction from its own six lines | under 0.08 | under 90 | [[MF6](#mf6)] | Abstract |
-| Satellite image pairs matched by correlation in the frequency domain | 0.02 | 22 | [[MF37](#mf37)] | Abstract |
-| Hubble: one bright star in one frame, random error | 0.02 | 22 | [[MF31](#mf31)] | Full text |
-| Drizzle test: star positions after combining | 0.018 | 20 | [[MF17](#mf17)] | Full text |
-| Digital time-delay integration: fitted frame-to-frame motion | under 0.01 | under 11 | [[MF14](#mf14)] | Abstract |
-| Hubble: error left that depends on where in the pixel the star falls, after solving for the pixel response | under 0.002 | under 2.2 | [[MF31](#mf31)] | Full text |
-| Gaia: one bright star crossing one detector (0.06 mas with 58.9 mas pixels) | 0.001 | 1.1 | [[MF4](#mf4), [MF3](#mf3)] | Full text |
+| System and method | Error (pixels) | Equivalent here (nm) | Kind of figure | Source | Read |
+|---|--:|--:|---|---|---|
+| ASTER: wobble before correction | 0.2 | 224 | Measured | [[MF6](#mf6)] | Abstract |
+| ASTER: after correction from its own six lines | 0.08 | 90 | Upper limit | [[MF6](#mf6)] | Abstract |
+| Satellite image pairs matched by correlation in the frequency domain | 0.02 | 22 | Measured | [[MF37](#mf37)] | Abstract |
+| Hubble: one bright star in one frame, random error | 0.02 | 22 | Measured | [[MF31](#mf31)] | Full text |
+| Drizzle test: scatter of star positions measured on combined pictures, shifts known | 0.018 | 20 | Measured in a test | [[MF17](#mf17)] | Full text |
+| Digital time-delay integration: fitted frame-to-frame motion | 0.01 | 11 | Upper limit | [[MF14](#mf14)] | Abstract |
+| Gaia: extra scatter actually found for one bright star crossing one detector (0.3 mas with 58.9 mas pixels) | 0.005 | 5.7 | Measured | [[MF4](#mf4), [MF3](#mf3)] | Full text |
+| Hubble: error that depends on where in the pixel the star falls, left after solving for the pixel response. It repeats, so it does not average away. | 0.002 | 2.2 | Upper limit | [[MF31](#mf31)] | Full text |
+| Gaia: what photon noise alone would allow for the same measurement (0.06 mas) | 0.001 | 1.1 | Noise floor, not reached | [[MF4](#mf4)] | Full text |
 
 ![Published position accuracy in pixels and in nanometres for this sensor](../diagrams/mf-accuracy-chart.svg)
 
 *Figure 8: the figures of table 5.1 on one scale. Each bar is a published
-position error, in pixels of the instrument that achieved it. The label
-converts it to nanometres for a 1.12 µm pixel. Blue bars are satellite
-work and green bars astronomy. The orange line is what this project needs,
+position error, in pixels of the instrument concerned. The label converts
+it to nanometres for a 1.12 µm pixel. Blue bars are satellite work and
+green bars astronomy. Bars marked "upper limit" are reported as "under"
+that value. The grey bar is a floor set by photon noise that the
+instrument did not reach. The orange line is what this project needs,
 about 10 nm, which is one tenth of a 100 nm feature (**estimate**). From
 function `accuracy_chart`.*
 
-The requirement of about a hundredth of a pixel has been met by several
-independent systems, and the two that go well beyond it share a feature:
-both solve for the detailed response of the pixel as part of the
-measurement.
+The requirement is 0.009 pixels. Single measurements at 0.02 pixels are
+routine and miss it by a factor of two. One fitted global motion is
+reported under 0.01 pixels, and the best single measurement in the table,
+Gaia's, reaches 0.005. So the requirement is at the edge of published
+practice and has not been met by many independent systems
+(**judgement**). Two further points matter for the design.
+
+- Random errors average down when many measurements are combined. Errors
+  that repeat do not. Hubble's work is about removing the repeating part,
+  the error tied to where in a pixel a star falls, so that many
+  measurements "can reliably be combined" [[MF31](#mf31)].
+- Gaia's photon noise would allow 0.001 pixels, and it achieves about
+  0.005. Its authors put a major part of the difference down to
+  imperfect calibration, including the model of how a star's light is
+  spread across the pixels [[MF4](#mf4)]. For the best instrument in this
+  field, knowledge of the pixel response is the limit, not light.
 
 ### 5.2 How it is done, and what limits it
 
@@ -555,8 +641,8 @@ Here $\sigma_\text{noise}$ is the noise in one pixel, $g$ is the typical
 change in brightness from one pixel to the next, and $N_\text{pix}$ is the
 number of pixels used. In words: more pixels and more texture give a
 better shift, and a featureless picture gives none. For star positions the
-same bound becomes "width of the star image divided by its
-signal-to-noise", and careful methods come very close to it
+same bound becomes, roughly, the width of the star image divided by its
+signal-to-noise, and careful methods come very close to it
 [[MF36](#mf36)].
 
 ![Best possible shift error against the number of pixels used](../diagrams/mf-shift-bound.svg)
@@ -564,26 +650,35 @@ signal-to-noise", and careful methods come very close to it
 *Figure 9: the best possible error in a measured shift, in nanometres,
 against the number of pixels used, for three strengths of scene texture.
 Vertical lines mark one sensor row, a strip of 100 rows and a whole frame.
-The dashed line is the 10 nm requirement. Photon noise on 5000 electrons
-per pixel, texture that changes over 3 pixels. Derived here, function
-`shift_bound`. These are assumptions, and a real lensless image may be
-smoother, which makes every line higher.*
+The dashed line is the 10 nm requirement. Photon noise on 2250 electrons
+per pixel, which is half the full well the
+[design assumes](../design.md#51-sensor), texture that changes
+over 3 pixels, and a reference picture with no noise of its own. Derived
+here, function `shift_bound`. These are assumptions. A real lensless image
+may be smoother, which makes every line higher, and matching one noisy
+frame against another is worse by a factor of 1.4.*
 
 **Table 5.2: best possible shift error.** Derived here, function
-`shift_bound`, under the assumptions in the caption of figure 9.
+`shift_bound`, under the assumptions in the caption of figure 9. The last
+column is the number of rows that must be used together to reach 10 nm.
 
-| Scene contrast (%) | One row, 3280 pixels (nm) | Strip of 100 rows (nm) | Whole frame (nm) |
-|--:|--:|--:|--:|
-| 1 | 83 | 8.3 | 1.7 |
-| 5 | 17 | 1.7 | 0.33 |
-| 20 | 4.1 | 0.41 | 0.08 |
+| Scene contrast (%) | One row, 3280 pixels (nm) | Strip of 100 rows (nm) | Whole frame (nm) | Rows needed for 10 nm |
+|--:|--:|--:|--:|--:|
+| 1 | 124 | 12 | 2.5 | 153 |
+| 5 | 25 | 2.5 | 0.50 | 6.1 |
+| 20 | 6.2 | 0.62 | 0.12 | 0.4 |
 
 The table sets a trade the design has to make. A whole frame fixes one
 shift far better than needed. But motion inside a frame has to be measured
-from fewer pixels, and a single row cannot do it on a faint scene. The
-wobble can be followed at the rate of about one estimate per 100 rows,
-which at 18.9 µs per row is roughly 500 estimates per second, and not
-faster (**estimate**).
+from fewer pixels, and a single row cannot do it unless the scene has
+strong texture. On a faint scene of 1% contrast the wobble can be followed
+with one estimate per 150 rows or so, which at 18.9 µs per row is about
+350 estimates per second. At 5% contrast six rows are enough, about 9000
+estimates per second (**estimate**, best case). One-line exposures that
+collect far fewer than 2250 electrons
+([section 2.2](#22-what-this-says-about-our-readout-schemes)) raise every
+figure in the table in proportion to one over the square root of the
+signal.
 
 **Known obstacles, and the published answers.** A text table.
 
@@ -595,6 +690,125 @@ faster (**estimate**).
 | Pixel response and position are tangled | In undersampled pictures a wrong idea of the pixel's response shifts every measured position by an amount that depends on where the feature falls in the pixel. On Hubble this error was as large as the random error. | Solve for response and positions together, alternating, using dithers to break the tie | [[MF31](#mf31)] |
 | Registration and reconstruction depend on each other | An error in one becomes an error in the other | Estimate them jointly | [[MF40](#mf40)] and [survey, section 3.5](../reconstruction-methods.md#35-satellite-and-astronomical-image-reconstruction) |
 | Camera geometry is not perfect | Unrecorded wobble and errors in detector layout are "the current major limiting factors" for satellites | Model them and solve for them | [[MF32](#mf32)] |
+
+### 5.3 Doing without measured positions: ruling out what cannot be
+
+Tim proposed that combining the results with simulation "should allow
+recovery based on working out potential possible solutions and eliminating
+ones which are physically impossible even without exact positioning
+information", and that "temporal properties of the real world can also be
+used to help eliminate incorrect or impossible solution spaces". This
+field has done both for decades. Sections 5.1 and 5.2 treat position as
+something to measure first. The methods below treat it as something that
+never needs to be known exactly.
+
+**Ways this field recovers a picture without knowing positions.** A text
+table.
+
+| Way | How it works | What was shown | Source |
+|---|---|---|---|
+| Use quantities that a shift does not change | From each frame compute numbers that stay the same wherever the frame sat: the strength of each fineness of pattern, and the "triple correlation" that ties three finenesses together. Average those numbers over thousands of frames and rebuild the picture from the averages. No frame is ever aligned. | Astronomers rebuild sharp pictures of stars from thousands of short exposures whose position and blur are different every time and never known. Mathematicians studying the same problem show that these numbers hold enough to recover the signal. | [[MF59](#mf59), [MF60](#mf60), [MF63](#mf63)] |
+| Add up over every position a frame could have had | Score a candidate picture by how probable the frames are, summed over all possible positions of each frame, instead of first picking one position per frame | Fitting the positions and the blur while averaging over all possible pictures gave "a significant improvement" over fitting everything at once. Averaging over positions has been used on real video. | [[MF61](#mf61), [MF62](#mf62)] |
+| Propose whole scenes and keep those the data allow | A computer proposes lists of sources, simulates the frame each list would give, and keeps a collection of all lists consistent with the pixels | In a crowded star field it went "more than a magnitude deeper" than the usual method with fewer false detections among bright stars, and it reports which blends it cannot tell apart | [[MF66](#mf66), [MF67](#mf67)] |
+| Solve for scene and blur together under hard physical limits | Many frames share one scene and each has its own unknown blur. Brightness cannot be negative, and a blur must be one that a real opening could produce. Solutions that break either are thrown out. | The standard way to sharpen pictures taken through the atmosphere when no reference star is available. The page's reading of how the limits are imposed is from titles and is **unverified**. | [[MF30](#mf30), [MF29](#mf29), [MF68](#mf68)] |
+| Compare with simulations when no formula exists | Run the simulator for many candidate settings and keep the settings whose simulated data resemble the real data | A general method now used across the sciences where "simulations provide high-fidelity models" but cannot be run backwards | [[MF73](#mf73)] |
+
+Two warnings come with these methods.
+
+- **Not measuring positions costs frames.** When noise is low, the number
+  of frames needed grows in proportion to the noise power, the same as
+  when positions are known. When noise is high it grows with the cube of
+  the noise power [[MF63](#mf63), [MF64](#mf64)]. In words: ten times more
+  noise power needs a thousand times more frames, not ten. The special
+  case of a signal with only two levels, which is close to a chip with two
+  materials, has its own published analysis [[MF65](#mf65)], not read
+  here.
+- **Fitting everything at once can settle on a wrong answer.** For a blurred
+  photograph, the single best joint guess of picture and blur tends to be
+  "no blur and a blurred scene". Averaging over the possible pictures
+  first avoids it. This is attributed to [[MF69](#mf69)] from memory and is
+  **unverified**. It is the reason the second row of the table averages
+  and does not pick.
+
+**How time is used to rule things out.** A text table.
+
+| What is known about time | How it is used | Source |
+|---|---|---|
+| A camera cannot jump | Gaia never solves a free position for each observation. Its pointing is a smooth curve with one adjustable point every 30 s or so, fitted to all observations together. Any solution that needs the spacecraft to jerk is not on the list. | [[MF4](#mf4)] |
+| Real objects move the way physics says | A faint asteroid must cross the frames in a straight line at a steady speed. Searching only over such paths finds objects that no single frame shows. | [[MF51](#mf51)] |
+| The scene stays and the faults come and go | Something present in one frame and absent from the others at the same place is a cosmic-ray hit, not a star, and is masked | [[MF17](#mf17)] |
+| Instrument trouble follows the instrument's motion | The Kepler telescope, after losing two of its steering wheels, drifted for about six hours and was then pushed back by thrusters, again and again. Brightness changes that follow that drift belong to the pixels, not the star, and are removed. | [[MF71](#mf71)] |
+| Slow drift lives in time and the scene lives in space | A scanning detector's zero level wanders slowly. The sky does not change. Where two scans cross, the same sky is seen at two different times, and the difference is drift. | [[MF54](#mf54), [MF72](#mf72)] |
+| The disturbance itself moves steadily | Turbulent air mostly drifts across the telescope with the wind, so the blur in one frame predicts the next and far fewer unknowns are needed. Read from the title only, **unverified**. | [[MF70](#mf70)] |
+
+**A small calculation of the idea.** The surface is a ring of 12 cells,
+each one of two materials. Every frame shows the ring slid round by an
+unknown number of cells, with noise 1.5 times the contrast between the
+materials, so that no single frame can be aligned. All 4096 two-material
+patterns start as candidates. A candidate is scored by how probable the
+frames are under it, summed over every position each frame could have had,
+and it is struck off when it becomes a thousand times less probable than
+the best. No position is ever estimated.
+
+![Candidates left against frames used, for three levels of knowledge about position](../diagrams/mf-candidate-elimination.svg)
+
+*Figure 10: ruling out candidate surfaces without measuring positions.
+Left: the number of candidates before any data, for any pattern of two
+materials and for patterns that obey a layout rule (every line and space at
+least two cells wide). Right: the number still possible against the number
+of frames used. Orange: nothing known about position. Dashed orange: the
+same with the layout rule. Blue: the positions are known to follow a
+steady speed from an unknown start, but neither is given. Dotted grey:
+positions known exactly, for comparison. The grey line at 12 is the true
+pattern and its eleven slid copies, which no amount of data can tell apart
+without a reference mark. Toy calculation, median of 20 trials, derived
+here, function `candidate_elimination`.*
+
+**Table 5.3: candidates still possible, out of 4096.** Derived here,
+function `candidate_elimination`, median of 20 trials.
+
+| Frames used | Position unknown | Position unknown, with layout rule | Steady unknown speed | Position known exactly |
+|--:|--:|--:|--:|--:|
+| 1 | 4096 | 322 | 4096 | 4096 |
+| 10 | 4036 | 316 | 3440 | 292 |
+| 20 | 3008 | 254 | 521 | 32 |
+| 50 | 1022 | 123 | 36 | 3 |
+| 100 | 492 | 60 | 12 | 1 |
+| 200 | 129 | 30 | 12 | 1 |
+| 400 | 42 | 12 | 12 | 1 |
+| 800 | 12 | 12 | 12 | 1 |
+
+What the calculation shows, all **derived here** for this toy only:
+
+- Recovery without any position information works. It needed several
+  times more frames than with exact positions (about 800 against about
+  100; the table's steps are coarse).
+- Knowing only that the motion is steady, with speed and start both
+  unknown, removed that penalty: about 100 frames, the same step of the
+  table as with exact positions. This is Tim's second point, and it is the largest single gain
+  in the table.
+- The layout rule removed 92% of the candidates before any data and halved
+  the frames needed when positions were unknown (about 400 against about
+  800).
+- One thing is never ruled out: where the pattern sits as a whole. That
+  needs a reference mark on the sample, which the
+  [calibration plan](../calibration-and-test.md#44-wavelength-colour-purity-gap-and-the-anchors)
+  calls an anchor.
+
+**What carries over to this instrument, and where it stops.** A text table
+of **judgements**.
+
+| Point | Reasoning |
+|---|---|
+| It fits the project's resources | The cost is frames and computation. One pass gives about 13 000 readings per pixel-sized patch, and Tim prefers computation to hardware. |
+| Listing candidates only works for small tiles | Twelve two-material cells have 4096 candidates. A patch of 10 by 10 cells has more than 10^30. Real use has to work on small tiles and stitch them, or search with a sampler or a fit that is steered by the same score, as the catalogue methods do. |
+| The simulator is the scoring engine | Each candidate is scored by simulating the frames it would give. A fast simulation level does the bulk and a slower, more exact level re-checks the survivors ([simulation chain](../simulation-chain.md)). |
+| Constraints that are true help, and ones that are slightly false mislead with confidence | A layout rule that the chip does not obey removes the right answer. Each constraint needs a test with a scene that breaks it, as the [tests against invented detail](../calibration-and-test.md#7-tests-that-catch-invented-detail) already require. |
+| Time constraints are cheap and strong here | The stage has mass and cannot jump between rows 18.9 µs apart. The surface does not change during a scan. Dust and glints come and go. Pixel faults stay with the pixel while the surface moves past. Each is a rule that discards candidates at no cost in hardware. |
+| Other fields do the same under other names | Radar autofocus (study B1) and position-correcting ptychography (study B4) also recover the picture and the path together. The few-materials prior of the [reconstruction methods survey](../reconstruction-methods.md) is the same kind of physical rule. |
+
+Adding this to the design belongs to the simulator thread. This section is
+the evidence from one field.
 
 ## 6. Ideas new to the project
 
@@ -609,18 +823,19 @@ statement is **derived here** and untested.
 | 1 | **Search for the motion by brute force.** Add the frames along thousands of trial velocities and keep the one that gives the sharpest result. | Asteroid hunters detect objects too faint to see in any one frame this way, on graphics processors, and get ten times better positions than a long exposure [[MF51](#mf51)] | A start-up method when single frames are too noisy to register (the threshold of [[MF35](#mf35)]). Pure computation, and it parallelises perfectly. | Promote: simulator stage 0 |
 | 2 | **Build the pixel's response from the scan.** Every sharp isolated feature that crosses the sensor samples the pixel response at a different sub-pixel place. Alternate between solving the response and the positions. | Hubble's effective point-spread function, built on a grid 4 times finer than the pixel from 3000 stars in 15 dithered frames [[MF31](#mf31)]. Kepler's pixel response function, from 19 189 stars at 121 dither positions [[MF52](#mf52)]. | Attacks the design's key unknown with no extra hardware, in the simulator first. Needs sharp features: edges of bond pads, particles, or the calibration marks of the [calibration plan](../calibration-and-test.md). | Promote: simulator component and test |
 | 3 | **Test for position error against pixel phase.** Plot the leftover position error of features against where in the pixel they fell. A trend means the pixel model is wrong. | The diagnostic that exposed the problem on Hubble [[MF31](#mf31)] | A cheap acceptance test for any reconstruction, alongside those in the [calibration plan](../calibration-and-test.md) | Promote: benchmark test |
-| 4 | **Design the scan so the sensor can calibrate itself.** Send each surface point across very different parts of the sensor. | "Do not use a regular, repeated tiling of the sky" [[MF53](#mf53)]. Dither patterns can be scored by how well they encode the detector's gains [[MF54](#mf54)]. The Sloan survey reached 1% calibration over a quarter of the sky from overlaps alone [[MF55](#mf55)]. | A straight scan sends each point down one column (figure 10). A turn of 1° crosses 43 columns. A second pass at right angles ties every column to every row. Radio astronomy's version of this is in study B2. | Promote: scan-pattern option |
+| 4 | **Design the scan so the sensor can calibrate itself.** Send each surface point across very different parts of the sensor. | "Do not use a regular, repeated tiling of the sky" [[MF53](#mf53)]. Dither patterns can be scored by how well they encode the detector's gains [[MF54](#mf54)]. The Sloan survey reached 1% calibration over a quarter of the sky from overlaps alone [[MF55](#mf55)]. | A straight scan sends each point down one column (figure 11). A turn of 1° crosses 43 columns. A second pass at right angles ties every column to every row. Radio astronomy's version of this is in study B2. | Promote: scan-pattern option |
 | 5 | **Map where the sampling is weak, before reconstructing.** For each output point, compute the noise amplification and the error in blur shape that the sample positions imply. | The two maps that optimal linear combination returns, used to choose dither patterns for a space telescope [[MF21](#mf21), [MF22](#mf22)] | Extends the calculator's "largest hole" measure ([design, section 5.4](../design.md#54-scan-sampling-calculator)) into a map that predicts stripes from repeating shifts | Promote: calculator output |
-| 6 | **A pixel response that changes with brightness.** Charge already collected pushes later charge towards neighbours, so bright spots come out up to 2% wider than faint ones. | Measured on thick astronomical CCDs [[MF56](#mf56)] | Breaks the assumption that the measurement is linear, most of all for high-contrast fringes. Size in small camera-phone pixels is **unverified**. | Park: optional sensor effect in the simulator, sized by study B5 |
+| 6 | **A pixel response that changes with brightness.** Charge already collected pushes later charge towards neighbours, so bright spots come out up to 2% wider than faint ones. | Measured on astronomical CCDs, both thick and thinned [[MF56](#mf56)] | Breaks the assumption that the measurement is linear, most of all for high-contrast fringes. Size in small camera-phone pixels is **unverified**. | Park: optional sensor effect in the simulator, sized by study B5 |
 | 7 | **Match the sampling pattern to where the detail lies.** The number of samples needed depends on the total area of fine-detail space that is occupied, not on the finest detail. | Sampling theory [[MF57](#mf57), [MF58](#mf58)], applied to satellite detector layouts [[MF9](#mf9)] | With beam pairs the detail arrives in separate islands ([design, section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)). Tilt and frame spacing could be chosen so the islands' false copies interleave and do not overlap. | Promote to a research question for B4 and the simulator |
 | 8 | **Reject bad readings by comparing with a prediction.** Combine, predict each frame from the combination, and mask readings that disagree by more than noise allows. | Drizzle's cosmic-ray step [[MF17](#mf17)] | Dust, hot pixels and mirror-like glints. The forward model already provides the prediction. | Promote: pipeline step |
 | 9 | **Use a known feature in every frame as that frame's blur reference.** | Speckle holography [[MF28](#mf28)] | Gives the gap and tilt of each frame from the data. Needs isolated features. | Park until a scene library exists |
 | 10 | **Track the image on the chip in two directions.** | Orthogonal-transfer CCD [[MF16](#mf16)] | Hardware doing what computation does better here | Reject, by the computation-first rule |
+| 12 | **Recover the picture without measuring positions, by ruling out what cannot be.** Score candidate surfaces against the frames over every position the frames could have had, and use what is known about the materials, the layout rules and the smoothness of the motion to discard candidates. | Speckle masking, registration-free super-resolution, probabilistic catalogues and blind deconvolution ([section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)). Suggested by Tim. | Removes the need for exact position information at the start. Costs more frames and much more computation, both of which this project has. Works tile by tile. | Promote: simulator experiment, owned by the simulator thread |
 | 11 | **Control the shifts instead of freezing them.** A camera whose sensor jumps between exposures and is still during them. | The "jitter camera", built because motion blur was shown to limit multi-frame methods strongly [[MF49](#mf49)]. Controlled micro-scanning in infrared cameras [[MF50](#mf50)]. | The same conclusion as the design: short pulses or short exposures. A stepped stage is the hardware alternative. | Park |
 
 ![Tracks of surface points across the pixel grid for three scan patterns](../diagrams/mf-selfcal-tracks.svg)
 
-*Figure 10: why idea 4 matters. Each drawing is a small part of the pixel
+*Figure 11: why idea 4 matters. Each drawing is a small part of the pixel
 grid, and each coloured line is the path of one point of the surface
 across it during a pass. Shaded squares are the pixels that point meets.
 Left: in a straight scan each point meets one column only, so a weak
@@ -630,12 +845,13 @@ right angles (dashed) runs along rows and ties all the columns together.
 Illustrative, with the column count for the real sensor computed by
 function `selfcal_tracks`.*
 
-**Table 6.1: columns crossed by one surface point in one pass** of the
-2464-row sensor. Derived here, function `selfcal_tracks`.
+**Table 6.1: sideways travel of one surface point during one pass** of
+the 2464-row sensor, in pixel columns. The point meets one more column
+than the travel. Derived here, function `selfcal_tracks`.
 
-| Turn of the sensor (degrees) | Columns crossed |
+| Turn of the sensor (degrees) | Sideways travel (columns) |
 |--:|--:|
-| 0.0 | 1 |
+| 0.0 | 0.0 |
 | 0.1 | 4.3 |
 | 0.5 | 22 |
 | 1.0 | 43 |
@@ -655,8 +871,9 @@ to one approach. This is a text table of recommendations (**judgements**).
 | Drizzle and interlacing are fast and exact about their own noise | A drizzle-style first-stage reconstruction with its noise factor, as the quick-look picture and as a cross-check on the full solver | D |
 | Weight, do not choose | A proper co-addition stage that weights each reading by its transfer function (table 4.2) | D |
 | The pixel has blind detail sizes | Report resolution along and across the pixel axes separately, and include readings of different effective pixel width (table 3.5) | E, D |
-| Registration reaches 0.01 pixels, and 0.001 with a solved pixel response | Registration as an iterated, joint estimate, tested against the bound of table 5.2 | E, F stage 0 |
-| Wobble can be followed at about one estimate per 100 rows | A trajectory model with that time resolution, and a test that injects faster wobble to find where it fails | E |
+| Registration at the 0.009 pixels needed is at the edge of published practice, and the pixel response is what limits the best instrument | Registration as an iterated, joint estimate of positions and pixel response, tested against the bound of table 5.2 | E, F stage 0 |
+| Pictures can be recovered without measured positions | A position-free start-up stage that scores candidates over all positions with material, layout and smooth-motion constraints, compared against the registered route on the same data (table 5.3) | D, F stage 0 |
+| Wobble can be followed at one estimate per 6 to 150 rows, depending on scene contrast | A trajectory model with that time resolution, and a test that injects faster wobble to find where it fails | E |
 | A regular scan is the worst case | Scan patterns with tilt, with a cross pass and with irregular spacing, scored by the weak-sampling map (idea 5) | D, E |
 
 ```mermaid
@@ -672,7 +889,7 @@ flowchart TD
     H -->|"trend found"| E
 ```
 
-*Figure 11: the first stage of reconstruction as this field would build
+*Figure 12: the first stage of reconstruction as this field would build
 it. Each box is a step taken from the sources in sections 2 to 6. The loop
 at the bottom repeats the refinement until position errors no longer
 depend on where in a pixel a feature fell. It fills in stage 0 of the
@@ -680,13 +897,14 @@ depend on where in a pixel a feature fell. It fills in stage 0 of the
 
 ## 8. Limits of this study
 
-- **Abstracts.** About half the sources were read in full. For the rest
-  only the abstract was read, and section 9 says which. Figures from
+- **Abstracts.** Fewer than half the sources were read in full. For the
+  rest only the abstract was read, or only the existence of the paper was
+  checked, and section 9 says which. Figures from
   abstracts have not been checked against the papers' own tables.
-- **One formula disagrees with a source.** The speed-error formula of
-  section 2.1 gives a larger loss than one published abstract states. It
-  is unresolved.
-- **One-dimensional calculations.** Tables 3.4, 3.5, 4.2 and 5.2 come from
+- **One abstract disagrees with the standard formula.** The speed-error
+  formula of section 2.1 gives a larger loss than one published abstract
+  states. The abstract's definition could not be checked.
+- **Toy calculations.** Tables 3.4, 3.5, 4.2, 5.2 and 5.3 come from
   small calculations with ideal pixels and exactly known shifts or blurs.
   They show trends. The simulator must replace them.
 - **Different regime.** Every measured gain in table 3.2 comes from systems
@@ -696,13 +914,22 @@ depend on where in a pixel a feature fell. It fills in stage 0 of the
   gains. Solar and speckle interferometry methods beyond those cited were
   not surveyed. Coherent light changes the measurement from linear to
   non-linear, and that case belongs to study B4.
+- **Reviewed once.** A reviewer who had not seen the author's reasoning
+  checked the page, the script, the figures and the sources against the
+  paper texts, and the page was corrected. The largest corrections were to
+  the registration accuracy claims of section 5.1 and to the assumed
+  signal in table 5.2. Sources marked as abstract or existence only were
+  not checked further.
 - **No review by Tim yet.** The verdicts in section 6 are proposals.
 
 ## 9. References
 
 Each entry was checked to exist in a bibliographic database (OpenAlex or
-Crossref) or by downloading it. "Full text" means the paper was read for
-this study, "abstract" that only the abstract was. Sources that the survey
+Crossref) or by downloading it, except MF11 and MF59, which say so. "Full
+text" means the paper was read for this study, "abstract" that only the
+abstract was read even if the full text was obtained, and "existence
+only" that nothing beyond the title was used. Keys MF15 and MF48 are not
+used. Sources that the survey
 already lists are given with both keys.
 
 Scanning sensors and time-delay integration:
@@ -827,7 +1054,7 @@ South", Astronomical Journal, 2000.
 [MF20] Fruchter, "A new method for band-limited imaging with
 undersampled detectors", Publications of the Astronomical Society of the
 Pacific, 2011. [doi:10.1086/659313](https://doi.org/10.1086/659313).
-Abstract.
+Full text.
 
 (mf21)=
 [MF21] Rowe, Hirata and Rhodes, "Optimal linear image combination",
@@ -1063,7 +1290,7 @@ Sloan Digital Sky Survey imaging data", Astrophysical Journal, 2008.
 brighter-fatter effect and pixel correlations in CCD sensors", Journal of
 Instrumentation, 2014.
 [doi:10.1088/1748-0221/9/03/c03048](https://doi.org/10.1088/1748-0221/9/03/c03048).
-Abstract of the full text.
+Abstract.
 
 (mf57)=
 [MF57] Landau, "Necessary density conditions for sampling and
@@ -1078,3 +1305,102 @@ Circuits and Systems, 1977.
 [doi:10.1109/tcs.1977.1084284](https://doi.org/10.1109/tcs.1977.1084284).
 Existence checked, cited for the standard result only. **Unverified**
 against the text.
+
+Recovery without measured positions (section 5.3):
+
+(mf59)=
+[MF59] Labeyrie, "Attainment of diffraction limited resolution in large
+telescopes by Fourier analysing speckle patterns in star images",
+Astronomy and Astrophysics 6, 85, 1970. No DOI. Not found in Crossref and
+cited from memory as the origin of the method: **unverified**.
+
+(mf60)=
+[MF60] Lohmann, Weigelt and Wirnitzer, "Speckle masking in astronomy:
+triple correlation theory and applications", Applied Optics, 1983.
+[doi:10.1364/ao.22.004028](https://doi.org/10.1364/ao.22.004028).
+Existence only.
+
+(mf61)=
+[MF61] Tipping and Bishop, "Bayesian image super-resolution", Advances in
+Neural Information Processing Systems 15, 2002.
+[Abstract page](https://papers.nips.cc/paper_files/paper/2002/hash/88bfcf02e7f554f9e9ea350b699bc6a7-Abstract.html).
+Abstract.
+
+(mf62)=
+[MF62] Pickup, Capel, Roberts and Zisserman, "Overcoming registration
+uncertainty in image super-resolution: maximize or marginalize?", EURASIP
+Journal on Advances in Signal Processing, 2007.
+[doi:10.1155/2007/23565](https://doi.org/10.1155/2007/23565). Abstract.
+
+(mf63)=
+[MF63] Bendory, Boumal, Ma, Zhao and Singer, "Bispectrum inversion with
+application to multireference alignment", IEEE Transactions on Signal
+Processing, 2018.
+[doi:10.1109/tsp.2017.2775591](https://doi.org/10.1109/tsp.2017.2775591).
+Abstract.
+
+(mf64)=
+[MF64] Perry, Weed, Bandeira, Rigollet and Singer, "The sample complexity
+of multireference alignment", SIAM Journal on Mathematics of Data Science,
+2019. [doi:10.1137/18m1214317](https://doi.org/10.1137/18m1214317).
+Abstract.
+
+(mf65)=
+[MF65] Abbe, Pereira and Singer, "Sample complexity of the boolean
+multireference alignment problem", IEEE International Symposium on
+Information Theory, 2017.
+[doi:10.1109/isit.2017.8006742](https://doi.org/10.1109/isit.2017.8006742).
+Existence only.
+
+(mf66)=
+[MF66] Brewer, Foreman-Mackey and Hogg, "Probabilistic catalogs for
+crowded stellar fields", The Astronomical Journal, 2013.
+[doi:10.1088/0004-6256/146/1/7](https://doi.org/10.1088/0004-6256/146/1/7).
+Abstract.
+
+(mf67)=
+[MF67] Portillo, Lee, Daylan and Finkbeiner, "Improved point-source
+detection in crowded fields using probabilistic cataloging", The
+Astronomical Journal, 2017.
+[doi:10.3847/1538-3881/aa8565](https://doi.org/10.3847/1538-3881/aa8565).
+Abstract.
+
+(mf68)=
+[MF68] Thiébaut and Conan, "Strict a priori constraints for
+maximum-likelihood blind deconvolution", Journal of the Optical Society of
+America A, 1995.
+[doi:10.1364/josaa.12.000485](https://doi.org/10.1364/josaa.12.000485).
+Existence only.
+
+(mf69)=
+[MF69] Levin, Weiss, Durand and Freeman, "Understanding blind
+deconvolution algorithms", IEEE Transactions on Pattern Analysis and
+Machine Intelligence, 2011.
+[doi:10.1109/tpami.2011.148](https://doi.org/10.1109/tpami.2011.148).
+Existence only. The claim cited to it is **unverified**.
+
+(mf70)=
+[MF70] Jefferies and Hart, "Deconvolution from wave front sensing using
+the frozen flow hypothesis", Optics Express, 2011.
+[doi:10.1364/oe.19.001975](https://doi.org/10.1364/oe.19.001975).
+Existence only.
+
+(mf71)=
+[MF71] Vanderburg and Johnson, "A technique for extracting highly precise
+photometry for the two-wheeled Kepler mission", Publications of the
+Astronomical Society of the Pacific, 2014.
+[doi:10.1086/678764](https://doi.org/10.1086/678764). Full text, read in
+part.
+
+(mf72)=
+[MF72] Keihänen, Keskitalo, Kurki-Suonio, Poutanen and others, "Making
+cosmic microwave background temperature and polarization maps with
+MADAM", Astronomy and Astrophysics, 2010.
+[doi:10.1051/0004-6361/200912813](https://doi.org/10.1051/0004-6361/200912813).
+Existence only.
+
+(mf73)=
+[MF73] Cranmer, Brehmer and Louppe, "The frontier of simulation-based
+inference", Proceedings of the National Academy of Sciences, 2020.
+[doi:10.1073/pnas.1912789117](https://doi.org/10.1073/pnas.1912789117).
+Abstract.

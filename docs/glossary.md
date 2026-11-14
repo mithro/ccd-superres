@@ -35,7 +35,7 @@ link here the first time they use a term that is not explained on the spot.
 | Diffuse (matt) surface | A surface that scatters light in all directions, like paper. The opposite is mirror-like. |
 | Diffuse light | Light travelling in all directions, as from a frosted bulb or from a matt surface. |
 | Diffuser | A layer that scatters light, like frosted glass. |
-| Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. |
+| Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. In astronomy the word also means a small deliberate shift of the camera between exposures, so that the pixel grid lands in a different place each time. |
 | Diversity | Measurements that differ in kind, such as a different gap, lighting direction or light pattern, and not only in position. Phase recovery needs it. |
 | Drizzle | The standard astronomical way of combining shifted frames into a picture on a finer grid: each input pixel is shrunk and laid onto the fine grid at its measured position, and overlaps are averaged. See [multi-frame reconstruction](research/multi-frame-reconstruction.md#3-combining-many-undersampled-frames). |
 | Electromagnetic solver | A program that calculates how light behaves from the basic equations of electricity and magnetism. Slow, and as exact as the description of the materials it is given. |
