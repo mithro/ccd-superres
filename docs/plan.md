@@ -9,6 +9,13 @@ chips, from a lensless image sensor scanned over the chip, spending
 computation in preference to hardware
 ([design, section 1](design.md#1-purpose)).
 
+The simulator is for exploring many different approaches, not one. Every
+part of the instrument and the processing is a swappable component, an
+approach is a named configuration of those components, and comparing
+approaches side by side on the same scenes and measures is a deliverable in
+its own right
+([design, section 7.1](design.md#71-approaches-as-named-configurations)).
+
 State marks: **Done** means merged into the main branch. **In progress**
 means work exists on a branch or in another page under review. **Not
 started** means nothing exists yet.
@@ -20,9 +27,9 @@ flowchart LR
     A["A. Foundations<br/>design, calculator,<br/>explorer, surveys"]
     B["B. Deep research<br/>four fields"]
     C["C. Fold research<br/>into the design"]
-    D["D. Simulation chain<br/>levels 1 to 4"]
+    D["D. Simulation chain<br/>and approach comparisons"]
     E["E. Calibration and<br/>test methods"]
-    F["F. Instrument<br/>stages 0 to 4"]
+    F["F. Instrument stages<br/>of the leading candidate"]
     A --> B --> C --> D --> F
     C --> E --> F
     D -.->|"results correct<br/>the design"| C
@@ -84,11 +91,13 @@ method, assumptions, worked examples and cross-check results.
 |---|---|---|
 | D0 | Level 0: analytic calculator and explorer | Done |
 | D1 | Shared scene description, raw frame format, readout scheme model, metrics, default scene of patterned silicon | Not started |
+| D1a | Approach files and the comparison runner: an approach as a named configuration, several run against the same scenes, one table and set of figures on the same measures | Not started |
 | D2 | Level 1: linear blur model with reconstruction, in one dimension and then two | Not started |
 | D3 | Level 2: ray tracing | Not started |
 | D4 | Level 3: scalar wave propagation, with the coherent slanted-light scheme | Not started |
 | D5 | Level 4: full electromagnetic solver on small patches | Not started |
 | D6 | Cross-checks between each pair of neighbouring levels | Not started |
+| D7 | Approach comparisons, repeated as each level arrives: first at level 1 for the approaches it can represent, then at levels 3 and 4 for the coherent ones. Results committed and published. | Not started |
 
 The explorer is extended with each level, so that every new parameter can be
 explored as soon as it is modelled.
@@ -102,9 +111,12 @@ explored as soon as it is modelled.
 | E3 | Honesty tests for results that use prior knowledge: reconstruction from a deliberately wrong starting layout, and each random process switched on and off | Planned in the design, sections 4.7 and 5.8. Not built. |
 | E4 | A page of its own for calibration and test methods | Not started |
 
-## F. Instrument stages
+## F. Instrument stages of the leading candidate
 
-The stages are defined in
+These stages belong to the approach that looks strongest so far, slanted
+coherent light with phase recovery. It is one candidate among those compared
+in D7, and this section is rewritten if the comparisons favour another. The
+stages are defined in
 [design, section 4.7](design.md#47-a-staged-path-to-the-picture) and use the
 same numbers in the [optical elements](optical-elements.md) study. Each is
 run in the simulator first and on hardware second.

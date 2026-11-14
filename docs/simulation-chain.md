@@ -85,6 +85,11 @@ wide and tens of nanometres high on a 200 nm period, in metal or oxide, with
 one deliberate defect. A scaled copy with 2 µm features is kept beside it for
 the levels and gaps where the 100 nm version is out of range.
 
+The scene description is also what makes the simulator neutral between
+approaches: each of its parts is a swappable component, and a named choice
+for every part is an approach
+([design, section 7.1](design.md#71-approaches-as-named-configurations)).
+
 Outputs are shared too. Levels 1 to 3 write raw frames in one format, so the
 reconstruction and the metrics do not know which level produced them. Every
 level from 2 up can also write the footprint of a pixel on the surface, which

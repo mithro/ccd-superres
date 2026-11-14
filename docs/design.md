@@ -35,6 +35,7 @@ The simulator has two jobs:
 | Randomness | Deliberately adding random noise, and modelling the randomness already present, to improve the reconstruction is in scope (section 5.8). |
 | Sensor control | The sensor's control functions are expected to be pulled apart and driven differently from the stock camera, so the readout scheme is a replaceable model (section 5.7). |
 | Two dimensions | The two-dimensional nature of the sensor is to be used to get more detail (section 5.9). |
+| Exploration | The simulator is for exploring many different approaches, not one specific approach. Comparing approaches is a deliverable (section 7.1). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
@@ -496,7 +497,13 @@ reconstructed, and it may be reached in several stages. The measuring routes
 above therefore become stages on the way to the picture, not alternatives to
 it.
 
-### 4.7 A staged path to the picture
+### 4.7 A staged path to the picture: the current leading candidate
+
+The simulator is built to explore many approaches, not this one
+(section 7.1). The path below is the candidate that looks strongest from the
+analysis so far, and it is itself one named configuration per stage. It is
+kept as the reference that other approaches are compared against, and it is
+replaced if the comparisons favour another.
 
 The end goal is a reconstructed picture of an unknown layout with features of
 about 100 nm. Each stage below is useful on its own, and each hands its result
@@ -517,7 +524,7 @@ flowchart LR
     S3 -.->|"better starting<br/>estimate"| S2
 ```
 
-This is the single staged plan for the project. The optical elements study
+This is the single staged plan for the leading candidate. The optical elements study
 (`docs/optical-elements.md`, pull request 2) uses the same stage numbers.
 
 | Stage | What it produces | Hardware | Computation | Simulation levels | Passes on |
@@ -1221,6 +1228,70 @@ Design rules:
   provide, so real data can be substituted later.
 - Fixed random seeds, so every figure is reproducible.
 
+### 7.1 Approaches as named configurations
+
+Tim wants the simulator to explore many different approaches, not one. So no
+approach is built into the code. Every part of the instrument and of the
+processing is a component with a fixed interface, each component has several
+interchangeable implementations, and an approach is nothing more than a
+named choice of one implementation and its settings for each part.
+
+| Component | It answers | Implementations planned (more can be added without touching the rest) |
+|---|---|---|
+| Scene | What is on the surface | Patterned silicon at 100 nm (default), scaled copy at 2 µm, bar groups, star, point pairs, edge, random texture, a layout file |
+| Illumination | What light arrives, from where, when | Diffuse glow, collimated straight-on, slanted coherent beam, coherent beam pairs, speckle through a fixed diffuser, several wavelengths in turn, pulsed or coded in time |
+| Optical elements | What sits in the light path | None, per-pixel collimator tubes, pixel masks, coded mask or diffuser on the sensor, colour filter and microlenses, liquid in the gap |
+| Gap | Distance and tilt between sensor and surface, and their errors | Fixed, tilted, vibrating, several gaps in turn |
+| Propagation | How light gets from surface to sensor | Level 1 kernel, level 2 rays, level 3 scalar waves, level 4 electromagnetic patch (section 10) |
+| Sensor | Pixel grid, pixel response in position and angle, noise | IMX219 as sold, IMX219 with layers removed, other sensors, a measured response from stage 0 |
+| Readout | Which pixels are read when, and for how long (section 5.7) | Rolling full frame, strip, short line exposure, global shutter, per-row exposure, random row order |
+| Scan | The path of the sensor and its errors | One straight pass, tilted pass, several directions, dithered, stepped |
+| Exposure | The pattern of light or shutter within a reading (section 4.8) | Continuous, short pulse, coded |
+| Randomness | Which random processes are present or added (section 5.8) | Each one on or off, with its size and seed |
+| Reconstruction | How the picture is recovered | Shift and add, Wiener, regularised least squares, joint estimation, phase recovery (ptychography), layout fitting, methods from the research items of the plan |
+| Metrics | How a result is judged | Error against truth, resolution by Fourier ring correlation, bar contrast, defect found or missed, position error, scan time, data volume, computation used |
+
+How this is used:
+
+- **An approach is a file.** One short text file under `approaches/` names
+  the implementation and settings for every component. It has a name, a
+  one-line description and a list of the hardware it assumes. The staged
+  path of section 4.7 is five such files.
+- **A comparison is a list of approaches and a list of scenes.** One command
+  runs every approach on every scene, with the same seeds, and writes one
+  table and one set of figures: the same metrics side by side, the
+  reconstructions next to the truth, and what each approach cost in
+  hardware, scan time, data and computation. Runs are independent jobs, so a
+  comparison spreads over as many cores as are available.
+- **Results are committed.** Each comparison writes to `results/` with the
+  approach files and code version that produced it, and is published in the
+  documentation, so a ranking can always be traced and repeated.
+- **Not every combination is valid.** A component declares what it needs. A
+  phase-recovery reconstruction needs coherent light and a wave level, and a
+  level 1 kernel cannot represent slanted beams. An invalid combination is
+  refused with the reason, not run to a wrong answer.
+- **New ideas enter as new implementations.** A method found by the research
+  items, or a new optical element, is added as one more implementation of
+  one component, and can at once be compared with everything else.
+- **The explorer follows the same structure.** Its analytic model is the
+  cheapest implementation of each component, so an approach can be tried
+  there in seconds before it is run through the simulator.
+
+Approaches the first comparison will include, so that the leading candidate
+is tested and not assumed:
+
+| Approach | Illumination | Elements | Gap | Reconstruction |
+|---|---|---|---|---|
+| Plain contact scan | Diffuse | None | As small as practical | Regularised least squares |
+| Collimator tubes | Diffuse | Per-pixel tubes | Micrometres | Regularised least squares |
+| Masked pixels in the near field | Any | 100 nm openings | About 100 nm | Regularised least squares |
+| Straight-on coherent | Collimated 405 nm | None | About 1 mm | Phase recovery |
+| Slanted beam pairs (leading candidate) | Pulsed 405 nm pairs from several directions | None | About 1 mm | Phase recovery with position solving |
+| Speckle lighting | 405 nm through a fixed diffuser | None | About 1 mm | Phase recovery with the pattern solved |
+| Coded mask on the sensor | Slanted 405 nm | Random scattering layer | About 1 mm | Phase recovery |
+| Shorter wavelength or liquid | 365 nm, or 405 nm with water | None | About 1 mm | Phase recovery |
+| Layout fitting | Several colours and angles | Polariser | About 1 mm | Fit of a layout model |
+
 ### Repository layout
 
 ```
@@ -1232,9 +1303,10 @@ ccdsr/                    the package, one file per module above
   sampling.py             scan sampling calculator (implemented)
   resolution.py           analytic resolution model (implemented)
 explorer/                 trade-off explorer web page (implemented)
+approaches/               one file per named approach (section 7.1)
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study
-results/                  committed figures and summary tables
+results/                  committed figures, summary tables and approach comparisons
 tests/                    unit and end-to-end tests
 ```
 
