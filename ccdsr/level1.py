@@ -229,7 +229,8 @@ def wiener(frames: Frames1D, noise_to_signal=1e-3):
     return np.fft.ifft(np.fft.fft(est) * filt).real
 
 
-def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, weights=None):
+def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, weights=None,
+                  positions_nm=None):
     """Regularised least squares, solved by conjugate gradients.
 
     Finds the surface whose predicted readings best match the recorded ones,
@@ -238,9 +239,14 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
 
     ``smoothness`` is relative to the mean sampling weight, so it keeps its
     meaning when the number of frames changes.
+
+    ``positions_nm`` replaces the recorded positions. The recorded ones are the
+    true positions; pass the nominal or estimated ones to see the effect of
+    position errors.
     """
     n = frames.n_grid
-    s = sampling_matrix(frames.positions_nm, n, frames.dx_nm)
+    pos = frames.positions_nm if positions_nm is None else positions_nm
+    s = sampling_matrix(pos, n, frames.dx_nm)
     h = _grid_transfer(n, frames.dx_nm, frames.optics, frames.scan)
     m = frames.readings.ravel() / _scale(frames)
     w = np.ones(m.size) if weights is None else np.asarray(weights, dtype=float).ravel()
@@ -270,6 +276,90 @@ def least_squares(frames: Frames1D, smoothness=1e-2, iterations=200, tol=1e-8, w
     x, _ = cg(op, rhs, rtol=tol, maxiter=iterations, M=pre,
               callback=lambda _: count.__setitem__(0, count[0] + 1))
     return x, count[0]
+
+
+# --------------------------------------------------------- motion estimation
+
+def nominal_positions(frames: Frames1D, shift_px=None):
+    """Positions the instrument would assume: constant speed, no jitter.
+
+    ``shift_px`` is the believed movement per frame, if it differs from the
+    true one.
+    """
+    scan = frames.scan
+    shift = scan.shift_px if shift_px is None else shift_px
+    frame = scan.start_nm + np.arange(scan.n_frames) * shift * frames.optics.pitch_nm
+    return frame[:, None] + np.arange(scan.n_pixels)[None, :] * frames.optics.pitch_nm
+
+
+def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smoothness=(1.0, 1e-2),
+                       max_step_px=0.5):
+    """Estimate where each frame really was, from the readings alone.
+
+    Alternates two steps. First, reconstruct the surface with the current
+    positions. Second, slide each frame along that reconstruction to where its
+    readings fit best (one Gauss-Newton step per frame, using the slope of the
+    predicted readings). The reconstruction starts smooth and sharpens from
+    round to round, so that large errors are caught on coarse detail before
+    fine detail is trusted.
+
+    The spacing of the pixels within a frame is known, so only one offset per
+    frame is solved. A shift of all frames together cannot be seen in the data
+    and is left as it started.
+
+    Returns ``(positions, offsets_history)`` where the history has one row of
+    per-frame offsets (nanometres, relative to the start) per round.
+    """
+    n, dx = frames.n_grid, frames.dx_nm
+    start = nominal_positions(frames) if start_positions_nm is None else np.asarray(start_positions_nm)
+    offsets = np.zeros(frames.scan.n_frames)
+    h = _grid_transfer(n, dx, frames.optics, frames.scan)
+    slope_filter = 2j * np.pi * np.fft.fftfreq(n, d=dx)
+    m = frames.readings / _scale(frames)
+    levels = np.geomspace(smoothness[0], smoothness[1], rounds)
+    history = []
+    for level in levels:
+        pos = start + offsets[:, None]
+        est, _ = least_squares(frames, smoothness=level, positions_nm=pos)
+        spectrum = np.fft.fft(est) * h
+        s = sampling_matrix(pos, n, dx)
+        predicted = (s @ np.fft.ifft(spectrum).real).reshape(m.shape)
+        slope = (s @ np.fft.ifft(spectrum * slope_filter).real).reshape(m.shape)
+        step = np.sum(slope * (m - predicted), axis=1) / np.maximum(np.sum(slope**2, axis=1), 1e-30)
+        limit = max_step_px * frames.optics.pitch_nm
+        offsets = offsets + np.clip(step, -limit, limit)
+        offsets -= offsets.mean()
+        history.append(offsets.copy())
+    return start + offsets[:, None], np.array(history)
+
+
+def position_precision_limit(frames: Frames1D):
+    """Best possible rms error of a frame's position, in nanometres.
+
+    The Cramér-Rao bound for sliding one frame along a known surface: the
+    noise of the readings divided by the summed slope of the blurred surface
+    under the frame. Uses the true surface, so it is for scoring only.
+    Returns the rms over frames.
+    """
+    n, dx = frames.n_grid, frames.dx_nm
+    spectrum = np.fft.fft(frames.truth["surface"]) * _grid_transfer(n, dx, frames.optics, frames.scan)
+    s = sampling_matrix(frames.positions_nm, n, dx)
+    shape = frames.readings.shape
+    level = (s @ np.fft.ifft(spectrum).real).reshape(shape)
+    slope = (s @ np.fft.ifft(spectrum * 2j * np.pi * np.fft.fftfreq(n, d=dx)).real).reshape(shape)
+    light = _scale(frames)
+    variance = ((light * level if frames.noise.photon else 0.0) + frames.noise.read_e**2) / light**2
+    return float(np.sqrt(np.mean(1 / np.sum(slope**2 / variance, axis=1))))
+
+
+def position_error(frames: Frames1D, positions_nm):
+    """Rms error of per-frame positions against the truth, in nanometres.
+
+    The mean error is removed first: a shift of every frame together moves the
+    whole picture and does not blur it.
+    """
+    err = (np.asarray(positions_nm) - frames.positions_nm)[:, 0]
+    return float(np.std(err))
 
 
 # ------------------------------------------------------------------ metrics

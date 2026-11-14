@@ -1089,6 +1089,81 @@ def level1_2d():
                 tilts=tilts, sweep=sweep, dx=dx, best=best)
 
 
+def level1_motion():
+    """Position errors in one dimension: their effect, and estimating them from the data."""
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr import level1 as l1
+
+    dx = 20.0
+    surface, groups = l1.bar_groups([4000, 2000, 1200, 800, 500], dx)
+    optics = l1.Optics1D(gap_nm=300)
+
+    def run(jitter, seed):
+        scan = l1.Scan1D(n_pixels=64, n_frames=160, shift_px=0.37, jitter_px=jitter)
+        frames = l1.simulate(surface, dx, optics, scan, l1.Noise1D(), seed=seed)
+        nominal = l1.nominal_positions(frames)
+        estimated, _ = l1.estimate_positions(frames, nominal)
+        return frames, nominal, estimated
+
+    frames, nominal, estimated = run(0.2, 1)
+    true_off = (frames.positions_nm - nominal)[:, 0]
+    est_off = (estimated - nominal)[:, 0]
+    true_off, est_off = true_off - true_off.mean(), est_off - est_off.mean()
+    rec = {k: l1.least_squares(frames, positions_nm=p)[0]
+           for k, p in [("assumed", nominal), ("estimated", estimated)]}
+
+    jitters = np.array([0, 0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.7, 1.0])
+    table = []
+    for j in jitters:
+        rows = []
+        for seed in range(5):
+            f, n, e = run(float(j), seed)
+            c = [l1.bar_contrast(l1.least_squares(f, positions_nm=p)[0], groups[3], dx)
+                 for p in (f.positions_nm, n, e)]
+            rows.append([l1.position_error(f, n), l1.position_error(f, e), *c,
+                         l1.position_precision_limit(f)])
+        table.append(np.mean(rows, axis=0))
+    table = np.array(table)
+
+    fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.2))
+    a, b, c = axes
+    a.plot(true_off, est_off, "o", ms=3.5, color=BLUE)
+    lim = 1.1 * np.abs(true_off).max()
+    a.plot([-lim, lim], [-lim, lim], color=INK2, lw=0.9, ls=(0, (2, 3)))
+    a.set_xlabel("true position error of each frame (nm)")
+    a.set_ylabel("error estimated from the readings (nm)")
+    a.set_title("160 frames, errors of 0.2 pixel rms", loc="left", fontsize=10.5)
+    a.text(0.04, 0.9, f"left over after correction:\n{np.std(est_off - true_off):.0f} nm rms",
+           transform=a.transAxes, fontsize=9, va="top", color=INK)
+    x = np.arange(surface.size) * dx / 1e3
+    lo, hi = groups[2][1] - 60, groups[3][2] + 60
+    b.plot(x[lo:hi], surface[lo:hi] + 2.6, color=INK, lw=1.2)
+    b.plot(x[lo:hi], rec["assumed"][lo:hi] + 1.25, color=ORANGE, lw=1.2)
+    b.plot(x[lo:hi], rec["estimated"][lo:hi], color=BLUE, lw=1.2)
+    for y, name in [(3.72, "true surface"), (2.5, "reconstructed with assumed positions"),
+                    (1.12, "reconstructed with estimated positions")]:
+        b.text(x[lo], y, name, fontsize=9, color=INK)
+    b.set_ylim(-0.2, 4.2)
+    b.set_yticks([])
+    b.set_xlabel("position along the scan (µm)")
+    b.set_title("1.2 µm and 0.8 µm bar groups", loc="left", fontsize=10.5)
+    c.plot(jitters, table[:, 2], "-", color=INK2, lw=1.2, label="true positions known")
+    c.plot(jitters, table[:, 3], "o-", color=ORANGE, ms=4.5, lw=1.4, label="assumed positions")
+    c.plot(jitters, table[:, 4], "s-", color=BLUE, ms=4.5, lw=1.4, label="estimated positions")
+    c.set_ylim(0, 1.0)
+    c.set_xlabel("position error per frame (pixels, rms)")
+    c.set_ylabel("recovered contrast of 0.8 µm bars")
+    c.set_title("how much error can be tolerated", loc="left", fontsize=10.5)
+    c.legend(frameon=False, fontsize=8.5, loc="center right")
+    for ax in axes:
+        _clean(ax)
+    fig.tight_layout()
+    save(fig, "level1-motion")
+    return jitters, table, float(np.std(est_off - true_off))
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -1109,4 +1184,5 @@ if __name__ == "__main__":
     level1_reconstruction()
     level1_crosscheck()
     level1_2d()
+    level1_motion()
     print("wrote diagrams to", OUT)

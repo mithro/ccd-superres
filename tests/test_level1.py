@@ -107,3 +107,35 @@ def test_gain_variation_and_jitter_are_recorded_for_scoring_only():
     assert frames.truth["gains"].std() > 0
     steps = np.diff(frames.positions_nm[:, 0])
     assert steps.std() > 0.3 * 1120
+
+
+def _jittered(jitter, seed=0):
+    surface, groups = l1.bar_groups([4000, 2000, 1200, 800, 500], DX)
+    scan = l1.Scan1D(n_pixels=64, n_frames=160, shift_px=0.37, jitter_px=jitter)
+    return groups, l1.simulate(surface, DX, l1.Optics1D(gap_nm=300), scan, l1.Noise1D(), seed=seed)
+
+
+def test_position_errors_blur_the_picture_and_estimation_restores_it():
+    groups, frames = _jittered(0.2)
+    nominal = l1.nominal_positions(frames)
+    estimated, history = l1.estimate_positions(frames, nominal)
+    contrast = lambda pos: l1.bar_contrast(l1.least_squares(frames, positions_nm=pos)[0], groups[3], DX)
+    assert l1.position_error(frames, nominal) == pytest.approx(0.2 * 1120, rel=0.2)
+    assert contrast(nominal) < 0.5 * contrast(frames.positions_nm)
+    assert contrast(estimated) == pytest.approx(contrast(frames.positions_nm), rel=0.05)
+    assert history.shape == (12, 160)
+
+
+def test_estimated_positions_reach_the_theoretical_precision():
+    _, frames = _jittered(0.2, seed=3)
+    estimated, _ = l1.estimate_positions(frames)
+    limit = l1.position_precision_limit(frames)
+    assert 0.8 * limit < l1.position_error(frames, estimated) < 1.3 * limit
+
+
+def test_a_wrong_speed_is_corrected():
+    _, frames = _jittered(0.0)
+    wrong = l1.nominal_positions(frames, shift_px=0.37 * 1.01)
+    estimated, _ = l1.estimate_positions(frames, wrong)
+    assert l1.position_error(frames, wrong) > 150
+    assert l1.position_error(frames, estimated) < 10

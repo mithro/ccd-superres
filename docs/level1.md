@@ -8,8 +8,8 @@ bright and dark, blurs it the way the gap and the pixels would, reads it off
 at the places the moving pixels visit, adds sensor noise, and then
 reconstructs the strip from those readings.
 
-This page covers level 1 in one dimension and in two, with the scan
-positions known exactly. The one-dimensional part shows three things, and
+This page covers level 1 in one dimension and in two, and the estimation of
+scan position errors from the data. The one-dimensional part shows three things, and
 the [two-dimensional part](#two-dimensions-and-sensor-tilt) adds a fourth.
 
 1. Dense sampling by itself is not enough. Averaging the readings in place
@@ -25,6 +25,12 @@ the [two-dimensional part](#two-dimensions-and-sensor-tilt) adds a fourth.
    exactly in line with the scan, lines lying along the scan cannot be
    recovered at all. A tilt of a few degrees on a small sensor, and far less
    on a full-size one, recovers them as well as lines crossed by the scan.
+
+5. Errors in the scan position blur the picture badly, and they can be found
+   from the readings themselves. In the one-dimensional example, errors of
+   up to half a pixel per frame are worked out to about 6 nm and the picture
+   is restored. See
+   [scan position errors](#scan-position-errors-and-finding-them-from-the-data).
 
 Level 1 is **not** a model of the 100 nm target. That target needs coherent
 slanted light, which is level 3 in the [simulation chain](simulation-chain.md).
@@ -333,12 +339,108 @@ What the tilt results say:
 *Table 9. Cross-checks of the two-dimensional simulator. Automated in
 `tests/test_level1_2d.py`.*
 
+## Scan position errors, and finding them from the data
+
+A real scan does not move at a perfectly constant rate. Each frame is taken a
+little ahead of or behind where the instrument believes it was. This section
+uses the one-dimensional simulator to answer two questions: how much does
+that hurt, and can the true positions be worked out from the readings?
+
+**How the positions are estimated.** The method alternates two steps and
+repeats them twelve times.
+
+1. Reconstruct the surface using the positions as currently believed.
+2. For each frame, slide it along that reconstruction to the place where its
+   64 readings fit best, and take that as its new position.
+
+The reconstruction is kept smooth at first and allowed to sharpen from round
+to round, so that large errors are corrected on coarse detail before fine
+detail is trusted. The spacing of the pixels inside one frame is fixed by
+the sensor, so there is only one unknown per frame. Moving every frame by
+the same amount only moves the whole picture, so that one number cannot be
+found from the data and does not need to be. Derived here: `estimate_positions`
+in `ccdsr/level1.py`. The idea of solving for scan positions together with
+the picture is standard in ptychography [Maiden2009] and in image
+registration [GuizarSicairos2008].
+
+![Three panels: estimated against true position errors, reconstructions with assumed and estimated positions, and recovered contrast against the size of the position error](diagrams/level1-motion.svg)
+
+*Figure 5. Left: for 160 frames with position errors of 0.2 pixel rms
+(about 220 nm), the error worked out from the readings against the true
+error. The points lie on the dotted line of perfect agreement, and 6 nm rms
+is left over. Middle: the 1.2 µm and 0.8 µm bar groups, reconstructed with
+the positions the instrument assumed and with the estimated positions.
+Right: recovered contrast of the 0.8 µm bars against the size of the
+position error.*
+
+| Position error per frame (pixels, rms) | Position error (nm, rms) | Left over after estimation (nm, rms) | Contrast, true positions known | Contrast, assumed positions | Contrast, estimated positions |
+|---:|---:|---:|---:|---:|---:|
+| 0.00 | 0 | 6.0 | 0.80 | 0.80 | 0.81 |
+| 0.02 | 22 | 5.9 | 0.79 | 0.77 | 0.79 |
+| 0.05 | 54 | 6.1 | 0.77 | 0.71 | 0.78 |
+| 0.10 | 108 | 6.3 | 0.81 | 0.56 | 0.81 |
+| 0.20 | 216 | 5.9 | 0.78 | 0.25 | 0.79 |
+| 0.35 | 379 | 6.1 | 0.80 | 0.06 | 0.80 |
+| 0.50 | 541 | 6.0 | 0.80 | 0.08 | 0.80 |
+| 0.70 | 757 | 68 | 0.81 | 0.14 | 0.79 |
+| 1.00 | 1,082 | 588 | 0.81 | 0.26 | 0.83 |
+
+*Table 10. Effect of random position errors on the 0.8 µm bars (true
+contrast 0.85), averaged over five random scans of 160 frames with the
+settings of table 1. Derived here: computed by
+`docs/diagrams/make_diagrams.py`.*
+
+| Believed speed, relative to true | Position error before (nm, rms) | Left over after estimation (nm, rms) | Contrast, assumed positions | Contrast, estimated positions |
+|---:|---:|---:|---:|---:|
+| 1.001 | 19 | 5.8 | 0.76 | 0.78 |
+| 1.010 | 191 | 5.8 | 0.13 | 0.78 |
+| 1.030 | 574 | 5.8 | 0.06 | 0.74 |
+| 1.050 | 957 | 5.8 | 0.11 | 0.67 |
+
+*Table 11. Effect of a wrong belief about the scan speed, with no random
+error. Contrast is of the 0.8 µm bars; with true positions it is 0.78.
+Derived here.*
+
+What these results say:
+
+- **Unknown position errors do real damage.** An error of a tenth of a pixel
+  per frame already costs a third of the contrast of sub-pixel bars, and
+  0.35 pixel removes them. A speed that is wrong by 1% does the same.
+- **The readings contain the positions.** Up to errors of half a pixel rms
+  the estimate brings the picture back to what it would be with perfectly
+  known positions, with no extra hardware.
+- **The leftover error is at the theoretical limit.** The best any method
+  could do with this surface and this noise (the *Cramér-Rao bound*) is
+  5.7 nm rms per frame; the estimate reaches 6.0 nm. This limit is not a
+  fixed property of the instrument. It gets better with more pixels per
+  frame, more light and more fine detail on the surface, and worse with
+  less.
+- **There is a capture range.** At 0.7 pixel rms a few frames per scan are
+  placed wrongly, and at 1 pixel many are (the leftover error in table 10
+  jumps). The contrast figures in those two rows, and in the "assumed"
+  column above 0.35 pixel, are no longer meaningful measures of picture
+  quality. Larger errors will need a coarse first alignment, for example by
+  correlating neighbouring frames [GuizarSicairos2008]. Judgement.
+
+| Check | Result | Verdict |
+|---|---|---|
+| Leftover position error against the Cramér-Rao bound | Within 0.8 to 1.3 times the bound | Pass |
+| Contrast with estimated positions against contrast with true positions, 0.2 pixel error | Within 5% | Pass |
+| Speed wrong by 1% | Error falls from over 150 nm to under 10 nm rms | Pass |
+
+*Table 12. Automated checks of the position estimate, in
+`tests/test_level1.py`.*
+
+This is one dimension, with the blur model known exactly and a surface rich
+in edges. Sideways errors, rotation, gap changes and two dimensions are not
+covered yet.
+
 ## What this version leaves out
 
 | Limit | Why it matters | Where it is dealt with |
 |---|---|---|
 | Small sensor and small picture | 16 × 16 pixels and 36 × 18 µm, against 3,280 × 2,464 pixels on the baseline sensor. Larger cases need the tiled, parallel solver. | [Design 6.5](design.md#65-spending-computation-instead-of-hardware); later step of [plan item D2](plan.md#d-simulation-chain) |
-| Positions known exactly in the reconstruction | The real scan speed and position wander. The simulator can already add position error; the reconstruction does not yet estimate it. | Motion estimation at level 1, the next step of plan item D2 |
+| Position estimation is one-dimensional | Sideways errors, rotation and changes of gap during the scan also occur, and the capture range is about half a pixel | Next step of [plan item D2](plan.md#d-simulation-chain) |
 | The same blur model simulates and reconstructs | A reconstruction always looks best when it knows the blur perfectly. Real pixels will differ from the model. | Uncertain pixel response as a swept setting ([design 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)); cross-checks against levels 2 to 4 |
 | Pixel gain differences are simulated but not corrected | Uncorrected gain differences leave stripes | [Calibration and test methods](calibration-and-test.md) |
 | Matt or mirror-like surface, no interference | The 100 nm target relies on interference of coherent light | Level 3 |
@@ -378,3 +480,5 @@ The functions are listed in the [Python reference](api.md#simulation-level-1).
 [Janesick]: references.md#textbooks-and-standard-methods
 [Raskar2006]: references.md#textbooks-and-standard-methods
 [HestenesStiefel]: references.md#textbooks-and-standard-methods
+[Maiden2009]: references.md#textbooks-and-standard-methods
+[GuizarSicairos2008]: references.md#textbooks-and-standard-methods
