@@ -122,7 +122,7 @@ of claims there is a line in italics beginning "Sources:".
 | [[O7](#ref-o7)] and similar | A published source in [section 14](#14-references). Each key links to its entry, and each entry links to the source. Figures quoted from a paper are from its abstract unless stated. |
 | BornWolf, R1 and similar | A source in the shared [references](references.md) page. |
 | design, section N | Taken from the [design document](design.md), which gives its own sources. |
-| **Derived here** | Worked out on this page from the stated starting points. Where a calculation was needed it is in the script `docs/diagrams/make_optics_diagrams.py`, and the function is named. |
+| **Derived here** | Worked out on this page from the stated starting points. Where a calculation was needed it is in the script [`docs/diagrams/make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), and the function is named. |
 | **Estimate** | A number from a simplified model, good for comparing options and not confirmed by a more exact simulation. |
 | **Assumption** | A value chosen to make progress, with no source. |
 | **Unverified** | Believed from general knowledge or catalogues and not checked against a primary source. |
@@ -182,7 +182,7 @@ left on.*
 
 *Sources for the table and figure: "Nothing added" is the design's law
 above. The square-root law for angle restriction is **Derived here**
-(section 2, checked by the function `tube_footprint` in the diagram script),
+(section 2, checked by the function `tube_footprint` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py)),
 and is the same scaling as the classic best size of a pinhole [[O65](#ref-o65)]. The
 interference row is the range reported for lensless microscopes
 [[O1](#ref-o1), [O2](#ref-o2), [O3](#ref-o3), [O6](#ref-o6), [O7](#ref-o7)]. The near-field row follows from the textbook result
@@ -372,7 +372,7 @@ recovers at a 30 µm gap:
 The last row assumes a plain LED with a bandwidth of 20 nm.
 
 *Sources: all three figures are **Derived here**, by the function
-`transfer_functions` in the diagram script. The noise floor of one part in a
+`transfer_functions` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The noise floor of one part in a
 thousand is the illustrative value of the design document. The 20 nm
 bandwidth of an LED is an **Assumption**, typical of catalogue values.*
 
@@ -454,7 +454,7 @@ each side:
 *Sources: the first three rows are **Derived here** from straight-line ray
 geometry. The fourth is the standard geometric view factor between two
 parallel squares, in its limit for a deep tube. The exact form is computed
-by the function `tube_throughput` in the diagram script, and the formula
+by the function `tube_throughput` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), and the formula
 used there is **Unverified** against a published catalogue of view
 factors.*
 
@@ -509,7 +509,7 @@ photon noise dominates, the chance variation in the number of light
 particles counted, so it falls as the square root of the light. The last column is `wavelength × (L / w)` for green light.
 
 *Sources: every column is **Derived here**. Angles are from the tube shape,
-light kept from `tube_throughput` in the diagram script, signal-to-noise as
+light kept from `tube_throughput` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), signal-to-noise as
 the square root of the light kept (the rule for photon noise, Janesick in
 the shared [references](references.md#textbooks-and-standard-methods)), and
 the last column from the diffraction limit above.*
@@ -562,7 +562,7 @@ patch. Finding it is a job for the simulator.
 *Sources: the table, the best width of about 1.3 × √(wavelength × gap) and
 the cut-off are **Derived here**, from the one-dimensional diffraction
 calculation in the functions `tube_footprint` and `half_light_width` of the
-diagram script. Section 13 lists what that calculation leaves out.*
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). Section 13 lists what that calculation leaves out.*
 
 Since a tube several micrometres wide covers many pixels, the pixels beneath
 it can be added together, which recovers some of the lost light: a 5 µm tube
@@ -657,7 +657,7 @@ pixels. Middle: one flash of 0.4 milliseconds leaves a smear of a quarter of
 a pixel but uses 0.4 percent of the light. Bottom: a known irregular pattern
 of flashes leaves a smear with a known shape, which computation can undo,
 and uses nearly half the light. The pattern drawn is an example made by
-the diagram script, not an optimised code.*
+the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), not an optimised code.*
 *Sources: the shift per frame and the exposure needed are from the
 [design, section 4.8](design.md#48-motion-blur-cause-model-and-reversal). That an LED can be switched faster than 0.4 ms from an output
 pin is **Unverified** general knowledge.*
@@ -698,7 +698,7 @@ the wave. Fourth chart: the brightness 100 µm away, where the sensor is.
 Every feature, including the 5 nm lines, has spread into ripples of several
 percent. These ripples are what the sensor records, and the reconstruction
 works back from them to the first two charts. **Derived here**, by the
-function `hologram_demo` of the diagram script, for green light.*
+function `hologram_demo` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), for green light.*
 
 Light a smooth surface with a parallel (collimated) beam of one colour and
 the reflected light crosses the gap as a wave that keeps its fine detail.
@@ -822,7 +822,7 @@ fixing the fringes to the sensor is derived here from the model, not taken
 from a publication, and needs confirming in the simulator.
 
 *Sources: the three figures are **Derived here**, by the function
-`fringe_demo` in the diagram script.*
+`fringe_demo` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 The limit is that one fringe period opens only one narrow window of feature
 sizes (the orange curve in the chart of section 2). Covering all sizes needs
@@ -900,7 +900,7 @@ up. Brighter colours are brighter light. The grating has lines 10 µm apart
 and is lit from the left by a parallel beam of green light. Its pattern of
 bright bands blurs, then re-forms shifted by half a period at 200 µm, and
 re-forms as a sharp copy at 400 µm, the Talbot distance. **Derived here**,
-by the function `talbot_carpet` of the diagram script.*
+by the function `talbot_carpet` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 | Use | Verdict |
 |---|---|
@@ -1129,7 +1129,7 @@ how blurred the picture is gives a signal thirty times weaker or worse.*
 The design document lists three ways height can reach a pixel. With the
 elements above there are six. The chart compares how much signal one nanometre
 of height produces. The values are order-of-magnitude estimates from simple
-formulas, given in the diagram script.
+formulas, given in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).
 
 ![Signal produced by one nanometre of height, by mechanism](diagrams/optics-height-signal.svg)
 
@@ -1162,7 +1162,7 @@ What each mechanism needs, and what limits it:
 
 *Sources: every figure in the "Signal per nanometre" column is an
 **Estimate** from the simple formulas in the function `height_signal` of the
-diagram script. The mechanisms are from the sources cited in each row and
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The mechanisms are from the sources cited in each row and
 from the [design, section 4.5](design.md#45-height).*
 
 All the interference mechanisms put a nanometre of height above the noise of a
@@ -1262,7 +1262,7 @@ are assumptions: ±30° is a guess for a pixel with its microlens in place, and
 measured, and published work found it a real limitation [[O6](#ref-o6), [O22](#ref-o22)].
 
 *Sources: every entry in the table is **Derived here** from the formula, by
-the function `hundred_nm` in the diagram script. The slant angles of 65° and
+the function `hundred_nm` in the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py). The slant angles of 65° and
 72° and both collection angles are **Assumptions**.*
 
 Reading the table for the target:
@@ -1286,7 +1286,7 @@ one small disc at the centre. Slanted light moves the disc outward, and
 eight directions of light give eight discs. The orange circle is the limit
 reached, and the dashed circle is the target, lines and spaces of 100 nm.
 Only arrangement D, with water in the gap, covers the target. **Derived
-here**, by the function `frequency_coverage` of the diagram script, with
+here**, by the function `frequency_coverage` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), with
 the assumed angles of the table.*
 
 Published results quoted on this page, for comparison with those limits:
@@ -1351,7 +1351,7 @@ number of stripes fits the pixel. The dotted line on the left marks the
 and almost nothing. The dotted line on the right marks the beat pattern of
 about 4000 nm made by lighting with a beam pair (the example below), which
 the pixel records largely whatever its edges are like. **Estimate**, by the function
-`pixel_fringe_response` of the diagram script.*
+`pixel_fringe_response` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 *Sources: **Derived here**. A pixel adds up the light across its width, and
 the contrast left in a stripe pattern averaged over a box of that width is
@@ -1429,7 +1429,7 @@ fine lines is recorded. This is a simplified picture that multiplies
 brightnesses. It gives the right beat period only for detail that the light
 can carry across the gap (a period of about 225 nm or more here); the full
 wave calculation belongs to the simulator. **Derived
-here**, by the function `beam_pair_beat` of the diagram script.*
+here**, by the function `beam_pair_beat` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 | Quantity | Value | Unit | How it is found |
 |---|---:|---|---|
@@ -1501,7 +1501,7 @@ width can be read from the strength. Right: the same 100 nm line at two
 positions 40 nm apart. The two signals differ clearly (dashed curve,
 enlarged 4 times), so the position can be found far more finely than the
 blur. **Derived here**, by the function `locate_without_resolving` of the
-diagram script, with a Gaussian blur as an **Assumption**.*
+[diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), with a Gaussian blur as an **Assumption**.*
 
 A feature does not have to be resolved to be found, counted or measured. This
 is where computation can stand in for hardware, and several published results
@@ -1603,7 +1603,7 @@ Right: dither. The true signal (dashed) rises smoothly from 0 to 3 counts.
 A sensor that rounds to whole counts and has no noise (grey) reports steps,
 however many readings are averaged. With noise of half a count (orange) the
 average of 2000 readings follows the true signal. **Derived here**, by the
-function `randomness_demo` of the diagram script.*
+function `randomness_demo` of the [diagram script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py).*
 
 Randomness added on purpose:
 
@@ -1901,7 +1901,7 @@ project's simulation chain.*
 | 3 | Two unknown maps, reflectance and height, each with its own kernel per gap and colour | Linear least squares over both maps | Collimated light on weak surfaces, reference flat, several colours |
 | 4 | Complex wave: surface, propagation, mask, intensity | Iterative phase recovery | Coded masks, rough or strongly stepped surfaces |
 
-Level 1 additions also belong in the analytic model (`ccdsr/resolution.py`)
+Level 1 additions also belong in the analytic model ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py))
 and the trade-off explorer: tube width and depth as two more controls, with
 the light lost feeding the signal-to-noise control.
 
