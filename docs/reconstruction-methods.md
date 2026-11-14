@@ -21,6 +21,90 @@ picture of an unknown layout, and that may be done in several stages (section
 is already there, is in scope (section 3.12). And the two-dimensional nature
 of the sensor should be used to get more detail (section 3.13).
 
+## In plain words
+
+The instrument is a camera chip with its lens taken off, slid slowly across
+the surface of a silicon chip while it takes thousands of pictures. With no
+lens, each picture is a blur. The plan is for a computer to combine the
+blurred pictures into one sharp picture, sharper than the camera's own pixels.
+
+Other fields have done this kind of thing for decades. A radar satellite has
+a small antenna and still makes sharp maps, by combining echoes collected
+along its orbit. Radio astronomers combine dishes spread over a continent
+into one telescope. Hospital scanners compute a picture of the inside of a
+body from measurements that look nothing like a picture. This page asks what
+those fields know that this project can borrow, and how small a detail the
+borrowed methods could show. The target is detail about 100 nanometres
+across, which is a thousand times finer than a human hair.
+
+The answers, in order of importance:
+
+- **The lighting has to change before the computing can help.** With ordinary
+  light the blur destroys fine detail before it reaches the camera chip, and
+  no amount of computing brings back what never arrived. With laser light the
+  fine detail is not destroyed. It arrives scrambled into ripple patterns,
+  and unscrambling ripple patterns is exactly what radar and its relatives
+  know how to do.
+- **Light itself sets a floor.** A wave cannot carry detail much smaller than
+  half its own length across a gap. For violet laser light that floor is
+  lines about 100 nanometres wide, which is the target itself. Lines of 150
+  to 250 nanometres are a realistic first result. Going finer needs
+  ultraviolet light or a drop of liquid between the two chips.
+- **Lighting from several slanted directions doubles the sharpness.** This is
+  the direct counterpart of a radar looking at the ground from many positions
+  along its path.
+- **The computer can work out its own mistakes.** Where exactly the sensor
+  was for each picture, how far it was from the surface, and how each pixel
+  differs from its neighbours can all be worked out from the pictures
+  themselves. Every field surveyed does this.
+- **Randomness helps in some places and not others.** Irregular motion and
+  irregular lighting patterns make the problem easier to solve, as long as
+  the computer then works out what they were. Random noise in the brightness
+  readings never helps.
+- **The sensor being a full grid of pixels, not a single line, matters.**
+  Each picture is a complete snapshot taken in one instant, so nothing can
+  shift between its parts.
+- **It is done in stages.** A rough picture first, then each stage sharpens
+  the one before. The sharper methods only work when started from a picture
+  that is already roughly right.
+
+The rest of the page gives the evidence for each of these, field by field,
+with the technical detail kept. Technical terms are explained where they
+first appear and collected in the next section.
+
+## Terms used on this page
+
+| Term | Meaning |
+|---|---|
+| Nanometre (nm), micrometre (µm) | A micrometre is a thousandth of a millimetre. A nanometre is a thousandth of a micrometre. The sensor's pixels are about 1.1 µm wide. The target detail is 100 nm, or 0.1 µm. |
+| Wavelength | The distance from one crest of a light wave to the next. Violet laser light has a wavelength of 405 nm. |
+| Gap | The distance between the face of the sensor and the surface being imaged. |
+| Resolution | The smallest detail that can be told apart from its neighbours. |
+| Period; lines and spaces | For a pattern of equal stripes, the period is the width of one line plus one space. "100 nm lines and spaces" has a period of 200 nm. |
+| Band; cut-off | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. |
+| Diffuse light | Ordinary light, as from a lamp or a matt surface: a jumble of unrelated waves going in all directions. |
+| Coherent light | Light of a single colour whose waves stay in step with each other, as from a laser. |
+| Phase | The timing of a wave: whether a crest or a trough is arriving at a given moment. It records how far the light has travelled, and so where it came from and the height of what it bounced off. |
+| Interference; fringes | When two coherent waves overlap they add where their crests meet and cancel where crest meets trough. The result is a pattern of bright and dark stripes called fringes. |
+| Hologram | A recording of the fringes made when light scattered from an object overlaps with an undisturbed reference beam. It contains the phase in a form a camera can record. |
+| Speckle | The grainy random pattern of bright and dark spots made when laser light passes through or bounces off something rough. |
+| Forward model | A calculation that predicts what the sensor would record for a given surface. |
+| Reconstruction; inverse problem | Working backwards: finding the surface whose predicted recording matches the real one. |
+| Blur; deconvolution | A blur spreads each point of the surface over a patch. Deconvolution is undoing a known blur by computation. |
+| Noise; signal-to-noise | Noise is the random error in each measurement. Signal-to-noise is how much larger the wanted signal is than the noise. |
+| Phase retrieval | Computing the phase that the camera could not record, from brightness measurements alone. |
+| Synthetic aperture | A large receiver imitated by combining recordings taken from many positions or directions. |
+| Ptychography | A method that moves an object through a patch of coherent light in small overlapping steps and computes a sharp image, phase included, from all the recordings together. Pronounced "tie-cog-raphy". |
+| Registration | Working out how far one picture is shifted relative to another. |
+| Calibration; self-calibration | Measuring the instrument's own properties. Self-calibration does it from the ordinary data, with no separate test. |
+| Redundancy | Measuring the same thing many times in different ways. It is what makes self-calibration and phase retrieval possible. |
+| Diversity | Measurements that differ in kind (different gap, lighting direction or light pattern), not only in position. |
+| Prior | Something assumed about the surface before measuring, such as "it is made of a few materials with straight edges". |
+| Sparse | Made of few, well-separated features. |
+| Iteration | One round of an improve-and-check loop. Most methods here repeat such a round tens or hundreds of times. |
+| Tile; patch | A small square of the surface that is processed on its own, so that many can be processed at once. |
+| Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow but accurate for detail smaller than the wavelength. |
+
 ## 1. Summary
 
 The design document found that with diffuse light the gap sets the resolution
@@ -34,19 +118,19 @@ problem, and they agree on what computation can and cannot do.
 
 - Turn an interference pattern recorded by a moving sensor back into a sharp
   image at any gap. This is what synthetic aperture radar does with radio
-  echoes and what ptychography does with light and X-rays. The same
-  algorithms apply here once the light is coherent.
+  echoes and what ptychography does with light and X-rays. The same algorithms apply here once the light is coherent, meaning light
+  of one colour whose waves stay in step, as from a laser.
 - Double the resolution of straight-down coherent light by combining views
-  lit from different directions (a synthetic aperture). The limit becomes a
-  period of half a wavelength: 203 nm at 405 nm, which is lines and spaces
-  101 nm wide.
-- Recover the phase that the sensor does not measure, using the enormous
+  lit from different directions (a synthetic aperture). The limit becomes a period of half a wavelength, where the period is the width of one
+  line plus one space: 203 nm at 405 nm, which is lines and spaces 101 nm
+  wide.
+- Recover the phase that the sensor does not measure (the timing of the
+  light wave, which says where the light came from), using the enormous
   redundancy of the scan.
 - Estimate the scan positions, the gap, the tilt, the light pattern and the
   pixel response from the data itself. Every field here does this routinely
   under names such as autofocus, self-calibration and position refinement.
-- Go somewhat beyond the half-wavelength limit for features that are sparse
-  or of known shape, and measure the size and position of known shapes to a
+- Go somewhat beyond the half-wavelength limit for features that are sparse (few and well separated) or of known shape, and measure the size and position of known shapes to a
   few nanometres.
 
 - Use the two-dimensional sensor fully: each frame records fine detail in
@@ -65,12 +149,21 @@ problem, and they agree on what computation can and cannot do.
   directly. A pixel measures brightness only. Phase has to be turned into
   brightness by interference before it reaches the pixel.
 - Extrapolate far beyond the measured band. In every field the gain from
-  better signal-to-noise alone is logarithmic, the same law the design
-  document found for the gap.
+  better signal-to-noise alone is logarithmic: each tenfold increase in samples adds only the same small
+  step. It is the same law the design document found for the gap.
 
 **Where this leaves the 100 nm target.**
 
-![Smallest line width each approach can reach](diagrams/recon-ladder.svg)
+![Bar chart of the smallest line width each approach can reach, with the 100 nm target marked](diagrams/recon-ladder.svg)
+
+*Figure: the smallest line width each approach can show. The scale is
+stretched so that each step to the left is ten times finer. Solid bars are
+theoretical limits from formulas. Hatched bars are results reported in
+published experiments. The dashed line is the 100 nm target, and a bar that
+ends to the left of it can show 100 nm lines. The top three bars are the
+instrument with ordinary light. The blue and green bars are laser light,
+straight down and from several directions. The grey bars at the bottom use
+X-rays or extreme ultraviolet light and are shown for comparison.*
 
 Dense 100 nm lines and spaces sit exactly at the theoretical limit of a
 synthetic aperture with 405 nm light in air. A realistic first coherent
@@ -88,14 +181,17 @@ mapping):
    data (radar autofocus, radio self-calibration, sonar micronavigation,
    satellite jitter estimation). Applies to every stage.
 2. Coherent reconstruction with phase retrieval, treated as near-field
-   ptychography.
+   ptychography (computing a sharp image from overlapping recordings of
+   laser light).
 3. Synthetic aperture from several slanted light directions, including beam
    pairs, so that fine detail is mixed down to fringes the pixels can see.
    This is the same arrangement the design and optical elements pages have
    converged on (slanted 405 nm laser beams in pairs).
 4. Deliberate randomness: random scan jitter, random light pulses, and
    speckle or random-phase lighting, all estimated from the data.
-5. Layout-rule priors and sparse reconstruction, with mismatch maps.
+5. Layout-rule priors (assumptions true of any chip, such as straight
+   edges and a minimum line width) and sparse reconstruction, with maps of
+   where the result disagrees with the raw data.
 6. A full electromagnetic model inside the reconstruction, on small patches,
    as the last stage.
 7. Statistically optimal linear combination for the first, diffuse-light
@@ -113,7 +209,10 @@ as the only safeguard.
 
 Every field on this page solves the same problem. A scene is seen through an
 instrument that mixes and blurs it, and the scene is recovered by inverting a
-model of the instrument. The design document writes this as `m = D S K ρ`.
+model of the instrument. The design document writes this as `m = D S K ρ`. In words: the
+measurements `m` are the true surface `ρ`, blurred (`K`), read off at the
+places where the pixels happened to be (`S`), and scaled by the sensitivity
+of each pixel (`D`).
 The fields differ in three things only, and those three things are the
 currencies that buy resolution:
 
@@ -125,7 +224,15 @@ currencies that buy resolution:
 
 Computation converts these currencies into an image. It does not create them.
 
-![Radar geometry beside the scanning sensor](diagrams/recon-analogy.svg)
+![Side views of a radar aircraft over the ground and of the sensor over a chip surface](diagrams/recon-analogy.svg)
+
+*Figure: left, a radar aircraft records an echo at each position along its
+path, and the positions together act as one long antenna (the synthetic
+aperture). Right, the scanning sensor is already a wide row of receivers
+close to the surface. Blue lines show the wave from one point reaching every
+receiver position. The note beside each drawing is the difference that
+matters most: radar records the timing of the wave as well as its strength,
+and a pixel records brightness only.*
 
 ### 2.1 Four hard limits
 
@@ -140,11 +247,24 @@ shifts the range of detail that does travel, so that the finest period becomes
 
     P_min = wavelength / (sin(light angle) + sin(largest collected angle))
 
-which can never be less than half a wavelength. This is the same formula that
+In words: the finest period that gets through is the wavelength divided by a
+number between 0 and 2. That number grows as the light arrives at a steeper
+slant and as light leaving at steeper angles is collected. With light
+arriving straight down and every angle collected the number is 1, and the
+finest period is one wavelength. With light skimming in from the side it
+approaches 2, and the finest period approaches half a wavelength. It can
+never be less than that. This is the same formula that
 gives the resolution of a spotlight radar from the range of angles it views
 the target from [M13].
 
-![Surface detail that can reach the sensor](diagrams/recon-fourier-coverage.svg)
+![Map of fine and coarse surface detail showing the region each kind of lighting can carry](diagrams/recon-fourier-coverage.svg)
+
+*Figure: a map of surface detail for 405 nm light. The centre of the map is
+coarse detail and the edge is fine detail. The direction from the centre is
+the direction in which the detail runs on the surface. Each shaded region is
+the detail one kind of lighting can carry to the sensor. The dashed circles
+mark two target sizes. A method can show a target only if the target's
+circle lies inside the method's region.*
 
 The chart is drawn the way radio astronomers draw the coverage of a telescope
 array: each point is one fineness and direction of surface detail, and a
@@ -160,7 +280,7 @@ receivers record the oscillation of the wave itself. Light oscillates about
 10¹⁵ times a second and no pixel follows it. Phase can only be recorded by
 letting the wave interfere with a reference wave, which turns phase into
 bright and dark fringes. For a smooth chip surface the mirror-like reflection
-is a ready-made reference. This is holography, and section 3.2 shows it is
+is a ready-made reference. Recording those fringes is holography, and section 3.2 shows it is
 historically the same thing as radar processing.
 
 **The pixel is a receiver with limited bandwidth.** With no lens there is no
@@ -188,6 +308,11 @@ are a factor of about two at high signal-to-noise and no more.
 
 ### 2.2 What each kind of receiver records
 
+*Diagram: three kinds of receiver on the left, the kind of computing
+problem each one leads to in the middle, and the resolution that results on
+the right.*
+
+
 ```mermaid
 flowchart LR
     A["Radar, sonar, seismic,<br/>radio astronomy<br/>record the wave itself"] --> B["Linear problem<br/>one pass of focusing"]
@@ -198,9 +323,9 @@ flowchart LR
     F --> H["Resolution about<br/>0.75 x gap"]
 ```
 
-The instrument as designed sits in the bottom row. Moving it to the middle
+The instrument as designed is the third kind, at the bottom. Moving it to the middle
 row is a change to the lighting, not to the sensor or the motion, and it is
-what makes the methods of the top row usable.
+what makes the methods of the first kind usable.
 
 ## 3. Field by field
 
@@ -216,17 +341,18 @@ reach it from that direction, then add. Signals from that direction add up
 and others cancel [M6]. Repeating this for every direction gives a map,
 blurred by the array's response. Inverse beamforming and its relatives go
 one step further and solve for the source distribution that explains the
-array data, undoing that blur [M9]. In aeroacoustics this is done by
-deconvolving the beamformed map, in methods such as DAMAS and CLEAN-SC
-[M10, M11]. Adaptive methods (Capon, MUSIC) use the correlations between
-receivers to resolve sources closer than the array's ordinary limit
+array data, undoing that blur [M9]. In aeroacoustics (locating noise sources on aircraft and in wind tunnels)
+this is done by deconvolving the beamformed map, that is, undoing its known
+blur by computation, in methods such as DAMAS and CLEAN-SC
+[M10, M11]. Adaptive methods (Capon, MUSIC) use the correlations between receivers (how alike the signals at two
+receivers are, and with what delay) to resolve sources closer than the array's ordinary limit
 [M7, M8].
 
 | Beamforming | This instrument |
 |---|---|
 | Array element | One pixel |
 | Delay and sum | Shift and add: place each sample where its pixel was and average |
-| Inverse beamforming, DAMAS | The regularised least-squares solve of the design document |
+| Inverse beamforming, DAMAS | The regularised least-squares solve of the design document: find the surface that best explains all the samples, with a mild preference for smooth answers |
 | Steering in direction | With coherent light: numerical refocusing of the recorded fringes |
 
 **What this shows.** The design's reconstruction already is inverse
@@ -312,9 +438,15 @@ two sines in section 2.1. With light at 70° and all angles collected that is
 250 nm at 700 nm [M24] would scale to about 145 nm at 405 nm if nothing but
 wavelength mattered, which is an assumption.
 
-![Bar groups through ideal cut-offs](diagrams/recon-passband-demo.svg)
+![Four rows of curves: a test pattern of bars and the best possible picture of it under three kinds of lighting](diagrams/recon-passband-demo.svg)
 
-The figure shows the ceiling for bar groups of four sizes: what a perfect
+*Figure: the top row is a test surface with four groups of five bars, 400,
+250, 150 and 100 nm wide. Each row below is the best possible picture of it
+under one kind of lighting. Where a group still shows five separate peaks,
+bars of that size can be told apart. Where the group has merged into one
+hump, they cannot.*
+
+The rows show a ceiling, not an expected result: what a perfect
 reconstruction with known phase and no noise would return. With 405 nm light
 straight down, 250 nm bars pass and 150 nm bars do not. With a full synthetic
 aperture at 405 nm, 150 nm bars pass cleanly and 100 nm bars are at the edge.
@@ -327,14 +459,17 @@ reflectors [M18]. That is a fair expectation here too (section 3.10).
 
 **Cost.** Backprojection costs (number of image points) × (number of
 positions). Fast versions and Fourier-domain versions cost about the same as
-a few fast Fourier transforms of the image [M13, M16]. It parallelises
+a few fast Fourier transforms of the image [M13, M16]. A fast Fourier
+transform is the standard, very efficient computation that splits a picture
+into its coarse and fine ripples. It parallelises
 perfectly over image tiles.
 
 ### 3.3 Radio astronomy aperture synthesis
 
 **The idea.** A pair of antennas a distance apart measures one thing: how
 strongly and with what delay their two signals are correlated. That number is
-one Fourier component of the sky brightness, set by the spacing and
+one Fourier component of the sky brightness (one ripple of a particular
+fineness and direction; any picture can be built by adding such ripples), set by the spacing and
 orientation of the pair (the van Cittert-Zernike theorem) [M25]. Many pairs,
 and the rotation of the Earth carrying them round, fill in a patchy set of
 components. The image is recovered from the patchy set by deconvolution:
@@ -492,7 +627,8 @@ exist [M51] but need training data that this project does not have.
 
 ### 3.6 Computed tomography
 
-**The idea.** Many line-integral measurements through an object from
+**The idea.** Many line-integral measurements through an object (each one is the
+total amount of material along one straight line, as in an X-ray) from
 different directions are inverted to give the interior. The classic solution
 is filtered backprojection. The modern ones are iterative solvers that step
 through the measurements a few at a time, and that accept prior knowledge
@@ -504,7 +640,7 @@ Three things transfer.
 - **Solvers.** The row-at-a-time iterative methods of tomography suit a
   problem where the data is too large to hold in memory and arrives frame by
   frame. They are an alternative to the conjugate-gradient solver of the
-  design document, and they make it easy to add constraints such as
+  design document (a standard step-by-step method for very large problems), and they make it easy to add constraints such as
   non-negativity.
 - **Discrete tomography.** When the object is known to consist of a few
   materials, forcing the solution towards those few values gives good
@@ -527,10 +663,11 @@ light, records the brightness of the diffracted light, moves the object by
 less than the patch width, and repeats. Because neighbouring patches overlap,
 the recordings share information, and an iterative algorithm finds the one
 object that is consistent with all of them, phase included [M58, M59, M60].
-The same algorithm solves for the light patch itself [M59, M103], for errors
+The same algorithm solves for the light patch itself, which the field
+calls the probe [M59, M103], for errors
 in the positions [M61, M62], and for blurring from partial coherence,
 vibration or movement during the exposure, by modelling the light as a
-mixture of a few patterns [M63, M65]. Fourier ptychography swaps the roles:
+mixture of a few patterns, known as mixed states [M63, M65]. Fourier ptychography swaps the roles:
 the object stays still and the light direction changes, which is a synthetic
 aperture. It has been demonstrated in reflection as well as in transmission
 [M70].
@@ -547,7 +684,7 @@ computation.
 
 | Ptychography | This instrument |
 |---|---|
-| Object | Complex reflectance of the surface: brightness and height |
+| Object | Complex reflectance of the surface: how much light each point reflects, and how much it delays the light, which gives height |
 | Probe (the light patch) | The light pattern as seen in the sensor's frame, or a mask on the sensor |
 | Scan positions | Frame positions along the scan |
 | Overlap between positions | Nearly total: the sensor moves a fraction of a pixel per frame |
@@ -604,7 +741,10 @@ iterations it is of the order of 10¹⁵ operations, which is hours on a few
 graphics cards, not a research problem. The field has parallel
 implementations that split the object into tiles across many graphics cards
 [M67, M68], maximum-likelihood solvers that handle photon noise correctly
-[M66], and implementations built on automatic differentiation, in which
+[M66] (they pick the surface under which the photon counts actually
+recorded are the most probable), and implementations built on automatic differentiation (software that
+works out by itself how each unknown should be changed to improve the fit),
+in which
 adding a new unknown such as tilt is a matter of adding it to the forward
 model [M69].
 
@@ -621,7 +761,8 @@ twin image). Removing the ghost means recovering the phase.
 
 **The methods.** Alternate between the planes where something is known,
 enforcing the measured brightness in each [M76, M77]. Or state the whole
-problem as a fit and descend on it with gradients, which has guarantees when
+problem as a fit and improve it step by step, each time changing the
+estimate in the direction that most reduces the mismatch (gradient descent), which has guarantees when
 there are enough measurements [M79]. The theory is clear on what "enough"
 means: several times more independent brightness measurements than unknowns,
 and measurements that differ in kind and not only in position [M78].
@@ -637,7 +778,8 @@ measurements are diverse (section 3.7).
 
 **For a smooth surface with small features the problem is linear.** The
 optical elements page gives the linearised form, in which brightness depends
-linearly on reflectance and height. Then no iterative phase retrieval is
+linearly on reflectance and height: doubling a feature doubles its effect,
+and the effects of separate features simply add. Then no iterative phase retrieval is
 needed, and the design's fast solver applies with two unknown maps. Chips
 with nanometre-scale steps on a flat background are near this case.
 
@@ -660,7 +802,7 @@ backprojection, done by running the wave equation backwards in time [M83].
 Least-squares migration iterates it to remove the blur [M86]. Full-waveform
 inversion goes all the way: simulate the complete wave physics for a trial
 model of the ground, compare with the recordings, compute how to change the
-model to reduce the mismatch, and repeat [M84, M87]. The gradient comes from
+model to reduce the mismatch, and repeat [M84, M87]. The direction in which to change the model (the gradient) comes from
 one extra simulation run backwards (the adjoint method), whatever the number
 of unknowns.
 
@@ -674,7 +816,7 @@ of unknowns.
 
 **Why it matters here.** Lines of metal 100 nm wide and a few hundred
 nanometres tall are not thin marks on a flat surface. Light scatters between
-neighbouring lines, polarisation matters, and the simple models (surface
+neighbouring lines, polarisation (the direction in which the light wave vibrates) matters, and the simple models (surface
 times light, then propagate) are wrong in detail. Seismic imaging met the
 equivalent problem and its answer was to put the full physics inside the
 inversion. The simulation chain already plans a full electromagnetic solver,
@@ -721,9 +863,16 @@ reconstructed from far-field brightness measurements at a wavelength of
 phase [M94, M95]. That experiment used a microscope with lenses and
 deliberately sparse test objects.
 
-![Noise amplification for clusters of point features](diagrams/recon-sparsity-conditioning.svg)
+![Four rising curves showing noise amplification for clusters of two, three, four and six point features](diagrams/recon-sparsity-conditioning.svg)
 
-The figure is a best-case calculation: the positions of the features are
+*Figure: how much harder it becomes to tell apart features that are closer
+together than the limit allows. Across: how many times closer than the limit
+they are. Up: how many times the noise in the result is magnified, on a
+scale where each step is ten times more. Each curve is a cluster of two,
+three, four or six neighbouring features. Two features are cheap to
+separate. Six crowded features are hundreds to thousands of times harder.*
+
+The curves are a best-case calculation: the positions of the features are
 assumed known and only their brightnesses are solved for. Two features packed
 three times closer than the cut-off allows cost a noise amplification of 2.4,
 which a sixfold increase in samples pays for. Six features packed the same way
@@ -795,7 +944,7 @@ deal in what they buy.
 
 | Kind | Examples elsewhere | What it buys | Here |
 |---|---|---|---|
-| Random positions | Randomly spaced antenna arrays [M108], random sampling [M111, M112], compressed-sensing MRI [M114], irregular ptychography scans [M103, M124] | Removes repeats and aliases; turns structured errors into a faint even background | Random jitter added to the scan |
+| Random positions | Randomly spaced antenna arrays [M108], random sampling [M111, M112], compressed-sensing MRI [M114], irregular ptychography scans [M103, M124] | Removes repeats and aliases (false copies of detail that appear when sampling is too regular or too coarse); turns structured errors into a faint even background | Random jitter added to the scan |
 | Random waveforms | Noise radar [M107], coded exposure, random demodulation [M113] | No blind spots in time or frequency; every echo distinguishable | Random light pulse trains; random phases between beams |
 | Random light patterns and masks | Coded apertures [M32], speckle lighting [M115, M116, M123], diffuser cameras, ghost and single-pixel imaging [M117, M118] | Makes phase retrieval unambiguous; mixes all fine detail down at once | Speckle or random-phase lighting; a scattering layer on the sensor |
 | Random noise added to the signal | Dither [M109, M110], stochastic resonance [M119] | Removes quantisation steps so that averaging works below one step | Already supplied by photon noise in most conditions |
@@ -868,11 +1017,13 @@ noise of about half a step or more is present before the digitiser. Then the
 steps blur out and averaging recovers arbitrarily small changes
 [M109, M110]. This matters here because the fine fringes are weak (5 % of
 their true contrast or less after the pixel, section 2.1) and are recovered
-by averaging thousands of samples. With the design's starting values one
-step of a 10-bit readout is about 4 electrons. Photon noise at half of full
+by averaging thousands of samples. With the design's starting values (a pixel that holds at most 4500
+electrons of charge, its full well, and electronics that add 3 electrons of
+read noise) one step of a 10-bit readout is about 4 electrons. Photon noise at half of full
 well is about 47 electrons, so the light dithers itself. Only in dark areas
 does the noise (3 electrons of read noise) fall to the step size, and the
-cure is a little more analogue gain, not added noise. Stochastic resonance
+cure is a little more analogue gain (amplification before the
+digitiser), not added noise. Stochastic resonance
 [M119] is the same effect described for detectors with a threshold. It
 offers nothing further for a sensor that is already linear and already
 noisy. Beyond what dither needs, noise in the pixel values only costs
@@ -880,8 +1031,9 @@ signal-to-noise.
 
 **Modelling the randomness that is already there.**
 
-- *Photon noise.* It follows known statistics, and solvers that use the
-  correct likelihood in place of plain least squares recover weak signals
+- *Photon noise.* It follows known statistics, and solvers that weight each
+  measurement by its true photon statistics, in place of treating all
+  errors alike, recover weak signals
   better [M66, M122]. This matters most for the weak fine fringes.
 - *Motion.* Section 5. The irregular part of the motion is the useful part,
   once estimated.
@@ -898,8 +1050,9 @@ signal-to-noise.
   same holds here for vibration and drift: short light pulses and many
   frames preserve what a long exposure averages away.
 
-**What randomness cannot do.** It improves the conditioning of the problem
-and removes ambiguities. It does not widen the band of detail that crosses
+**What randomness cannot do.** It makes the problem better behaved, so that
+small errors in the data cause only small errors in the picture (better
+conditioning), and it removes ambiguities. It does not widen the band of detail that crosses
 the gap, and random noise in the brightness values never adds information.
 
 ### 3.13 What a two-dimensional array adds, across the fields
@@ -1010,7 +1163,7 @@ the calibration stage.
 | 1 | Coherent light straight down, phase recovered | Half the wavelength at best: 203 nm at 405 nm. Reported: 225 nm with an ultraviolet LED [M104] | Formula, literature |
 | 2 | Several light directions (synthetic aperture) | A quarter of the wavelength at best: 101 nm at 405 nm, 105 nm with light at 70°. Reported: 250 nm at 700 nm [M24] | Formula, literature |
 | 3 | Shorter wavelength | 94 nm at 375 nm, 66 nm at 266 nm | Formula |
-| 4 | Liquid in the gap, refractive index 1.5 | Step 2 or 3 divided by 1.5: 68 nm at 405 nm | Formula |
+| 4 | Liquid in the gap, refractive index 1.5 (light's wavelength is shorter inside the liquid by this factor) | Step 2 or 3 divided by 1.5: 68 nm at 405 nm | Formula |
 | 5 | Sparse features and layout priors | Up to two or three times finer than step 2, for isolated features only | Section 3.10 |
 | 6 | Fit dimensions of known shapes | Nanometres, but dimensions and not an image | Section 3.11 |
 
@@ -1109,6 +1262,10 @@ measurement, then solve for the instrument along with the image.
 | Light pattern, mask | Probe retrieval | Second unknown in the ptychographic solve | [M59, M103] |
 | Movement during exposure, bandwidth | Mixed states, fly scans | Model the frame as a sum of a few shifted patterns | [M63, M65] |
 
+*Diagram: the calibration loop. The surface and the instrument are
+estimated in turn, each using the latest estimate of the other, until the
+mismatch with the raw data stops falling.*
+
 ```mermaid
 flowchart TD
     R["Raw frames"] --> A["Register frames<br/>correlation of overlaps"]
@@ -1146,6 +1303,8 @@ What the other fields teach about doing this safely:
 Sizes follow the design document: one frame is 8 × 10⁶ samples, a scan is
 about 10⁴ frames, and the fine grid for one sensor footprint is 10⁸ to 10⁹
 cells. Costs are order-of-magnitude estimates, to be replaced by measurements.
+"Transform" in the table means a fast Fourier transform, and "reads raw
+frames" says how often the method has to go back to the full recorded data.
 
 | Method | Work per iteration | Iterations | Reads raw frames | Parallel over | Scale |
 |---|---|---|---|---|---|
@@ -1229,7 +1388,7 @@ in section 10 of the optical elements page.
 | 4 | `scan_jitter_nm` with a chosen spectrum, added on purpose. `pulse_pattern` drawn at random. `beam_phase` random per frame. `probe` generated as speckle with a grain size and seed. Per-pixel random response shape. Photon noise as true counting statistics. | Photon-noise likelihood in the solver. Speckle probe and beam phases as unknowns. | 1 and 3 | Random against regular on the same number of frames: fewer artefacts, same or better resolution, with the random quantities recovered |
 | 5 | Test surfaces generated from layout rules: `min_width_nm`, `min_space_nm`, `grid_nm`, `materials`. Defects that break the rules. | Constraint terms: few-valued surface, straight edges, sparsity. Mismatch map as a standard output. | 1 and 3 | Priors improve rule-following surfaces and do not hide injected defects in the mismatch map |
 | 6 | Patch-scale three-dimensional structures with material properties, simulated by the electromagnetic solver. | Patch refinement started from the stage before, using adjoint gradients. Dimensions of recognised structures as a by-product. | 4 | Recovers line width and height of a simulated grating to stated precision from level 4 data with noise |
-| 7 | None. | Linear combination that returns the output blur and noise covariance per tile. | 1 | Reported uncertainty matches the scatter over repeated noise realisations |
+| 7 | None. | Linear combination that returns the output blur, the noise level and how the noise in neighbouring cells is linked (the noise covariance), per tile. | 1 | Reported uncertainty matches the scatter over repeated noise realisations |
 
 Two general requirements on the simulator follow from the survey:
 
@@ -1255,6 +1414,11 @@ Seismic imaging formalised this as fitting long wavelengths first and adding
 shorter ones in steps [M85]. Radio astronomy alternates imaging and
 calibration, each pass starting from the last [M28]. Fourier ptychography
 starts from the low-resolution picture and widens the band outwards.
+
+*Diagram: the stages in order from top to bottom. Each box names what the
+stage does and the finest detail it reaches. Solid arrows pass the picture
+on to the next stage. Dotted arrows pass improved geometry back to earlier
+stages.*
 
 ```mermaid
 flowchart TD
