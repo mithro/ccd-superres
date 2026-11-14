@@ -37,6 +37,10 @@ in one and two dimensions). The more accurate simulation levels are planned.
 - Trade-off explorer: open [`explorer/index.html`](explorer/index.html) in a
   browser. Sliders for speed, frame rate, exposure, tilt, gap and noise, with
   the resulting figures and plots updating instantly. Nothing to install.
+- [Interactive explorer](docs/interactive-explorer.md): `python -m ccdsr.gui`
+  opens a page with a control for every setting. Each change reruns the
+  real simulator and redraws the setup, the raw readings and the
+  reconstructions of several methods side by side.
 - Tests: `pip install -e .[test]` then `pytest`.
 - [Diagram sources](docs/diagrams/make_diagrams.py): regenerate the figures
   with `python docs/diagrams/make_diagrams.py`.

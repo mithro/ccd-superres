@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive explorer: scanning sensor simulator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>Interactive explorer</h1>
+    <p class="sub">Change a setting and the real simulator reruns: the setup, the raw readings and the reconstruction all follow.</p>
+  </div>
+  <nav role="tablist">
+    <button role="tab" id="tab-1d" aria-selected="true">One dimension: all methods</button>
+    <button role="tab" id="tab-2d" aria-selected="false">Two dimensions: sensor tilt</button>
+  </nav>
+</header>
+
+<main id="view-1d">
+  <aside class="controls" aria-label="Settings">
+    <section>
+      <h2>Start from</h2>
+      <label class="row">An approach file
+        <select id="preset"></select>
+      </label>
+      <p class="help" id="preset-help"></p>
+      <label class="row">Test surface
+        <select id="scene"></select>
+      </label>
+      <div class="row split">
+        <label>Noise sample (seed) <input type="number" id="seed" min="0" step="1" value="0"></label>
+        <button id="reseed" type="button">New noise</button>
+        <button id="reset" type="button">Reset all</button>
+      </div>
+    </section>
+    <section>
+      <h2>Reconstruction</h2>
+      <fieldset>
+        <legend>What the reconstruction is told about positions</legend>
+        <label><input type="radio" name="positions" value="known" checked> The true position of every frame</label>
+        <label><input type="radio" name="positions" value="unknown"> Only the plan: constant speed</label>
+      </fieldset>
+      <p class="help">Tick any number of methods. All of them work on the same readings.</p>
+      <div id="methods"></div>
+    </section>
+    <section><h2>Sensor and gap</h2><div id="group-optics"></div></section>
+    <section><h2>Scan and motion</h2><div id="group-scan"></div></section>
+    <section><h2>Light and noise</h2><div id="group-noise"></div></section>
+  </aside>
+
+  <div class="results">
+    <div id="status" class="status" role="status"></div>
+    <section class="card">
+      <h2>How well each method did</h2>
+      <div class="scroll"><table id="scores"></table></div>
+      <p class="help">Every score is measured against the true surface, which only the simulator knows. Lower error is better. The share of a bar group is 1.00 when the bars come out at their true strength.</p>
+    </section>
+    <section class="card two">
+      <div>
+        <h2>The setup, from the side</h2>
+        <div id="setup"></div>
+      </div>
+      <div>
+        <h2>What these settings give</h2>
+        <table id="facts" class="facts"></table>
+      </div>
+    </section>
+    <section class="card">
+      <div class="head">
+        <h2>True surface and reconstructions</h2>
+        <div class="tools" id="zooms"></div>
+      </div>
+      <canvas id="plot-surface" height="320"></canvas>
+      <p class="help">Drag to move, scroll to zoom, double-click for the whole surface.
+        <label class="inline"><input type="checkbox" id="show-seen"> Also draw the surface as the blur leaves it, before sampling and noise</label></p>
+    </section>
+    <section class="card two">
+      <div>
+        <h2>Raw readings</h2>
+        <canvas id="plot-readings" height="260"></canvas>
+        <p class="help">One row per frame, one column per pixel. Brighter is more light. This is all the reconstruction gets.</p>
+      </div>
+      <div>
+        <h2>The path of the sensor</h2>
+        <canvas id="plot-path" height="260"></canvas>
+        <p class="help">How far each frame was from where constant speed would put it. Solved paths are drawn with their overall offset removed, because the readings cannot fix it.</p>
+      </div>
+    </section>
+    <section class="card">
+      <h2>How much of each detail size survives the blur</h2>
+      <canvas id="plot-blur" height="260"></canvas>
+      <p class="help">1 means a pattern repeating at that distance reaches the readings at full strength, 0 means it is wiped out. Vertical marks are the bar groups of the test surface.</p>
+    </section>
+    <section class="card">
+      <div class="head">
+        <h2>Keep these settings as an approach file</h2>
+        <div class="tools"><select id="file-method"></select><button id="copy" type="button">Copy</button></div>
+      </div>
+      <textarea id="file" readonly rows="12" spellcheck="false"></textarea>
+      <p class="help">Save the text under <code>approaches/</code> and name it in a comparison file to run it against the others with <code>python -m ccdsr.compare</code>.</p>
+    </section>
+  </div>
+</main>
+
+<main id="view-2d" hidden>
+  <aside class="controls" aria-label="Settings in two dimensions">
+    <section>
+      <h2>Two dimensions</h2>
+      <p class="help">A small square sensor is scanned over a picture of line groups. The top row of groups varies along the scan, the bottom row across it. Without tilt every row of pixels retraces the same lines, and detail across the scan is lost.</p>
+      <label class="row">Method <select id="method-2d"></select></label>
+      <div class="row split">
+        <label>Noise sample (seed) <input type="number" id="seed-2d" min="0" step="1" value="0"></label>
+        <button id="reset-2d" type="button">Reset all</button>
+      </div>
+    </section>
+    <section><h2>Settings</h2><div id="group-2d"></div></section>
+  </aside>
+  <div class="results">
+    <div id="status-2d" class="status" role="status"></div>
+    <section class="card two">
+      <div>
+        <h2>The sensor from above</h2>
+        <div id="footprint"></div>
+      </div>
+      <div>
+        <h2>How well it did</h2>
+        <table id="facts-2d" class="facts"></table>
+        <div class="scroll"><table id="groups-2d"></table></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>True picture</h2>
+      <canvas id="img-truth" class="img"></canvas>
+      <h2>Reconstruction</h2>
+      <canvas id="img-estimate" class="img"></canvas>
+      <p class="help">Both pictures are 35.8 µm wide and 17.9 µm high and use the same grey scale. The scan runs left to right.</p>
+    </section>
+    <section class="card">
+      <h2>One raw frame</h2>
+      <canvas id="img-frame" class="img small"></canvas>
+      <p class="help">What the sensor recorded half way through the scan, one square per pixel.</p>
+    </section>
+  </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

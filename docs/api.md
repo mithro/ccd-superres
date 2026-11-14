@@ -56,3 +56,12 @@ See [comparing approaches](comparison.md).
 .. automodule:: ccdsr.run
    :members:
 ```
+
+## Interactive explorer
+
+See the [interactive explorer](interactive-explorer.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.gui
+   :members: describe, default_request, presets, respond, respond_2d, approach_text, make_server, main
+```

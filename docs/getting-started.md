@@ -54,7 +54,7 @@ laser light are not built.*
 ```mermaid
 flowchart LR
     E["Explorer and calculator<br/>formulas only, instant<br/>(works today)"]
-    L1["Level 1 simulator<br/>blur, sampling, noise,<br/>reconstruction<br/>(works today)"]
+    L1["Level 1 simulator<br/>blur, sampling, noise,<br/>reconstruction,<br/>interactive explorer<br/>(works today)"]
     C["Comparison runner<br/>many approaches side by side<br/>(works today)"]
     W["Levels 2 to 4<br/>rays, waves, full<br/>electromagnetic solver<br/>(planned)"]
     E --> L1 --> C
@@ -138,7 +138,23 @@ The last line lists every scene, method and setting with its default.
 [`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py); they are Assumptions
 chosen for a small, fast test and are not the design values of table 1.*
 
-## Step 5: compare approaches
+## Step 5: explore with the mouse
+
+```
+python -m ccdsr.gui
+```
+
+This opens the [interactive explorer](interactive-explorer.md) in your
+browser: a control for every setting above, with the setup, the raw
+readings and the reconstructions of several methods redrawn on every
+change. It runs the same simulator as step 4.
+
+![The interactive explorer: settings on the left, scores, setup, reconstructions and raw readings on the right](diagrams/interactive-explorer-1d.png)
+
+*Figure 5. The interactive explorer. Explained on
+[its own page](interactive-explorer.md).*
+
+## Step 6: compare approaches
 
 ```
 python -m ccdsr.compare comparisons/level1-first.toml --out results/mine --workers 4
@@ -152,7 +168,7 @@ its name to
 The [comparison page](comparison.md) explains the files and shows the first
 results.
 
-## Step 6: use it from Python
+## Step 7: use it from Python
 
 The pages on [level 1](level1.md#running-it) and
 [reconstruction by elimination](constrained-reconstruction.md#running-it)
