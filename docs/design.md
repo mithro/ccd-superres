@@ -3,7 +3,8 @@
 Status: draft for review. The scan sampling calculator (section 5.4) and the
 trade-off explorer (section 5.6) are implemented. The simulator is not.
 The stated goal is features of about 100 nm on silicon chips; section 4.6
-works out what that demands.
+works out what that demands and section 4.7 sets out the stages towards a
+picture at that scale.
 Numbers marked "illustrative" come from the analytic model in section 4, not
 from simulation runs.
 
@@ -29,7 +30,7 @@ The simulator has two jobs:
 |---|---|
 | Optics | Lensless. The lenses on top of the sensor are removed. |
 | What is reconstructed | Surface reflectance first. Height is wanted too. Lighting is undecided. |
-| Target | Features of about 100 nm on silicon chips. Nanometre scale both laterally and in height. |
+| Target | A reconstructed picture of features of about 100 nm on silicon chips, reached in stages (section 4.7). Nanometre scale both laterally and in height. |
 | Effort | Significantly more computation is preferred over more hardware. |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
@@ -485,12 +486,62 @@ ordinary gaps. The same applies to finding an isolated 100 nm feature, which
 can be detected and located much more finely than it can be imaged. What
 this route cannot do is show an unknown, arbitrary pattern at 100 nm.
 
-So the first thing to settle with Tim is what "looking for 100 nm features"
-has to deliver: a picture of an unknown layout, or the detection, location
-and measurement of features on a chip whose design rules or layout are known.
-The first needs slanted laser light at 405 nm or shorter and is at the edge
-of what is possible at 100 nm. The second can lean almost entirely on
-computation.
+Tim has settled which of these is the goal: the picture is to be
+reconstructed, and it may be reached in several stages. The measuring routes
+above therefore become stages on the way to the picture, not alternatives to
+it.
+
+### 4.7 A staged path to the picture
+
+The end goal is a reconstructed picture of an unknown layout with features of
+about 100 nm. Each stage below is useful on its own, and each hands its result
+to the next as a starting estimate or a prior. Hardware is added only when a
+stage cannot proceed without it.
+
+```mermaid
+flowchart LR
+    S1["1. Coarse picture<br/>micrometre scale"]
+    S2["2. Detect and locate<br/>fine features"]
+    S3["3. Measure by<br/>fitting a model"]
+    S4["4. Full picture<br/>110 to 145 nm lines"]
+    S5["5. Full picture<br/>100 nm lines"]
+    S1 -->|"positions, gains,<br/>chip map"| S2
+    S2 -->|"edges, pitch and<br/>direction per region"| S3
+    S3 -->|"layout estimate"| S4
+    S4 -->|"picture and<br/>calibration"| S5
+```
+
+| Stage | What it produces | Hardware | Computation | Simulation levels | Passes on |
+|---|---|---|---|---|---|
+| 1. Coarse picture | A picture of the chip at micrometre scale: blocks, wide wiring, pads | The sensor, a scan and simple lighting | The linear solve of section 6, with frame positions estimated from the data | 0 and 1 | Position of every frame, speed, tilt, pixel gains, and a map of the chip to register everything else against |
+| 2. Detect and locate | Where fine structure is, without resolving it: edges, isolated lines and defects located to tens of nanometres, and for each region of regular pattern its repeat distance and direction, read from the direction in which it throws light | One 405 nm laser diode at a steep slant, pulsed | Moderate: wave model of an isolated feature, fitted per feature | 3, with 4 for the response of a single feature | A list of features and, per region, pitch and direction |
+| 3. Measure by fitting a model | Line widths, pitches and heights per region, as numbers with uncertainties: a layout described by parameters | A few more colours or slant directions, and a polariser | Large: the electromagnetic solver inside a fitting loop, thousands of runs, one independent job per region | 4 | A layout estimate: the best description of the chip that straight edges and a few materials allow |
+| 4. Full picture | A picture of the layout with lines of about 110 to 145 nm, not restricted to the assumed kinds of structure | Slanted 405 nm beams from several directions, including pairs switched on together (section 4.6) | Very large: iterative recovery of the light's phase over every frame, with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
+| 5. Full picture at 100 nm | The stated goal | 365 nm light or liquid in the gap, and possibly a sensor with its top layers removed | As stage 4 | 3 and 4 | The result |
+
+How each stage uses the one before:
+
+- **As a starting estimate.** The solve in stage 4 has many false solutions
+  and takes a long time from a blank start. Started from the layout estimate
+  of stage 3, it begins close to the answer.
+- **As a prior.** The layout estimate also enters stage 4 as a preference,
+  with a weight that is lowered step by step, so the final picture is held up
+  by the data and not by the assumption.
+- **As calibration.** Frame positions, pixel gains and the pixel's response
+  to fine stripes are estimated once in the early stages and refined, not
+  rediscovered, later.
+- **As a guide to where to look.** Stage 2 says which regions hold fine
+  structure, so the expensive stages run only there.
+
+Two checks keep the stages honest. Each picture from stage 4 or 5 is also
+reconstructed from a deliberately wrong starting layout, and only the detail
+that appears in both counts as seen. And each stage reports its result at the
+scale it can support, so a stage 3 number is never presented as a picture.
+
+In the simulator the stages are run in the same order on the default scene,
+which gives the first evidence of how far each one gets before any hardware
+is bought. Stage 5 is at the edge of what is possible (section 4.6), and the
+simulator's job is to say how close to 100 nm it comes and what limits it.
 
 ## 5. Baseline parameters
 
@@ -1020,21 +1071,18 @@ The build order follows the chain and is listed in
 
 Open questions for Tim:
 
-1. What must "looking for 100 nm features" deliver: a picture of an unknown
-   layout, or detecting, locating and measuring features on a chip whose
-   layout or design rules are known? Section 4.6 shows these lead to very
-   different instruments, and only the second can lean mainly on computation.
-2. Is ultraviolet light (365 nm) or liquid in the gap acceptable? Slanted
+1. Is ultraviolet light (365 nm) or liquid in the gap acceptable for the
+   last stage (section 4.7)? Slanted
    405 nm laser light alone reaches lines of about 110 to 145 nm, and one of
    those two is needed to image 100 nm lines and spaces.
-3. Is it still acceptable that the first hardware validates the method at
+2. Is it acceptable that the first hardware validates the method at
    micrometre scale (section 4.1), with the simulator used to specify the
    100 nm instrument?
-4. Section 5.3 concludes that removing only the module lens keeps the colour
+3. Section 5.3 concludes that removing only the module lens keeps the colour
    filter, and removing the microlenses loses it. The baseline assumes only
    the module lens is removed. Is that the intended first setup?
-5. Is there any constraint on lighting (side, through the sample, single
+4. Is there any constraint on lighting (side, through the sample, single
    colour) that should be fixed now? It decides which height mechanism in
    section 4.5 is worth modelling.
-6. What gap is realistically achievable in the first setup? This is the one
+5. What gap is realistically achievable in the first setup? This is the one
    number that most changes the results.

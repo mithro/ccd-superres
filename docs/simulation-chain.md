@@ -141,6 +141,10 @@ published in the documentation.
 | 10 | Level 4: electromagnetic solver on small patches | Pixel response at nanometre scale |
 | 11 | Checks between levels 3 and 4 | Measured limit of scalar waves, kernels for nanometre gaps |
 
+The build also follows the staged path to a 100 nm picture in
+[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture): steps
+3 to 5 cover its stage 1, and stages 2 to 5 need levels 3 and 4.
+
 Because the 100 nm target is decided by levels 3 and 4, one option is to
 bring a two-dimensional cross-section at level 4 forward, straight after step
 2, to check the estimates in section 4.6 of the design before the rest is
