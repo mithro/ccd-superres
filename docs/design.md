@@ -454,6 +454,18 @@ What this means for the target:
   In this model a mask with a 100 nm opening does not improve on an ideally
   sharp pixel, because the light it blocks costs as much signal as the
   sharper response gains, but it would help a pixel whose edges are soft.
+- **Two ways round the pixel's edges.** The optical elements study (section
+  9.3 there) lists two ways for fine detail to reach coarse pixels without
+  relying on edge sharpness. Lighting the chip with two slanted beams from
+  one laser at once lays light stripes of about 213 nm period on it (405 nm
+  at 72 degrees). A 200 nm pattern beats against those stripes into a
+  pattern of about 3 µm period, which the pixels read at nearly full
+  contrast. The other is to read the map of brightness of the scattered
+  light, which at a gap of about a millimetre lands hundreds of micrometres
+  from the mirror reflection. That one is unproven in this geometry and is a
+  question for levels 3 and 4. The proposed first measurement on real
+  hardware is pixel contrast against stripe period, using two laser beams
+  crossing on the sensor.
 - **A wave model for everything.** The matt-surface blur used by levels 0 and
   1 is the wrong physics for polished silicon. The answer for this target
   comes from levels 3 and 4. The calculator does not yet model slanted light
