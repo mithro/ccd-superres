@@ -61,8 +61,32 @@ def soft_edge(period_nm, sigma_nm):
     return np.exp(-2 * np.pi**2 * (np.asarray(sigma_nm, dtype=float) / period_nm) ** 2)
 
 
+def motion_transfer(period_nm, blur_nm, code_chips=0, code_duty=0.5):
+    """Contrast passed by the smear of the pixel during one exposure.
+
+    With the shutter (or the light) on for the whole exposure the smear is a
+    box of length ``blur_nm`` and the transfer is its sinc envelope, which
+    falls as ``period / (pi * blur)``.
+
+    With coded exposure the same window is cut into ``code_chips`` equal slots
+    and the light is on in a pseudo-random ``code_duty`` share of them. The
+    transfer of a random on-off code no longer falls with the window length.
+    Its typical level is ``sqrt((1 - duty) / open_slots)`` at every period
+    longer than one slot, and it only rolls off with the length of a single
+    slot, ``blur_nm / code_chips``. This is the expected magnitude over random
+    codes; a chosen code is somewhat flatter.
+    """
+    box = box_envelope(period_nm, blur_nm)
+    if not code_chips or code_chips <= 1:
+        return box
+    open_slots = code_chips * code_duty
+    slot = box_envelope(period_nm, np.asarray(blur_nm, dtype=float) / code_chips)
+    return slot * np.sqrt((1 - code_duty) / open_slots + box**2)
+
+
 def combined_transfer(period_nm, gap_nm, pitch_nm, blur_px=0.0, edge_sigma_nm=0.0,
-                      aperture_nm=None, gap_model="diffuse", wavelength_nm=550.0):
+                      aperture_nm=None, gap_model="diffuse", wavelength_nm=550.0,
+                      code_chips=0, code_duty=0.5):
     """Product of gap, pixel and motion transfer along the scan direction.
 
     ``aperture_nm`` is the width of the light-sensitive opening of a pixel. It
@@ -72,7 +96,7 @@ def combined_transfer(period_nm, gap_nm, pitch_nm, blur_px=0.0, edge_sigma_nm=0.
         gap_transfer(period_nm, gap_nm, gap_model, wavelength_nm)
         * box_envelope(period_nm, pitch_nm if aperture_nm is None else aperture_nm)
         * soft_edge(period_nm, edge_sigma_nm)
-        * box_envelope(period_nm, blur_px * pitch_nm)
+        * motion_transfer(period_nm, blur_px * pitch_nm, code_chips, code_duty)
     )
 
 
@@ -87,6 +111,8 @@ def recoverable_period(
     aperture_nm=None,
     gap_model="diffuse",
     wavelength_nm=550.0,
+    code_chips=0,
+    code_duty=0.5,
 ):
     """Smallest period whose signal still exceeds the noise after averaging.
 
@@ -106,7 +132,7 @@ def recoverable_period(
         period = math.exp(log_period)
         n_cell = n_per_pixel_area * (period / (2 * pitch_nm)) ** 2
         signal = float(combined_transfer(period, gap_nm, pitch_nm, blur_px, edge_sigma_nm,
-                                         aperture, gap_model, wavelength_nm))
+                                         aperture, gap_model, wavelength_nm, code_chips, code_duty))
         return math.log(signal * contrast * snr * math.sqrt(n_cell) + 1e-300)
 
     lo, hi = math.log(1e-2), math.log(1e12)
@@ -142,14 +168,44 @@ def explore(
     aperture_nm: float | None = None,
     gap_model: str = "diffuse",
     wavelength_nm: float = 550.0,
+    code_chips: int = 0,
+    code_duty: float = 0.5,
+    light_limited: bool = False,
+    read_noise_e: float = 0.0,
 ) -> Resolution:
-    """Sampling figures plus the analytic resolution estimate for one setting."""
+    """Sampling figures plus the analytic resolution estimate for one setting.
+
+    ``code_chips`` above 1 selects coded exposure (see :func:`motion_transfer`).
+    The light is then on for ``code_duty`` of the exposure, and the
+    signal-to-noise is scaled by the square root of that share.
+
+    ``light_limited`` makes the signal-to-noise follow the light collected:
+    ``snr_single`` then refers to an exposure filling the whole frame period,
+    and a shorter exposure scales it by the square root of its share of the
+    frame. Leave it off when the source is bright enough to fill the pixel in
+    any exposure.
+
+    ``read_noise_e`` is the noise the sensor adds to every reading, in
+    electrons. It matters only when light is reduced: ``snr_single`` squared
+    is taken as the electrons collected at full light, and with a share
+    ``a`` of that light the signal-to-noise becomes
+    ``a S / sqrt(a S + r^2)``, rescaled so that full light gives
+    ``snr_single``. With no read noise this is the square root of ``a``.
+    """
     b = scan_budget(sensor, scan, seed)
     pitch_nm = sensor.pitch_um * 1e3
     n = b.samples_per_point * passes
     aperture = pitch_nm if aperture_nm is None else aperture_nm
-    noise = recoverable_period(n, gap_nm, pitch_nm, snr_single, contrast, b.blur_px,
-                               edge_sigma_nm, aperture, gap_model, wavelength_nm)
+    coded = bool(code_chips and code_chips > 1)
+    light = code_duty if coded else 1.0
+    if light_limited:
+        light *= min(1.0, b.exposure_s * scan.fps)
+    full = snr_single**2
+    snr = snr_single * light * math.sqrt((full + read_noise_e**2) / (light * full + read_noise_e**2))
+    chips = code_chips if coded else 0
+    noise = recoverable_period(n, gap_nm, pitch_nm, snr, contrast, b.blur_px,
+                               edge_sigma_nm, aperture, gap_model, wavelength_nm,
+                               chips, code_duty)
     # A square grid with spacing s has largest hole s / sqrt(2); Nyquist period is 2 s.
     sampling = 2 * math.sqrt(2) * b.coverage.largest_hole_px * pitch_nm
     period = max(noise, sampling)
@@ -158,7 +214,7 @@ def explore(
     else:
         t_gap = float(gap_transfer(period, gap_nm, gap_model, wavelength_nm))
         t_pix = float(box_envelope(period, aperture) * soft_edge(period, edge_sigma_nm))
-        t_mot = float(box_envelope(period, b.blur_px * pitch_nm))
+        t_mot = float(motion_transfer(period, b.blur_px * pitch_nm, chips, code_duty))
     if sampling > noise:
         limited = "sampling pattern"
     else:

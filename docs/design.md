@@ -32,6 +32,8 @@ The simulator has two jobs:
 | What is reconstructed | Surface reflectance first. Height is wanted too. Lighting is undecided. |
 | Target | A reconstructed picture of features of about 100 nm on silicon chips, reached in stages (section 4.7). Nanometre scale both laterally and in height. |
 | Effort | Significantly more computation is preferred over more hardware. |
+| Randomness | Deliberately adding random noise, and modelling the randomness already present, to improve the reconstruction is in scope (section 5.8). |
+| Sensor control | The sensor's control functions are expected to be pulled apart and driven differently from the stock camera, so the readout scheme is a replaceable model (section 5.7). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
@@ -56,6 +58,9 @@ cards and hundreds of cores. The design follows that in four ways:
 - **Collect far more data than strictly needed.** Extra passes, tilts,
   wavelengths and lighting directions cost scan time and computation, not
   hardware.
+- **Randomness is a tool.** Random variation that is modelled or measured
+  becomes sampling diversity instead of error, and randomness added on
+  purpose removes regular gaps in what the instrument records (section 5.8).
 - **No speed limit on the methods.** Nothing has to run in real time, so
   slow iterative, joint and model-fitting methods are acceptable, and so is a
   full electromagnetic solver inside a fitting loop.
@@ -549,6 +554,84 @@ which gives the first evidence of how far each one gets before any hardware
 is bought. Stage 4 is at the edge of what is possible (section 4.6), and the
 simulator's job is to say how close to 100 nm it comes and what limits it.
 
+### 4.8 Motion blur: cause, model and reversal
+
+**Cause.** A pixel does not take an instant reading. It adds up light for
+the whole exposure, and during that time it keeps moving. Each reading is
+therefore the average of the surface along the short track the pixel swept,
+of length speed × exposure. In the worked example of section 5.4 (20% of the
+sensor per second, 10 frames per second, exposed for the whole frame) that
+track is 73.5 µm, or 65.6 pixels.
+
+**Model.** This blur is the best known part of the whole instrument. It is
+a one-dimensional smear along the scan direction with the shape of the
+exposure in time: a flat box when the light and shutter are on throughout.
+The simulator carries it as an explicit term $B_\text{motion}$ of the forward
+operator (section 3.1), built from the exposure pattern and the trajectory,
+not as a fixed number:
+
+- With constant speed, it is a box of length $v\,t_\text{exp}$.
+- With speed that varies, it is the record of where the pixel was during
+  that exposure. Once the trajectory has been estimated (section 6.4) this
+  is known per frame.
+- With a rolling shutter, each row starts its exposure one line time after
+  the row before. The smear has the same shape for every row, and each row
+  is shifted along the scan by a known amount, 14 nm per row in the worked
+  example (speed × 18.9 µs line time). That shift is extra sub-pixel
+  sampling, obtained for nothing.
+- With the light switched in a pattern during the exposure, it is that
+  pattern laid along the track.
+
+**Reversal.** Because the smear is part of the forward operator, the
+reconstruction of section 6 reverses it together with everything else, with
+no separate step. What decides how well this works is how much of each
+detail size the smear lets through:
+
+| Exposure pattern | What passes at feature period $\Lambda$, smear length $L$ | Consequence |
+|---|---|---|
+| On throughout | At most $\Lambda / (\pi L)$, and exactly zero wherever $L$ is a whole number of periods | Reversible, but fine detail arrives very weak. At $L$ = 73.5 µm a 200 nm period keeps 1/1154 of its contrast. Detail across the scan is untouched. |
+| Short pulse, light on for a share $1/N$ of the frame | Everything, down to the pulse's own smear $L/N$ | Nothing to reverse. Collects $1/N$ of the light unless the source is bright enough to make up for it. |
+| Coded: $N$ slots, on in a random half of them | About $1/\sqrt{N/2}$ at every period down to one slot $L/N$, with no zeros | Reversible with a known, even loss. Collects half the light. |
+
+Smallest recoverable period for the worked example with a 6.25% tilt, a
+100 nm gap and a matt surface, where the smear is the only thing that
+differs:
+
+| Exposure | Source bright enough to fill the pixel in any exposure | Light proportional to on-time, read noise 2 electrons |
+|---|---|---|
+| On throughout (73.5 µm smear) | 1.8 µm | 1.8 µm |
+| Pulse of 0.38 ms (quarter-pixel smear) | 0.39 µm | 0.85 µm |
+| Pulse of 24 µs (18 nm smear) | 0.39 µm | 2.1 µm |
+| Coded, 1024 slots | 1.1 µm | 1.1 µm |
+| Coded, 4096 slots | 1.5 µm | 1.5 µm |
+
+What this says:
+
+- **Yes, the blur can be modelled exactly and reversed**, and the simulator
+  does so. Reversal does not make continuous exposure as good as a frozen
+  image, because what the smear removed has to be amplified back along with
+  the noise.
+- **With a bright pulsed source, a short pulse is simply best.** A laser
+  diode delivers enough light in microseconds to fill a pixel this small, so
+  for the staged plan of section 4.7 pulsing is the baseline.
+- **When light is limited, there is a best pulse length**, neither the
+  shortest nor the longest, and the explorer finds it by sweeping exposure.
+- **Coded exposure does not beat the best pulse when the noise comes from
+  the light itself.** It collects more light but spreads each detail thinly,
+  and the two effects cancel. It wins when the sensor's read noise dominates,
+  which is the case for very short pulses from a weak source, and when the
+  source cannot be pulsed hard. It is included as an option for those cases,
+  and because its random pattern needs no synchronisation with the motion.
+- **The zeros of the plain smear can be filled** by using two exposure
+  lengths, or by natural speed variation between frames, since frames with
+  different smears have their zeros in different places.
+
+The sensor can also shorten the exposure itself, down to one line time, with
+no change to the light (section 5.7).
+
+The explorer has an "Exposure pattern" setting for comparing the three, a
+choice of whether light is proportional to on-time, and the read noise.
+
 ## 5. Baseline parameters
 
 ### 5.1 Sensor
@@ -779,7 +862,9 @@ What it does:
 
 - **Controls:** sensor model, speed, frame rate, exposure or light pulse
   length, tilt, random position error, number of passes, gap, pixel edge
-  softness, single-sample signal-to-noise and feature contrast, plus the
+  softness, single-sample signal-to-noise and feature contrast, the exposure
+  pattern (on throughout or coded), whether light is proportional to
+  on-time, the read noise, plus the
   surface type (matt, or mirror-like under a directed beam), the wavelength
   and a mask opening on each pixel. Exposure is a
   free parameter from continuous down to a hundred-thousandth of the frame
@@ -806,6 +891,115 @@ attenuated signal equals the averaged noise, and the period that the sample
 positions can represent (twice the effective sample spacing). It carries the
 simplifications of the analytic model. The full simulator of section 11 is
 what will confirm or correct it.
+
+### 5.7 Sensor control and readout as a replaceable model
+
+Tim expects to pull apart the control functions of the sensor and drive it
+differently from a stock camera. The simulator therefore does not build in
+"a full frame, read top to bottom by a rolling shutter". The readout scheme
+is its own model, and the standard frame is one instance of it.
+
+A readout scheme answers one question for every reading the sensor
+produces: which pixels were combined, when did the exposure start, in what
+pattern was it open, with what gain, and when was the light on. The forward
+model takes that list and nothing else, so any scheme that can produce the
+list can be simulated and reconstructed without changes elsewhere.
+
+| What a scheme controls | Effect on sampling and blur |
+|---|---|
+| Which rows and columns are read, and in what order | Where the samples go. Reading a narrow window repeats it far more often. |
+| Exposure start for each row | A known shift per row along the scan: sub-pixel sampling for nothing |
+| Exposure length, overall or per row | The length of the motion smear, and the light collected |
+| Reset and sampling instants within a row | The exact shape of the exposure in time |
+| Binning | A larger, more sensitive pixel footprint, and fewer readings |
+| Analogue gain | Read noise and quantisation relative to the signal |
+| Raw output | Readings before any correction, colour processing or compression. Required: the reconstruction needs unprocessed values. |
+| Light pulses tied to row timing | Freezes motion per row, or lays a code along the track (section 4.8) |
+
+What the IMX219 offers, and what needs another sensor. The first column is
+from the sensor's public Linux driver and Raspberry Pi camera modes, not yet
+checked against the datasheet register by register.
+
+| Control | IMX219 through its registers | Otherwise |
+|---|---|---|
+| Raw 10-bit unprocessed output | Yes | |
+| Read window of any size and position | Yes | |
+| Frame rate through window height and blanking | Yes: about 21 frames per second for the full array, hundreds for a strip of rows | |
+| Exposure length, in whole lines of 18.9 µs, the same for every row | Yes, from one line upwards | |
+| Binning 2 × 2 | Yes | |
+| Analogue gain, about 1 to 10 times | Yes | |
+| Flipped read direction | Yes | |
+| Frame start from an external trigger, and a strobe output for the light | To be checked. The global-shutter IMX296 camera has both. | Derive pulse timing from the sensor's own clock and frame signal |
+| All rows exposed at the same instant | No | A global-shutter sensor such as the IMX296 |
+| Rows read in an arbitrary or random order | No | Driving the row-select lines directly, or a sensor with random access |
+| Different exposure per row or per pixel | No | Direct control of the reset lines, or a research sensor |
+| Exposure shorter than one line, or coded within a line | No | Do it with the light instead (section 4.8) |
+| Reading a pixel several times without resetting it | No | Direct control of the pixel timing |
+
+How the schemes available today change the figures, at the same speed as the
+worked example (20% of the sensor length per second, 735 µm/s):
+
+| Scheme | Frame rate | Shift per frame | Samples per point | Motion smear | Width covered |
+|---|---|---|---|---|---|
+| Full array, exposed for the whole frame | 10 | 65.6 pixels | 50 per pixel column, 13,000 with tilt | 73.5 µm | 2.76 mm |
+| Full array, exposure of one line | 21 | 31.2 pixels | 105 | 14 nm | 2.76 mm |
+| Full array, exposure of four lines | 21 | 31.2 pixels | 105 | 56 nm | 2.76 mm |
+| Strip of 100 rows, exposed for the whole frame | 401 | 1.64 pixels | 2,008 | 1.8 µm | 112 µm |
+| Strip of 100 rows, exposure of one line | 401 | 1.64 pixels | 2,008 | 14 nm | 112 µm |
+| Strip of 16 rows, exposure of one line | 1,102 | 0.60 pixels | 5,521 | 14 nm | 18 µm |
+
+Two things stand out. The sensor's own shortest exposure already freezes
+motion to 14 nm at this speed, so motion blur can be removed without a
+pulsed light, at the cost of light. And windowing does not create more
+readings, because the sensor reads a fixed number of pixels per second. It
+chooses where they go: many samples of a narrow strip, or few samples of a
+wide one.
+
+The frame rates for strips assume 32 lines of overhead per frame and are to
+be confirmed on hardware.
+
+How far Tim's control goes decides which rows of the second table are in
+play: the registers only, or direct drive of the row, reset and column
+lines. That is open question 6.
+
+### 5.8 Randomness as a tool
+
+Tim has put two things in scope: adding random noise on purpose, and
+modelling the randomness that is already there, where either improves the
+reconstruction. Both rest on one fact. A regular instrument has regular
+blind spots: sample positions that repeat exactly, smears with zeros at
+exact sizes, steps in the digitiser, light that always arrives the same way.
+Randomness spreads those concentrated losses into a thin, even loss that
+averaging over many readings removes. It does not add information to any
+single reading, and each use below costs something, which the simulator has
+to show next to the gain.
+
+Randomness added on purpose:
+
+| Use | What it fixes | Cost | Simulator parameter |
+|---|---|---|---|
+| Coded exposure: light on in a random pattern within each exposure | The zeros and the steady fall-off of the motion smear (section 4.8) | Half the light, and an even loss of contrast | `code_chips`, `code_duty`, `code_seed` (in the calculator and explorer now) |
+| Random frame timing | The exact repeat of the shift per frame, which leaves most sub-pixel positions unvisited (section 5.5) | None, if the times are recorded | `frame_time_jitter` |
+| Position dither or vibration between frames | The same, across the scan as well as along it. It can replace the tilt. | Motion during an exposure is blur, so it must be slow or the exposure short | `jitter_px` (in the calculator and explorer now), `dither_pattern` |
+| Random light: speckle, or a random phase or brightness pattern on the beam | Detail finer than the pixels reaches them as coarser beat patterns, and the phase-recovery solve of stage 2 gains the variety it needs | The pattern must be known or solved for | `illumination_pattern`, `illumination_seed` |
+| Random read order or random choice of window | Regular gaps in time between visits to a point | Needs the control of section 5.7 | Part of the readout scheme |
+| Noise added before the digitiser | Steps of the digitiser, when the signal changes by less than one step. Averaging then resolves below a step. | Slightly more noise per reading. The sensor's own noise is often enough already. | `dither_dn`, `bit_depth` |
+
+Randomness that is already there, modelled and estimated:
+
+| Random process | How it is used | Estimated from | Simulator parameter |
+|---|---|---|---|
+| Position error of each frame | Becomes the sub-pixel sampling pattern, once measured | The frames themselves (section 6.4) | `jitter_px`, speed and wobble terms of section 3.2 |
+| Speed variation within and between frames | Gives each frame a slightly different smear, which fills the zeros of the others | The trajectory estimate | `speed_noise` |
+| Gain of each pixel | Removed as an error. It also labels each pixel, which helps registration. | The scan: every pixel sees the same surface | `gain_sigma` |
+| Sensitivity pattern inside each pixel | Pixels are not identical inside. Once measured (stage 0), the differences act as a fixed random mask over the sensor and carry detail finer than a pixel. | Stage 0 measurement, then refined in the solve | `pixel_response_sigma` |
+| Read noise and its pixel-to-pixel differences | Each reading is weighted by its own reliability. Noisy and flickering pixels count for less. | Dark frames, and residuals of the solve | `read_noise_e`, `read_noise_map` |
+| Light level per pulse | Removed as a per-frame factor | The frames | `pulse_energy_sigma` |
+
+Every entry is a parameter with a seed, so a run can be repeated exactly,
+and each can be switched off. The validation plan (section 8) includes, for
+each one, the same scene reconstructed with and without it, so the gain is a
+measured number and not a claim.
 
 ## 6. Reconstruction
 
@@ -1092,3 +1286,7 @@ Open questions for Tim:
    section 4.5 is worth modelling.
 5. What gap is realistically achievable in the first setup? This is the one
    number that most changes the results.
+6. How deep does control of the sensor go: its registers only, or direct
+   drive of the row, reset and column lines of a sensor taken apart, or a
+   different sensor chosen for its control? Section 5.7 lists what each
+   allows.

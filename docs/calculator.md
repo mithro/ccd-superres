@@ -78,6 +78,11 @@ pixel. For the 100 nm target:
 result = explore(sensor, scan, gap_nm=100, gap_model="collimated", wavelength_nm=405)
 ```
 
+`code_chips` selects coded exposure, `light_limited=True` makes the
+signal-to-noise follow the light collected, and `read_noise_e` adds the
+sensor's read noise to that. A strip readout is a `Sensor` with fewer rows
+across the scan, for example `Sensor(n_across=100)`, at a higher frame rate.
+
 These are estimates from closed-form formulas. They assume straight-on light
 and exactly known sample positions. The higher levels of the
 simulation chain exist to confirm or correct them.

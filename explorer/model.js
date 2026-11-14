@@ -87,12 +87,24 @@
     return boxEnvelope(periodNm, apertureNm) * softEdge(periodNm, edgeSigmaNm);
   }
 
-  /* o: {apertureNm, gapModel, wavelengthNm}, all optional. */
+  /* Smear during one exposure. A plain exposure is a box. Coded exposure cuts
+   * it into codeChips slots, on in a pseudo-random codeDuty share of them; its
+   * typical transfer is flat at sqrt((1 - duty) / open slots) down to the
+   * length of one slot. */
+  function motionTransfer(periodNm, blurNm, codeChips, codeDuty) {
+    const box = boxEnvelope(periodNm, blurNm);
+    if (!codeChips || codeChips <= 1) return box;
+    const duty = codeDuty || 0.5;
+    const slot = boxEnvelope(periodNm, blurNm / codeChips);
+    return slot * Math.sqrt((1 - duty) / (codeChips * duty) + box * box);
+  }
+
+  /* o: {apertureNm, gapModel, wavelengthNm, codeChips, codeDuty}, all optional. */
   function combinedTransfer(periodNm, gapNm, pitchNm, blurPx, edgeSigmaNm, o) {
     const q = o || {};
     return gapTransfer(periodNm, gapNm, q.gapModel, q.wavelengthNm) *
       pixelTransfer(periodNm, q.apertureNm || pitchNm, edgeSigmaNm) *
-      boxEnvelope(periodNm, blurPx * pitchNm);
+      motionTransfer(periodNm, blurPx * pitchNm, q.codeChips, q.codeDuty);
   }
 
   /* Contrast a feature of this period needs for its signal to equal the noise. */
@@ -260,14 +272,20 @@
     const contrast = params.contrast != null ? params.contrast : 1;
     const edge = params.edgeSigmaNm || 0;
     const apertureNm = Math.min(params.apertureNm || pitchNm, pitchNm);
+    const coded = params.codeChips > 1;
+    const codeDuty = params.codeDuty || 0.5;
+    let light = coded ? codeDuty : 1;
+    if (params.lightLimited) light *= Math.min(1, exposureS * params.fps);
+    const rn = params.readNoiseE || 0;
+    const snrLight = snr * light * Math.sqrt((snr * snr + rn * rn) / (light * snr * snr + rn * rn));
     const optics = { apertureNm: apertureNm, gapModel: params.gapModel || "diffuse",
-      wavelengthNm: params.wavelengthNm || 550 };
-    const noiseNm = recoverablePeriod(n, params.gapNm, pitchNm, snr, contrast, blurPx, edge, optics);
+      wavelengthNm: params.wavelengthNm || 550, codeChips: coded ? params.codeChips : 0, codeDuty: codeDuty };
+    const noiseNm = recoverablePeriod(n, params.gapNm, pitchNm, snrLight, contrast, blurPx, edge, optics);
     const samplingNm = 2 * Math.SQRT2 * cov.holePx * pitchNm;
     const period = Math.max(noiseNm, samplingNm);
     const tGap = isFinite(period) ? gapTransfer(period, params.gapNm, optics.gapModel, optics.wavelengthNm) : 0;
     const tPix = isFinite(period) ? pixelTransfer(period, apertureNm, edge) : 0;
-    const tMot = isFinite(period) ? boxEnvelope(period, blurPx * pitchNm) : 0;
+    const tMot = isFinite(period) ? motionTransfer(period, blurPx * pitchNm, optics.codeChips, codeDuty) : 0;
     let limitedBy;
     if (samplingNm > noiseNm) limitedBy = "sampling pattern";
     else {
@@ -301,7 +319,8 @@
       transferPixel: tPix,
       transferMotion: tMot,
       snrSingle: snr,
-      snrEffective: snr * apertureNm / pitchNm,
+      snrEffective: snrLight * apertureNm / pitchNm,
+      lightFactor: light,
       optics: optics,
       contrast: contrast,
       edgeSigmaNm: edge,
@@ -310,7 +329,7 @@
   }
 
   return {
-    SENSORS, besselK1, gapTransfer, boxEnvelope, softEdge, pixelTransfer, combinedTransfer,
+    SENSORS, besselK1, gapTransfer, boxEnvelope, motionTransfer, softEdge, pixelTransfer, combinedTransfer,
     requiredTransfer, recoverablePeriod, samplePhases, coverage, largestHole, explore,
   };
 });

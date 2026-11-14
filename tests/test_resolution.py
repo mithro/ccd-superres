@@ -47,3 +47,16 @@ def test_mask_trades_light_for_resolution():
     bare = recoverable_period(1.3e4, 50.0, edge_sigma_nm=100.0)
     masked = recoverable_period(1.3e4, 50.0, edge_sigma_nm=0.0, aperture_nm=100.0)
     assert masked < bare
+
+
+def test_coded_exposure_keeps_fine_detail():
+    from ccdsr.resolution import motion_transfer
+
+    blur = 73_500.0  # nm, continuous exposure at 20% per second and 10 frames per second
+    plain = float(motion_transfer(200.0, blur))
+    coded = float(motion_transfer(200.0, blur, code_chips=4096))
+    assert plain == pytest.approx(200 / (math.pi * blur), rel=1e-6)
+    assert coded == pytest.approx(math.sqrt(1 / 4096), rel=0.05)
+    # No code: unchanged. Long periods: both pass everything.
+    assert float(motion_transfer(200.0, blur, code_chips=0)) == plain
+    assert float(motion_transfer(1e9, blur, code_chips=4096)) == pytest.approx(1.0, rel=1e-3)

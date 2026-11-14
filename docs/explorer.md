@@ -20,6 +20,9 @@ simulation, only the analytic model, which is why it is instant.
   blur, with the level needed to beat the noise.
 - **A sweep** of the recoverable feature size against any one setting, with
   everything else held fixed.
+- **Exposure patterns.** Light on throughout, a short pulse, or a coded
+  random pattern within each exposure, with a choice of whether the light
+  collected is proportional to on-time, and the sensor's read noise.
 - **The 100 nm target.** A preset for 100 nm features on silicon, a choice
   between a matt surface and a mirror-like one under a directed beam, the
   wavelength, and a mask opening on each pixel. The 200 nm period of the

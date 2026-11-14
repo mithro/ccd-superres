@@ -64,6 +64,8 @@
     { id: "fps", label: "Frame rate", scale: log(1, 200), def: 10, fmt: (v) => sig(v) + " frames/s" },
     { id: "exposure", label: "Exposure or light pulse", scale: log(1e-5, 1), def: 1,
       fmt: (v, r) => (v > 0.999 ? "continuous · " : sig(v * 100) + "% of frame · ") + (r ? fmtTime(r.exposureS) : "") },
+    { id: "chips", label: "Coded exposure: on-off slots per exposure", scale: log(2, 65536), def: 1024,
+      fmt: (v, r) => Math.round(v) + " slots" + (r ? " · one slot smears " + fmtLen(r.blurPx * r.pitchNm / Math.round(v)) : "") },
     { id: "tilt", label: "Sensor tilt", scale: lin(0, 0.2), def: 0,
       fmt: (v) => "tan θ = " + v.toFixed(4) + " · " + (Math.atan(v) * 180 / Math.PI).toFixed(2) + "°" },
     { id: "jitter", label: "Random position error per frame", scale: lin(0, 2), def: 0,
@@ -78,19 +80,21 @@
     { id: "wavelength", label: "Wavelength (collimated light only)", scale: log(150, 1000), def: 405, fmt: (v) => fmtLen(v) },
     { group: "Signal" },
     { id: "snr", label: "Signal-to-noise of one sample", scale: log(5, 500), def: 50, fmt: (v) => sig(v) },
+    { id: "readNoise", label: "Sensor read noise (matters when light is reduced)", scale: lin(0, 20), def: 2, fmt: (v) => v.toFixed(1) + " electrons" },
     { id: "contrast", label: "Feature contrast", scale: log(0.01, 1), def: 1, fmt: (v) => sig(v * 100) + "%" },
   ];
 
   const PRESETS = [
     { name: "20% per second at 10 frames/s", set: { fraction: 0.2, fps: 10, exposure: 1, tilt: 0, jitter: 0, passes: 1 } },
     { name: "Same, 0.3 ms light pulse and tilt", set: { fraction: 0.2, fps: 10, exposure: 0.003, tilt: 0.0625, jitter: 0, passes: 1 } },
+    { name: "Same, coded exposure", set: { fraction: 0.2, fps: 10, exposure: 1, tilt: 0.0625, jitter: 0, passes: 1, exposureMode: "coded", chips: 4096 } },
     { name: "Same, pulse and natural jitter only", set: { fraction: 0.2, fps: 10, exposure: 0.003, tilt: 0, jitter: 0.5, passes: 1 } },
     { name: "Slow scan, quarter pixel per frame", set: { fraction: 0.25 * 30 / 3280, fps: 30, exposure: 1, tilt: 0.0625, jitter: 0, passes: 1 } },
     { name: "100 nm features on silicon", set: { fraction: 0.05 * 30 / 3280, fps: 30, exposure: 1, tilt: 0.0625, jitter: 0, passes: 1,
       gap: 100, edge: 0, mask: 100 / 1120, wavelength: 405, gapModel: "collimated", sensor: "imx219" } },
   ];
 
-  const state = { sensor: "imx219", sweep: "gap", gapModel: "diffuse" };
+  const state = { sensor: "imx219", sweep: "gap", gapModel: "diffuse", exposureMode: "plain", light: "fixed" };
   const TARGET_NM = 200;   // 100 nm lines and spaces
   CONTROLS.forEach((c) => { if (c.id) state[c.id] = c.def; });
 
@@ -102,6 +106,8 @@
       jitterPx: st.jitter, passes: st.passes, gapNm: st.gap, edgeSigmaNm: st.edge,
       snrSingle: st.snr, contrast: st.contrast,
       gapModel: st.gapModel, wavelengthNm: st.wavelength,
+      codeChips: st.exposureMode === "coded" ? Math.round(st.chips) : 0, codeDuty: 0.5,
+      lightLimited: st.light === "limited", readNoiseE: st.readNoise,
       apertureNm: st.mask * M.SENSORS[st.sensor].pitchUm * 1e3,
     };
   }
@@ -268,6 +274,7 @@
     wavelength: { label: "Wavelength", key: "wavelength", range: [150, 1000], fmt: fmtLen, axis: "wavelength (collimated light only)" },
     mask: { label: "Sensitive width", key: "mask", range: [0.02, 1], fmt: (v) => sig(v * 100, 2) + "%", axis: "light-sensitive width (share of the pixel pitch)" },
     edge: { label: "Edge softness", key: "edge", range: [5, 1000], fmt: fmtLen, axis: "pixel edge softness" },
+    chips: { label: "Coded slots", key: "chips", range: [2, 65536], fmt: (v) => fmtCount(Math.round(v)), axis: "on-off slots per exposure (coded exposure only)" },
     exposure: { label: "Exposure", key: "exposure", range: [1e-5, 1], fmt: (v) => sig(v * 100, 2) + "%", axis: "exposure (share of the frame period)" },
     snr: { label: "Signal-to-noise", key: "snr", range: [5, 500], fmt: (v) => sig(v, 2), axis: "signal-to-noise of one sample" },
     passes: { label: "Passes", key: "passes", range: [1, 1000], fmt: (v) => sig(v, 2), axis: "passes over the surface" },
@@ -287,13 +294,28 @@
     const presets = h("div", { class: "presets", role: "group", "aria-label": "Presets" });
     PRESETS.forEach((p) => {
       const b = h("button", { class: "preset", type: "button", text: p.name });
-      b.addEventListener("click", () => { Object.assign(state, p.set); syncControls(); update(); });
+      b.addEventListener("click", () => { Object.assign(state, { exposureMode: "plain" }, p.set); syncControls(); update(); });
       presets.append(b);
     });
     wrap.append(presets);
 
     const layout = h("div", { class: "layout" });
     const controls = h("section", { class: "controls", "aria-label": "Settings" });
+    const expSel = h("select", { id: "ctl-expmode" });
+    expSel.append(h("option", { value: "plain", text: "On for the whole exposure" }),
+      h("option", { value: "coded", text: "Coded: random on-off pattern within the exposure" }));
+    expSel.addEventListener("change", () => { state.exposureMode = expSel.value; update(); });
+    refs.exposureMode = expSel;
+    const lightSel = h("select", { id: "ctl-light" });
+    lightSel.append(h("option", { value: "fixed", text: "Same at any exposure (bright source)" }),
+      h("option", { value: "limited", text: "Proportional to the time the light is on" }));
+    lightSel.addEventListener("change", () => { state.light = lightSel.value; update(); });
+    refs.light = lightSel;
+    const exposureGroup = h("div", { class: "group" }, h("h2", { text: "Exposure pattern" }),
+      h("div", { class: "ctl" }, h("label", { for: "ctl-expmode", text: "Light or shutter during the exposure" }), expSel,
+        h("span", { class: "hint", text: "A coded pattern keeps the smear reversible." })),
+      h("div", { class: "ctl" }, h("label", { for: "ctl-light", text: "Light collected per sample" }), lightSel,
+        h("span", { class: "hint", text: "With the second choice, the signal-to-noise setting refers to an exposure filling the frame." })));
     const sensorSel = h("select", { id: "ctl-sensor" });
     for (const k in M.SENSORS) sensorSel.append(h("option", { value: k, text: M.SENSORS[k].name }));
     sensorSel.addEventListener("change", () => { state.sensor = sensorSel.value; update(); });
@@ -310,6 +332,7 @@
     controls.append(h("div", { class: "group" }, h("h2", { text: "Surface and light" }),
       h("div", { class: "ctl" }, h("label", { for: "ctl-gapmodel", text: "How light crosses the gap" }), modelSel,
         h("span", { class: "hint", text: "A polished silicon chip is mirror-like." }))));
+    controls.append(exposureGroup);
 
     let group = null;
     refs.ctl = {};
@@ -376,6 +399,8 @@
   function syncControls() {
     refs.sensor.value = state.sensor;
     refs.gapModel.value = state.gapModel;
+    refs.exposureMode.value = state.exposureMode;
+    refs.light.value = state.light;
     refs.sweepSel.value = state.sweep;
     for (const id in refs.ctl) {
       const c = refs.ctl[id];
@@ -416,7 +441,8 @@
 
     refs.notes.textContent = "";
     const notes = [];
-    if (r.blurPx > 1) notes.push(`Motion blur is ${sig(r.blurPx)} pixels. For sub-pixel work the exposure or light pulse must be about ${fmtTime(r.exposureForQuarterPxS)} or shorter, or the scan slower.`);
+    if (r.optics.codeChips > 1) notes.push(`Coded exposure: the ${sig(r.blurPx)} pixel smear is kept, but it passes about ${sig(Math.sqrt(0.5 / (r.optics.codeChips * 0.5)) * 100, 2)}% contrast at every feature size down to one slot (${fmtLen(r.blurPx * r.pitchNm / r.optics.codeChips)}), and half the light is used.`);
+    else if (r.blurPx > 1) notes.push(`Motion blur is ${sig(r.blurPx)} pixels. It is a known smear and is reversed in the reconstruction, but it passes only about 1/(π × smear / period) of fine detail. A short pulse of about ${fmtTime(r.exposureForQuarterPxS)}, a coded exposure or a slower scan keeps more.`);
     if (state.tilt === 0 && state.jitter === 0) notes.push("No tilt and no position error: every sample of a point lands at the same place across the scan, so nothing is gained in that direction.");
     if (!capped && cov.distinct < cov.nSamples) notes.push(`Only ${cov.distinct} distinct sub-pixel positions among ${cov.nSamples} samples: the shift per frame repeats exactly. A slightly different speed, or natural position error, breaks the repeat.`);
     if (state.gap > r.pitchNm) notes.push("The gap is larger than a pixel, so the gap sets the resolution and sub-pixel sampling cannot improve on it.");
@@ -436,7 +462,7 @@
       series: [
         { name: "Gap", color: "--s-gap", points: periods.map((p) => [p, M.gapTransfer(p, state.gap, r.optics.gapModel, r.optics.wavelengthNm)]) },
         { name: "Pixel area", color: "--s-pixel", points: periods.map((p) => [p, M.pixelTransfer(p, r.optics.apertureNm, state.edge)]) },
-        { name: "Motion blur", color: "--s-motion", points: periods.map((p) => [p, M.boxEnvelope(p, r.blurPx * pn)]) },
+        { name: "Motion blur", color: "--s-motion", points: periods.map((p) => [p, M.motionTransfer(p, r.blurPx * pn, r.optics.codeChips, r.optics.codeDuty)]) },
         { name: "All three", color: "--s-total", width: 2.5, points: periods.map((p) => [p, M.combinedTransfer(p, state.gap, pn, r.blurPx, state.edge, r.optics)]) },
         { name: "Needed", color: "--fg2", dash: "5 4", width: 1.5, points: periods.map((p) => [p, M.requiredTransfer(p, r.samplesPerPixelArea, pn, r.snrEffective, r.contrast)]) },
       ],
