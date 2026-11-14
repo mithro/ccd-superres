@@ -215,6 +215,7 @@ python docs/diagrams/make_multiframe_diagrams.py
 | `mf-lucky-weighting` | Signal to noise from keeping the sharpest frames against weighting all frames | Random simulation, fixed seed |
 | `mf-selfcal-tracks` | Pixel columns crossed by a surface point for straight and tilted scans | Sensor geometry |
 | `mf-candidate-elimination` | Candidate surfaces left against frames used when positions are unknown, follow a steady path, or are known | Toy calculation, fixed seed |
+| `mf-scale-map` | Pixel sizes and results of six satellites and telescopes in metres, and the same lengths scaled to this instrument's pixel | Published figures, cited on the page, divided by one factor per instrument |
 
 ## Beamforming study figures
 

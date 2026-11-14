@@ -105,6 +105,122 @@ The labels are those of the shared
 Every "for this instrument" statement is this page's own reasoning,
 **derived here**, and none has been tested in the simulator.
 
+## Original units and scaled units
+
+Satellites measure in metres on the ground from hundreds of kilometres up.
+Telescopes measure in angles on the sky, of objects that are parsecs away.
+This page gives each figure first in the units its own field uses, and
+then scaled to this instrument in nanometres, so that both can be seen
+side by side.
+
+**The scaling rule.** One pixel of the original instrument, measured on
+its own scene, is set equal to one pixel of this instrument, which is
+1120 nm wide. Every other length on that scene is divided by the same
+factor:
+
+$$
+\text{scaled length} = \text{original length} \times \frac{1120\ \text{nm}}{\text{size of one original pixel on its scene}}
+$$
+
+In words: if a satellite's pixel covers 5 m of ground, then 5 m becomes
+1120 nm, and 2.5 m becomes 560 nm. A figure given in pixels scales
+directly, since one pixel is 1120 nm in both. The rule is this page's own
+choice (**assumption**). It is the natural one because all of this field's
+methods work in units of the pixel, and because in a lensless instrument a
+pixel's footprint on the surface is about the pixel itself. It scales
+lengths across the scene. It does not scale the wavelength of light, and
+it says nothing about the gap, which has no lens to compare with.
+
+For a telescope the scene is at no single distance, so the original figure
+is an angle. Angles here are in thousandths of a second of arc (mas). A
+second of arc is 1/3600 of a degree. To give a feel for the length an
+angle stands for, the tables also give it at an example distance of 1000
+parsecs. A parsec is 3.26 light years, or 31 million million km. An
+astronomical unit (AU) is the distance from the Earth to the Sun, 150
+million km. At 1000 parsecs, 1 mas spans exactly 1 AU.
+
+![Original pixel sizes and results for six instruments, and the same lengths after scaling](../diagrams/mf-scale-map.svg)
+
+*Figure S1: the scaling at a glance. Each instrument has two lines. On the
+upper line the blue square is the size of one of its pixels on its own
+scene, in metres, and the orange square is where the scaling puts it: on
+this instrument's pixel, 1120 nm (dotted line). On the lower line the blue
+triangle is one of the instrument's results in original units (listed in
+table S3), and the orange triangle is the same result after dividing by
+the same factor, labelled in nanometres. The scale along the bottom is
+logarithmic and covers 24 powers of ten. From function `scale_map`.*
+
+**Table S1: satellites, original and scaled.** The scale factor is how
+many times smaller everything becomes. A dash means the source read for
+this study does not give the distance. Scaled values are **derived here**,
+function `scale_map`.
+
+| Instrument | Pixel on the ground (m) | Distance to the ground (km) | Scale factor | Pixel, scaled (nm) | Distance, scaled (mm) | Source |
+|---|--:|--:|--:|--:|--:|---|
+| SPOT 5 | 5 | — | 4.5 million | 1120 | — | [[MF8](#mf8)] |
+| HiRISE, at its lowest | 0.25 | 250 | 220 thousand | 1120 | 1120 | [[MF5](#mf5)] |
+| SkySat | 0.6 | — | 540 thousand | 1120 | — | [[MF45](#mf45)] |
+| PROBA-V | 300 | 820 | 270 million | 1120 | 3.1 | [[MF46](#mf46)] |
+| This instrument | 0.00000112 | 0.000001 | 1 | 1120 | 1.0 | [design](../design.md#5-baseline-parameters) |
+
+SkySat's pixel is given in its source as 50 to 70 cm, and the middle is
+used. HiRISE's orbit runs from 250 to 320 km, where its pixel covers 0.25
+to 0.32 m. Scaled this way, PROBA-V looks down from 3 mm, close to this
+instrument's 1 mm gap, and HiRISE from more than a metre. They can do that
+because they have lenses.
+
+**Table S2: telescopes, original and scaled.** The third column is the
+width one pixel covers at the example distance of 1000 parsecs. Scaled
+values are **derived here**.
+
+| Instrument | Pixel on the sky (mas) | Pixel at 1000 parsecs (AU) | Pixel at 1000 parsecs (million km) | Pixel, scaled (nm) | Source |
+|---|--:|--:|--:|--:|---|
+| Hubble, wide-field camera | 100 | 100 | 15 000 | 1120 | [[MF19](#mf19)] |
+| Gaia, along the scan | 58.9 | 58.9 | 8 800 | 1120 | [[MF3](#mf3)] |
+| Roman (planned) | 110 | 110 | 16 500 | 1120 | [[MF22](#mf22)] |
+| Lucky imaging camera on a 2.56 m telescope | 40 | 40 | 6 000 | 1120 | [[MF24](#mf24)] |
+
+Hubble's 100 mas is worked out from its source, which gives an output
+pixel of 40 mas as 0.4 of a camera pixel (**derived here**).
+
+**Table S3: the main results of this page in original units and scaled.**
+Each row is discussed in the section named. Scaled values are **derived
+here** by the rule above.
+
+| Result | Original value | Original unit | In pixels | Scaled (nm) | Section | Source |
+|---|--:|---|--:|--:|---|---|
+| SPOT 5: spacing of samples after combining two lines | 2.5 | m on the ground | 0.50 | 560 | 3.2 | [[MF8](#mf8)] |
+| SkySat: spacing of samples after combining 35 frames | 0.3 | m on the ground | 0.50 | 560 | 3.2 | [[MF45](#mf45)] |
+| PROBA-V: spacing of samples after combining | 100 | m on the ground | 0.33 | 373 | 3.2 | [[MF46](#mf46)] |
+| Hubble Deep Field South: output pixel | 40 | mas | 0.40 | 448 | 3.2 | [[MF19](#mf19)] |
+| Roman: output pixel | 25 | mas | 0.23 | 255 | 3.2 | [[MF22](#mf22)] |
+| HiRISE: pointing drift allowed in 10 ms before smear | 0.0625 | m on the ground | 0.25 | 280 | 2.1 | [[MF5](#mf5)] |
+| Lucky imaging: star width, all frames | 630 | mas | 15.8 | 17 600 | 4 | [[MF24](#mf24)] |
+| Lucky imaging: star width, best 10% of frames | 260 | mas | 6.5 | 7 300 | 4 | [[MF24](#mf24)] |
+| Hubble: random error of one star position | 2 | mas | 0.02 | 22 | 5.1 | [[MF31](#mf31)] |
+| Hubble: repeating error left after solving the pixel response | 0.2 | mas | 0.002 | 2.2 | 5.1 | [[MF31](#mf31)] |
+| Gaia: extra scatter found per crossing of a bright star | 0.3 | mas | 0.005 | 5.7 | 5.1 | [[MF4](#mf4)] |
+| Gaia: floor set by photon noise | 0.06 | mas | 0.001 | 1.1 | 5.1 | [[MF4](#mf4)] |
+
+Three readings of the table, all **derived here**.
+
+- Gaia's 0.3 mas is 0.3 AU, or 45 million km, at 1000 parsecs. Scaled, it
+  is 5.7 nm. Measuring where a star sits to a third of the Earth's
+  distance from the Sun, from 31 thousand million million km away, is the
+  same feat in pixels as placing a chip feature to 6 nm with this sensor.
+- HiRISE must hold its pointing to 6 cm on the ground from 250 km up for
+  10 ms. Scaled, the sensor here must hold its place to 280 nm for the
+  time it takes to sum the rows.
+- No published system in the table samples finer than about a quarter of
+  its own pixel. Scaled, the finest sample spacing in the field is about
+  255 nm, and the 100 nm this project aims at is finer than anything the
+  field has done in its own terms.
+
+Speeds scale the same way. Gaia sweeps the sky at 60 seconds of arc per
+second [[MF3](#mf3)], which is 1019 of its pixels per second. Scaled, that
+is a scan of 1.1 mm per second, and the 4500 lines it sums span 265
+seconds of arc, or 5.0 mm (**derived here**).
+
 ## 1. The questions and the short answers
 
 The plan asks this study three questions. The table is a text table that
@@ -137,17 +253,21 @@ rows are drawn. Real sensors sum from 2 to 4500. Illustrative, from
 function `tdi_map`.*
 
 **Table 2.1: sensors that sum along the motion.** A dash means the source
-does not give the figure. The pixel size is the angle one pixel covers on
-the sky or ground, in millionths of a radian (µrad).
+does not give the figure. The pixel size is first in the unit the source
+uses, then scaled by the rule of
+[original units and scaled units](#original-units-and-scaled-units), under
+which one pixel along the scan is 1120 nm.
 
-| Instrument | Lines summed, fewest | Lines summed, most | Time to cross all lines (s) | Pixel along the scan (µrad) | Pixel across the scan (µrad) | Source |
-|---|--:|--:|--:|--:|--:|---|
-| Gaia (space telescope), each detector | 2 | 4500 | 4.42 | 0.29 | 0.86 | [[MF3](#mf3)] |
-| HiRISE (Mars orbiter) | 8 | 128 | — | 1.0 | 1.0 | [[MF5](#mf5)] |
+| Instrument | Lines summed, fewest | Lines summed, most | Time to cross all lines (s) | Pixel along the scan, original | Pixel across the scan, original | Original unit | Pixel along, scaled (nm) | Pixel across, scaled (nm) | All lines, scaled (mm) | Source |
+|---|--:|--:|--:|--:|--:|---|--:|--:|--:|---|
+| Gaia (space telescope), each detector | 2 | 4500 | 4.42 | 58.9 | 176.8 | mas on the sky | 1120 | 3360 | 5.0 | [[MF3](#mf3)] |
+| HiRISE (Mars orbiter) | 8 | 128 | — | 0.25 | 0.25 | m on the ground | 1120 | 1120 | 0.14 | [[MF5](#mf5)] |
+| This instrument, read row by row | 1 | 2464 | 0.047 | 1120 | 1120 | nm on the chip | 1120 | 1120 | 2.8 | [design](../design.md#5-baseline-parameters) |
 
-Gaia's pixel is given in the source as 58.9 × 176.8 thousandths of a
-second of arc, converted here. HiRISE's 1 µrad is 0.25 to 0.32 m on the
-ground.
+HiRISE's pixel is 1 millionth of a radian, which is 0.25 m from the bottom
+of its orbit at 250 km and 0.32 m from the top at 320 km. Gaia's pixel of
+58.9 mas spans 58.9 AU at 1000 parsecs. The last row is this instrument
+for comparison: 2464 rows at 18.9 µs each (**derived here**).
 
 **What limits each instrument.** A text table, with two instruments that
 do not sum on the chip added for comparison.
@@ -155,7 +275,7 @@ do not sum on the chip added for comparison.
 | Instrument | How it collects | What limits it | Source |
 |---|---|---|---|
 | Gaia | Charge is moved at a fixed rate | The spin rate of the spacecraft must match the charge rate. Bright stars use gates that shorten the sum to as few as 2 lines. | [[MF3](#mf3)] |
-| HiRISE | Sums 8, 32, 64 or 128 lines, chosen per picture | Smear above a quarter of a pixel if the pointing moves more than 0.25 µrad in about 10 ms. Fewer lines are chosen when wobble is expected. | [[MF5](#mf5)] |
+| HiRISE | Sums 8, 32, 64 or 128 lines, chosen per picture | Smear above a quarter of a pixel if the pointing moves more than 0.25 millionths of a radian in about 10 ms. That is 6 cm on the ground from 250 km, and 280 nm scaled. Fewer lines are chosen when wobble is expected. | [[MF5](#mf5)] |
 | ASTER short-wave infrared (Earth orbiter) | Six separate lines, read 356 ms apart and not summed | Wobble between the lines shows as 0.2 pixels of mismatch | [[MF6](#mf6)] |
 | Orthogonal-transfer CCD (telescope) | Follows the image in both directions with up to 100 charge shifts per second | After 100 s of tracking about 3% of the charge has spread into a halo | [[MF16](#mf16)] |
 
@@ -300,16 +420,23 @@ says how much of the source was read for this study.
 ratio of the pixel grid to the output grid. A dash means the source does
 not give a number.
 
-| System | Frames, fewest | Frames, most | Sampling gain | Source | Read |
-|---|--:|--:|--:|---|---|
-| Hubble Deep Field North | 9 | 9 | 2.0 | [[MF17](#mf17), [MF19](#mf19)] | Full text |
-| Hubble Deep Field South | — | — | 2.5 | [[MF19](#mf19)] | Full text |
-| SPOT 5 satellite | 2 | 2 | 2.0 | [[MF8](#mf8)] | Abstract |
-| SkySat satellite, standard product | — | — | 1.25 | [[MF45](#mf45)] | Full text |
-| SkySat satellite, research methods | 35 | 35 | 2.0 | [[MF44](#mf44), [MF45](#mf45)] | Full text |
-| PROBA-V satellite | — | — | 3.0 | [[MF46](#mf46)] | Full text |
-| Roman space telescope (simulated) | 3 | 8 | 4.4 | [[MF22](#mf22)] | Full text |
-| Mobile phone camera | — | — | — | [[MF47](#mf47)] | Full text |
+| System | Frames, fewest | Frames, most | Sampling gain | Pixel, original | Output sample, original | Original unit | Output sample, scaled (nm) | Source | Read |
+|---|--:|--:|--:|--:|--:|---|--:|---|---|
+| Hubble Deep Field North | 9 | 9 | 2.0 | 100 | 50 | mas | 560 | [[MF17](#mf17), [MF19](#mf19)] | Full text |
+| Hubble Deep Field South | — | — | 2.5 | 100 | 40 | mas | 448 | [[MF19](#mf19)] | Full text |
+| SPOT 5 satellite | 2 | 2 | 2.0 | 5 | 2.5 | m | 560 | [[MF8](#mf8)] | Abstract |
+| SkySat satellite, standard product | — | — | 1.25 | 0.6 | 0.48 | m | 896 | [[MF45](#mf45)] | Full text |
+| SkySat satellite, research methods | 35 | 35 | 2.0 | 0.6 | 0.3 | m | 560 | [[MF44](#mf44), [MF45](#mf45)] | Full text |
+| PROBA-V satellite | — | — | 3.0 | 300 | 100 | m | 373 | [[MF46](#mf46)] | Full text |
+| Roman space telescope (simulated) | 3 | 8 | 4.4 | 110 | 25 | mas | 255 | [[MF22](#mf22)] | Full text |
+| Mobile phone camera | — | — | — | — | — | — | — | [[MF47](#mf47)] | Full text |
+
+The original pixel and output sample are metres on the ground for
+satellites and thousandths of a second of arc (mas) on the sky for
+telescopes. The scaled column sets one original pixel to 1120 nm
+([original units and scaled units](#original-units-and-scaled-units)).
+SkySat's pixel is the middle of the 50 to 70 cm its source gives, and its
+output samples are that divided by the sampling gain (**derived here**).
 
 **What each system measured.** A text table for the same systems.
 
@@ -319,7 +446,7 @@ not give a number.
 | Hubble Deep Field South | Many pointings at varied angles. Output pixel 0.4 of an input pixel, drop 0.5. |
 | SPOT 5 | 2.5 m pictures from two 5 m lines offset by half a pixel, followed by deblurring and noise removal. The paper notes that only half the information of a true 2.5 m grid is present. |
 | SkySat, standard product | The operator's own product. |
-| SkySat, research methods | "A gain of 10 cm per pixel" in measured resolution over the standard product. The authors chose a factor of 2 as their goal. |
+| SkySat, research methods | "A gain of 10 cm per pixel" in measured resolution over the standard product, which is about 190 nm scaled. The authors chose a factor of 2 as their goal. |
 | PROBA-V | Several 300 m frames taken days apart, combined and scored against real 100 m frames. A learned method beat interpolation on most scenes. |
 | Roman | The survey plan gives 6 to 8 frames in most places and as few as 3 near gaps. The method aims to hold the output blur shape to one part in a million in power, which is one part in a thousand in amplitude (square root, **derived here**). The aim is met with 5 frames only when the wanted blur is made broader, and fails with 3. |
 | Mobile phone camera | A burst of frames. Natural hand tremor supplies the shifts. 100 ms of computing per 12-megapixel frame on the phone. |
@@ -504,18 +631,23 @@ patch gets a good frame about one time in 370 (the formula evaluated at
 12 to 36 frames per second, from the full text of [[MF24](#mf24)]. The
 last column is relative to keeping every frame. A dash means not stated.
 
-| Share of frames kept (%) | Sharpness gain (times) | Signal-to-noise, relative |
-|--:|--:|--:|
-| 100 | 1.5 | 1.00 |
-| 10 | 2.4 | — |
-| 1 | 4 | 0.15 |
+| Share of frames kept (%) | Sharpness gain (times) | Signal-to-noise, relative | Star width, original (mas) | Star width, scaled (nm) |
+|--:|--:|--:|--:|--:|
+| 100 | 1.5 | 1.00 | — | — |
+| 10 | 2.4 | — | 260 | 7 300 |
+| 1 | 4 | 0.15 | — | — |
+
+The star width is given for one field, which went from 630 mas with
+ordinary imaging to 260 mas. The camera's pixels were 40 mas, so these
+are 15.8 and 6.5 pixels, or 17 600 nm and 7 300 nm scaled (**derived
+here**). The atmosphere, not the pixel, sets these widths, which is why
+they are many pixels wide.
 
 The gains at 100% and 1% are approximate readings of the paper's figures.
 Its abstract gives 2.5 to 4 for the range of selections. Keeping every
 frame still gains, because the frames are lined up on their brightest
 point before adding. Keeping 50 to 75% gives about twice the sharpness of
-an ordinary long exposure at about the same signal-to-noise. At 10% one
-field went from 0.63 to 0.26 seconds of arc. Keeping 1% costs a factor of
+an ordinary long exposure at about the same signal-to-noise. Keeping 1% costs a factor of
 6.5 in signal-to-noise, not the factor of 10 that discarding 99% of the
 light suggests, because a sharper image is measured against less sky.
 
@@ -582,22 +714,32 @@ estimated first, and photon noise varies with brightness.
 
 ### 5.1 What has been achieved
 
-**Table 5.1: published accuracy of position and shift measurement.** The
-third column converts the figure to this project's 1.12 µm pixel. The
-fourth says what kind of figure it is: a measured error, an upper limit
+**Table 5.1: published accuracy of position and shift measurement.** Each
+figure is given in its original unit where the source has one, then in
+pixels, then scaled to this project's 1120 nm pixel
+([original units and scaled units](#original-units-and-scaled-units)). The
+sixth column says what kind of figure it is: a measured error, an upper limit
 ("under" in the source), or a floor that noise alone would allow.
 
-| System and method | Error (pixels) | Equivalent here (nm) | Kind of figure | Source | Read |
-|---|--:|--:|---|---|---|
-| ASTER: wobble before correction | 0.2 | 224 | Measured | [[MF6](#mf6)] | Abstract |
-| ASTER: after correction from its own six lines | 0.08 | 90 | Upper limit | [[MF6](#mf6)] | Abstract |
-| Satellite image pairs matched by correlation in the frequency domain | 0.02 | 22 | Measured | [[MF37](#mf37)] | Abstract |
-| Hubble: one bright star in one frame, random error | 0.02 | 22 | Measured | [[MF31](#mf31)] | Full text |
-| Drizzle test: scatter of star positions measured on combined pictures, shifts known | 0.018 | 20 | Measured in a test | [[MF17](#mf17)] | Full text |
-| Digital time-delay integration: fitted frame-to-frame motion | 0.01 | 11 | Upper limit | [[MF14](#mf14)] | Abstract |
-| Gaia: extra scatter actually found for one bright star crossing one detector (0.3 mas with 58.9 mas pixels) | 0.005 | 5.7 | Measured | [[MF4](#mf4), [MF3](#mf3)] | Full text |
-| Hubble: error that depends on where in the pixel the star falls, left after solving for the pixel response. It repeats, so it does not average away. | 0.002 | 2.2 | Upper limit | [[MF31](#mf31)] | Full text |
-| Gaia: what photon noise alone would allow for the same measurement (0.06 mas) | 0.001 | 1.1 | Noise floor, not reached | [[MF4](#mf4)] | Full text |
+| System and method | Error, original | Original unit | Error (pixels) | Scaled (nm) | Kind of figure | Source | Read |
+|---|--:|---|--:|--:|---|---|---|
+| ASTER: wobble before correction | — | — | 0.2 | 224 | Measured | [[MF6](#mf6)] | Abstract |
+| ASTER: after correction from its own six lines | — | — | 0.08 | 90 | Upper limit | [[MF6](#mf6)] | Abstract |
+| Satellite image pairs matched by correlation in the frequency domain | — | — | 0.02 | 22 | Measured | [[MF37](#mf37)] | Abstract |
+| Hubble: one bright star in one frame, random error | 2 | mas | 0.02 | 22 | Measured | [[MF31](#mf31)] | Full text |
+| Drizzle test: scatter of star positions measured on combined pictures, shifts known | 1.8 | mas | 0.018 | 20 | Measured in a test | [[MF17](#mf17)] | Full text |
+| Digital time-delay integration: fitted frame-to-frame motion | — | — | 0.01 | 11 | Upper limit | [[MF14](#mf14)] | Abstract |
+| Gaia: extra scatter actually found for one bright star crossing one detector | 0.3 | mas | 0.005 | 5.7 | Measured | [[MF4](#mf4), [MF3](#mf3)] | Full text |
+| Hubble: error that depends on where in the pixel the star falls, left after solving for the pixel response. It repeats, so it does not average away. | 0.2 | mas | 0.002 | 2.2 | Upper limit | [[MF31](#mf31)] | Full text |
+| Gaia: what photon noise alone would allow for the same measurement | 0.06 | mas | 0.001 | 1.1 | Noise floor, not reached | [[MF4](#mf4)] | Full text |
+
+The sources for the first three rows and the sixth give their figures in
+pixels only, and the abstracts read here do not state the pixel size on
+the ground, so no original unit is given. The Hubble figures are published
+in pixels. The values in mas assume its wide-field pixels of 100 mas and
+are **derived here**. Gaia's figures are published in mas and converted to
+pixels with its 58.9 mas pixel. At 1000 parsecs 1 mas is 1 AU, so Gaia's
+0.3 mas is 45 million km there.
 
 ![Published position accuracy in pixels and in nanometres for this sensor](../diagrams/mf-accuracy-chart.svg)
 
@@ -837,7 +979,7 @@ statement is **derived here** and untested.
 
 | No. | Idea | Where it comes from | For this instrument | Verdict |
 |--:|---|---|---|---|
-| 1 | **Search for the motion by brute force.** Add the frames along thousands of trial velocities and keep the one that gives the sharpest result. | Asteroid hunters detect objects too faint to see in any one frame this way, on graphics processors, and get ten times better positions than a long exposure [[MF51](#mf51)] | A start-up method when single frames are too noisy to register (the threshold of [[MF35](#mf35)]). Pure computation, and it parallelises perfectly. | Promote: simulator stage 0 |
+| 1 | **Search for the motion by brute force.** Add the frames along thousands of trial velocities and keep the one that gives the sharpest result. | Asteroid hunters detect objects too faint to see in any one frame this way, on graphics processors, and get ten times better positions than a long exposure. A typical target moves at 10 km/s at a tenth of the Earth-Sun distance, which is 0.14 seconds of arc per second on the sky [[MF51](#mf51)]. | A start-up method when single frames are too noisy to register (the threshold of [[MF35](#mf35)]). Pure computation, and it parallelises perfectly. | Promote: simulator stage 0 |
 | 2 | **Build the pixel's response from the scan.** Every sharp isolated feature that crosses the sensor samples the pixel response at a different sub-pixel place. Alternate between solving the response and the positions. | Hubble's effective point-spread function, built on a grid 4 times finer than the pixel from 3000 stars in 15 dithered frames [[MF31](#mf31)]. Kepler's pixel response function, from 19 189 stars at 121 dither positions [[MF52](#mf52)]. | Attacks the design's key unknown with no extra hardware, in the simulator first. Needs sharp features: edges of bond pads, particles, or the calibration marks of the [calibration plan](../calibration-and-test.md). | Promote: simulator component and test |
 | 3 | **Test for position error against pixel phase.** Plot the leftover position error of features against where in the pixel they fell. A trend means the pixel model is wrong. | The diagnostic that exposed the problem on Hubble [[MF31](#mf31)] | A cheap acceptance test for any reconstruction, alongside those in the [calibration plan](../calibration-and-test.md) | Promote: benchmark test |
 | 4 | **Design the scan so the sensor can calibrate itself.** Send each surface point across very different parts of the sensor. | "Do not use a regular, repeated tiling of the sky" [[MF53](#mf53)]. Dither patterns can be scored by how well they encode the detector's gains [[MF54](#mf54)]. The Sloan survey reached 1% calibration over a quarter of the sky from overlaps alone [[MF55](#mf55)]. | A straight scan sends each point down one column (figure 11). A turn of 1° crosses 43 columns. A second pass at right angles ties every column to every row. Radio astronomy's version of this is in study B2. | Promote: scan-pattern option |
