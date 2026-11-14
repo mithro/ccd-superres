@@ -1,7 +1,5 @@
 # References
 
-## In plain words
-
 This page is the shared list of sources for the documentation. Every fact,
 number and formula in these pages should point to an entry here, or be
 marked as something worked out in this project or assumed. The rules are in
@@ -62,7 +60,7 @@ unless the entry says so.
 
 ## Reference lists of the other pages
 
-Four pages keep their own numbered lists, which are part of this
+Five pages keep their own numbered lists, which are part of this
 bibliography:
 
 - [Optical elements, section 14](optical-elements.md#14-references), keys
@@ -70,6 +68,8 @@ bibliography:
 - [Reconstruction methods, section 11](reconstruction-methods.md#11-references).
 - [Calibration and test methods, section 14](calibration-and-test.md#14-references),
   keys T1 onwards.
+- [Radar and synthetic aperture methods, section 12](research/synthetic-aperture-radar.md#12-references),
+  keys SA1 onwards.
 - [Multi-frame reconstruction, section 9](research/multi-frame-reconstruction.md#9-references),
   keys MF1 onwards.
 
