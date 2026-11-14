@@ -58,3 +58,31 @@ python docs/diagrams/make_reconstruction_diagrams.py
 | `recon-array2d-map` | Tilt, strips and sub-apertures of a two-dimensional sensor | Illustrative |
 | `recon-mixing-demo` | A fine surface ripple turned into a coarse one by a beam pair | Simplified intensity model, not a wave simulation |
 | `recon-detect-resolve-demo` | One line and two lines through two cut-offs | One-dimensional calculation, no noise |
+
+## Calibration and test figures
+
+The figures on the [calibration and test methods](calibration-and-test.md)
+page come from a third script. It also runs the small rehearsal simulations
+and prints the numbers quoted on that page:
+
+```
+python docs/diagrams/make_calibration_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `calib-map` | Where each instrument number comes from, for eight families of approach | Summary of section 2 |
+| `calib-tolerances` | How well each quantity must be known against the period being resolved | Contrast-loss formula |
+| `calib-anchors` | The three quantities the scan cannot fix by itself | Illustrative |
+| `calib-identifiability` | Which unknowns the data can separate, in a toy scan | One-dimensional calculation |
+| `calib-coherence` | Width of the strip where fringes survive against the laser's spread of wavelengths | Two-beam interference formula |
+| `calib-photon-transfer` | Rehearsal of the photon transfer measurement with hidden gain and read noise | Simulated pixel readings |
+| `calib-fringe-response` | Pixel contrast for 213 nm fringes for four assumed pixel edges | Analytic pixel model |
+| `calib-beat` | Fine fringes read through the pixel grid as a broad beat pattern | One-dimensional calculation |
+| `calib-timing` | Rehearsal of the strobed-light check of the row time | Simulated rolling-shutter frame |
+| `calib-measures` | Bar contrast and edge response measured on toy reconstructions | One-dimensional calculation |
+| `calib-frc-how` | How Fourier ring correlation is computed, step by step | Two-dimensional toy calculation |
+| `calib-targets` | Periods offered by each reference sample against the stage targets | Published dimensions, cited on the page |
+| `calib-frc-demo` | A prior that invents detail passes a split-data test and fails against the truth | Two-dimensional toy calculation |
+| `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
+| `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
