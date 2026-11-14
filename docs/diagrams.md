@@ -197,3 +197,24 @@ python docs/diagrams/make_multiframe_diagrams.py
 | `mf-lucky-weighting` | Signal to noise from keeping the sharpest frames against weighting all frames | Random simulation, fixed seed |
 | `mf-selfcal-tracks` | Pixel columns crossed by a surface point for straight and tilted scans | Sensor geometry |
 | `mf-candidate-elimination` | Candidate surfaces left against frames used when positions are unknown, follow a steady path, or are known | Toy calculation, fixed seed |
+
+## Beamforming study figures
+
+The figures on the [beamforming and array processing](research/beamforming.md)
+page come from
+[`docs/diagrams/make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py).
+It also runs the toy calculations and prints the numbers behind the tables
+and figures of that page:
+
+```
+python docs/diagrams/make_beamforming_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`beam-receiver-map`](diagrams/beam-receiver-map.svg) | What an antenna, a bare pixel and a pixel with a reference beam each record | Illustrative |
+| [`beam-array-factor`](diagrams/beam-array-factor.svg) | Response of a row of pixels used as an array, for one frame and after the scan fills in positions | Scalar plane-wave formula, ideal pixels |
+| [`beam-coarray`](diagrams/beam-coarray.svg) | Surface detail covered by four choices of laser beam directions | Simple band model, one dimension |
+| [`beam-adaptive-demo`](diagrams/beam-adaptive-demo.svg) | Delay and sum, minimum variance and MUSIC on two close scatterers, with independent and identical shots | Random simulation, fixed seed, perfect array model |
+| [`beam-selfcal-demo`](diagrams/beam-selfcal-demo.svg) | Pixel gains solved from the scan alone, for two scan patterns, and gain error against frames | Random simulation of a 12 × 12 toy sensor, fixed seeds |
+| [`beam-positions-demo`](diagrams/beam-positions-demo.svg) | A scene rebuilt from noisy frames whose positions are not given, by four methods | One-dimensional random simulation, mean of four runs, fixed seeds |

@@ -240,3 +240,55 @@ day, before merging.
 | "Struck off" was not what the script does, and the true pattern fell below the cut in 1 of 20 trials at 20 frames | Wording corrected, the case reported on the page, and the script now prints such cases |
 | Several rows stated things from titles or memory without saying so | Marked unverified |
 | One table row mixed two different methods | Split into two rows |
+
+## Review 4: the beamforming and array processing study
+
+The [beamforming and array processing](research/beamforming.md) study was
+reviewed on 14 November 2026, before it was merged, in
+[pull request 24](https://github.com/mithro/ccd-superres/pull/24). There
+were two rounds, by two different reviewers. The second covered section 8,
+which was written after the first round, and checked the corrections made
+after the first. Each reviewer was given the page, its figure script
+[`make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py)
+and the sources, and not the author's conclusions.
+
+### What was checked
+
+| Asset | Read in full | Numbers recomputed | Sources compared with abstracts | Figures compared with text | Findings | State |
+|---|---|---|---|---|--:|---|
+| [Study page](research/beamforming.md), sections 1 to 7 and 9 to 13 | Yes | All tables, by running the script and by independent arithmetic | All 28 then marked as checked by abstract, and 6 more | 5 of 5 | 27 | Reviewed, fixed |
+| [Figure script](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py) | Yes | Run, and the scan patterns of the gain calculation varied | Not applicable | Not applicable | Counted above | Reviewed, fixed |
+| [Study page](research/beamforming.md), section 8, and every table and caption changed after the first round | Yes | All, by running the script. Table 8.3 by listing every layout, and tables 2.3, 3.2 and 5.4 and the figures of section 7 by independent arithmetic | 3 of 3 new ones marked as checked by abstract. The 13 other new sources for title, authors, journal and year only | 6 of 6 | 16 | Reviewed, fixed |
+| Rows added to the [plan](plan.md), [index](index.md), [diagrams page](diagrams.md) and [glossary](glossary.md) | Yes | Not applicable | Not applicable | Not applicable | Counted above | Reviewed, fixed |
+
+### Findings that changed what the page says
+
+| No. | Where | Severity | What was found | What was done |
+|--:|---|---|---|---|
+| B2-1 | [Section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap), summary, plan | Error | The page said one sideways shift is not enough to remove streaks and that shifts "with no common factor" are needed. That came from testing only a shift of 5 pixels. A shift of d pixels leaves patterns that repeat every d columns, so a shift of 1 pixel leaves only the overall scale. | Table and text redone with five scan patterns. The advice is now a small shift together with larger ones, with the larger ones marked as an estimate. |
+| B2-2 | Section 6.4 and question 2 | Error | "Frames that overlap in time" was offered as a cure for the three numbers left unfixed when frame brightness is unknown. It is not one. | Removed. Only a light monitor or a brightness model with fewer numbers than frames fixes them. |
+| B2-3 | [Section 2.2](research/beamforming.md#22-spacing-false-copies-and-the-blur-of-one-pixel), figure | Error | The figure shows six equal peaks at the steering angle drawn. The caption and text said five. The angle scale along the top was misplaced. | Caption, text and table corrected, and the scale fixed. |
+| B2-4 | [Section 5.4](research/beamforming.md#54-undoing-the-arrays-blur-by-fitting), table | Error | The crowding law was applied to a single isolated feature, which it does not cover, and its condition on noise was left out. | Column removed, condition added to the table. |
+| B2-5 | [Section 2.3](research/beamforming.md#23-counting-what-is-wanted-against-what-is-recorded) | Error | The count of 122 numbers per pixel area used a square where light can only carry a disc, and was stated per lighting condition when it is a total. | Now 96, or 192 with height, as a total. |
+| B2-6 | [Section 3.2](research/beamforming.md#32-a-reference-beam-lifts-weak-light-above-the-sensors-own-noise), table | Error | The reference beam was assumed to fill the pixel, leaving no room for the fringes, and the figures were for the best position along a fringe only. | Reference at half the pixel's capacity, and a column for the average position added. |
+| B2-7 | [Section 7.1](research/beamforming.md#71-near-field-acoustic-holography) | Gap | Under slanted light only one of the two directions into which lines send their detail fades slowly, and it needs the opposite beam as its reference. | Both stated. |
+| B2-8 | Sources | Gap | Several statements cited to sources checked only for existence carried no "Unverified" label. One source marked as checked by abstract (BF36) was not supported by its abstract. Four abstract-checked statements went further than the abstract. | A blanket rule added under "How claims are marked", six sources promoted to checked by abstract, BF36 demoted, the four statements reworded. |
+| B2-9 | Whole page | Gap | Ten paragraphs opened with the label "In words:", which Tim has asked not to use. | Labels removed and the text folded in. |
+
+| B2-10 | [Section 8.2](research/beamforming.md#82-a-toy-calculation) | Gap | "Contrast" was not defined (it is the typical variation of the scene, about 0.4 of the step between its two levels). Errors above 100 per cent, which are worse than a blank picture, were compared as if they meant something. The text did not say that two methods are told the size of the noise and one is told the stage's average step. | All three stated. Comparisons limited to the noise levels where they mean something. |
+| B2-11 | [Section 8.3](research/beamforming.md#83-eliminating-layouts-a-chip-cannot-have) | Gap | A source on signals of constant strength was cited for a rule about signals with few values, and "the same saving" claimed more than the sources show. | Reworded and marked Unverified. |
+
+The second round found no wrong number. The other findings were smaller: wording of captions, a panel label, a
+column split in two, a flow chart drawn in the wrong order, and bare
+mentions of the script that were not links. All were fixed.
+
+### What was not checked
+
+| Not checked | Why | What it means |
+|---|---|---|
+| Full texts of any paper | Only abstracts were available. | A statement that goes beyond an abstract rests on the author's general knowledge and is Unverified. |
+| The sources marked "existence checked only" against their abstracts, apart from the six promoted | Time. | The page treats everything said about them as Unverified. |
+| The 13 new sources of section 8 marked "existence checked only" against their abstracts | Only their titles, authors, journals and years were checked. | The page treats everything said about them as Unverified. |
+| The last method of [section 8.2](research/beamforming.md#82-a-toy-calculation) when the stage's average step is not given | Not calculated. | Its advantage is shown only for a known average step. |
+| The derivation of [section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) against a wave calculation | It needs simulation levels 3 and 4. | The beam-layout result is an estimate until then. |
+
