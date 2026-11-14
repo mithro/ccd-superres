@@ -40,9 +40,9 @@ in one and two dimensions). The more accurate simulation levels are planned.
 
 ## Documentation site
 
-The `docs/` folder is a Sphinx site published on Read the Docs at
+The [`docs/`](docs/) folder is a Sphinx site published on Read the Docs at
 <https://ccd-superres.readthedocs.io/en/latest/>. Read the Docs rebuilds it on
-every push to `main` and on every pull request, using `.readthedocs.yaml`. To
+every push to `main` and on every pull request, using [`.readthedocs.yaml`](.readthedocs.yaml). To
 build it locally:
 
 ```

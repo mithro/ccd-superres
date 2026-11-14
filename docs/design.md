@@ -480,8 +480,7 @@ below a wavelength, only level 4 can confirm them.
 
 The table covers two different regimes, and the target can be approached
 through either. They are set side by side here with the same numbers as
-section 9 of the optical elements study (`docs/optical-elements.md`, in pull
-request 2), which analyses the second regime in detail.
+section 9 of the optical elements study ([`docs/optical-elements.md`](optical-elements.md)), which analyses the second regime in detail.
 
 | | Near field | Far field, slanted coherent light |
 |---|---|---|
@@ -551,7 +550,7 @@ What this means for the target:
   **Table 4.6b: share of the contrast of 200 nm stripes that a 1.12 µm pixel
   passes.** Derived here from the box envelope and a Gaussian edge blur, and
   in agreement with the optical elements study (function
-  `pixel_fringe_response` in `docs/diagrams/make_optics_diagrams.py`). The
+  `pixel_fringe_response` in [`docs/diagrams/make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py)). The
   edge model is an assumption.
 
   | Edge softness, full width at half height (nm) | Contrast passed (%) |
@@ -647,7 +646,7 @@ flowchart LR
 ```
 
 This is the single staged plan for the leading candidate. The optical elements study
-(`docs/optical-elements.md`, pull request 2) uses the same stage numbers.
+([`docs/optical-elements.md`](optical-elements.md)) uses the same stage numbers.
 
 | Stage | What it produces | Hardware | Computation | Simulation levels | Passes on |
 |---|---|---|---|---|---|
@@ -970,7 +969,7 @@ Sources for this section:
 
 Questions such as "if we move 20% of the sensor size every second and sample
 at 10 frames per second, how many samples does each surface point get?" are
-answered by a calculator in the package, `ccdsr/sampling.py`. It is the first
+answered by a calculator in the package, [`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py). It is the first
 piece of code in the repository because every later choice of speed, frame
 rate and exposure goes through it.
 
@@ -985,7 +984,7 @@ rolling-shutter readout time, and random position jitter per frame.
 **Table 5.4: the calculator's outputs for Tim's example** (IMX219, 20% of
 the sensor length per second, 10 frames per second, exposed for the whole
 frame, no tilt). Derived here from the geometry, computed by
-`ccdsr/sampling.py`.
+[`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py).
 
 | Output | Formula | Value | Unit |
 |---|---|--:|---|
@@ -1069,7 +1068,7 @@ Limits to keep in view:
 Speed, frame rate, exposure, samples per point, sub-pixel coverage, motion
 blur, gap and recoverable resolution all depend on each other, and Tim wants
 to explore those trade-offs easily and quickly. The tool for that is a single
-web page, `explorer/index.html`, which opens straight from the repository in
+web page, [`explorer/index.html`](https://github.com/mithro/ccd-superres/blob/main/explorer/index.html), which opens straight from the repository in
 any browser with nothing to install. It is also embedded in the
 documentation, on [the explorer page](explorer.md).
 
@@ -1102,7 +1101,7 @@ What it does:
 
 It is built on the analytic model only (sections 3.1, 4.2 and 5.4), so it
 answers in milliseconds and runs no simulation. The same formulas exist in
-Python as `ccdsr/sampling.py` and `ccdsr/resolution.py`, and a test runs the
+Python as [`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py) and [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), and a test runs the
 page's JavaScript model against the Python one so the two cannot drift apart.
 
 The estimate it reports is the larger of two limits: the period at which the
@@ -1170,7 +1169,7 @@ How the schemes available today change the figures, at the same speed as the
 worked example (20% of the sensor length per second, 735 µm/s):
 
 **Table 5.7: sampling and smear for six readout schemes** at 735 µm/s.
-Derived here with `ccdsr/sampling.py`. Frame rates for strips are estimates.
+Derived here with [`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py). Frame rates for strips are estimates.
 
 | Rows read | Exposure (lines) | Frame rate (per s) | Shift per frame (pixels) | Samples per point | Motion smear (nm) | Width covered (µm) |
 |--:|--:|--:|--:|--:|--:|--:|
@@ -1231,8 +1230,7 @@ Randomness that is already there, modelled and estimated:
 
 The optical side of this, including speckle lighting, a scattering layer on
 the sensor and models for imperfect coherence, is worked through in section
-9.7 of the optical elements study (`docs/optical-elements.md`, pull request
-2), with its own proposed parameters. It advises against a light pattern
+9.7 of the optical elements study ([`docs/optical-elements.md`](optical-elements.md)), with its own proposed parameters. It advises against a light pattern
 that changes at random every frame, and for one that stays fixed and is
 solved together with the picture.
 
@@ -1676,10 +1674,10 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | Section | Claim | Status |
 |---|---|---|
 | 3 | A pixel reading is a blurred, sampled, scaled copy of the surface | **Derived here** from the stated geometry. The general form is the standard linear imaging model [Goodman]. |
-| 3.1 | Matt surface: light from a point spreads over the gap as $z_0^2/(r^2+z_0^2)^2$, giving the transfer $u K_1(u)$ | **Derived here** from the inverse-square law and Lambert's cosine law for a matt surface. The transfer is the Fourier transform of that spot. Checked numerically in `tests/test_resolution.py`. Not taken from a publication. |
+| 3.1 | Matt surface: light from a point spreads over the gap as $z_0^2/(r^2+z_0^2)^2$, giving the transfer $u K_1(u)$ | **Derived here** from the inverse-square law and Lambert's cosine law for a matt surface. The transfer is the Fourier transform of that spot. Checked numerically in [`tests/test_resolution.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_resolution.py). Not taken from a publication. |
 | 3.1 | A box-shaped pixel or smear has a sinc transfer | Standard result [Goodman] |
 | 3.2 | The list of noise sources | Standard sensor noise model [Janesick]. The sizes of each for this sensor are **Assumptions** until data item R5 of the plan. |
-| 4.1 | Smallest recoverable period is about 0.75 times the gap | **Estimate** from the analytic model (`ccdsr/resolution.py`), for a contrast floor of 1/1000 |
+| 4.1 | Smallest recoverable period is about 0.75 times the gap | **Estimate** from the analytic model ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py)), for a contrast floor of 1/1000 |
 | 4.2 | A million times more samples gains about a factor of two | **Estimate**, same model |
 | 4.6 | Detail finer than the wavelength fades as $\exp(-2\pi z\sqrt{1/\Lambda^2-1/\lambda^2})$ | Standard result for evanescent waves [Goodman] |
 | 4.6 | Slanted-light limit, period = wavelength / (sine of slant + sine of collection angle) | Follows from the grating equation [BornWolf]; the same form is used in [Zheng2013] and in the optical elements study, section 9.2 |
@@ -1690,7 +1688,7 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
 | 4.8 | A coded exposure keeps motion blur reversible | [Raskar2006] |
-| 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes (`ccdsr/resolution.py`, `motion_transfer`). Not taken from a publication. |
+| 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), `motion_transfer`). Not taken from a publication. |
 | 4.8 | Coded exposure does not beat a short pulse when noise comes from the light itself, and does when read noise dominates | **Derived here** from the model; agrees with the known result for multiplexed measurements [HarwitSloane] |
 | 4.8 | Read noise of 2 electrons | **Assumption** |
 | 4.6 | Share of 200 nm stripe contrast passed for soft pixel edges (table 4.6b) | **Derived here**; the Gaussian edge model is an **Assumption**. Agrees with the optical elements study. |
@@ -1698,10 +1696,10 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.9 | Uncertain ranges for pixel response (edges soft over up to 300 nm, acceptance ±20° to ±60°) | **Assumption**, placeholders until data items R2 and R3 of the plan |
 | 5.1 | Sensor pixel counts, pitch and modes | [R1] |
 | 5.3 | Order of layers on the pixel, and what removing each lens takes with it | [R2], [R3], [R4], [R5], as cited in the section |
-| 5.4, 5.5 | Samples per point, shift per frame, sub-pixel coverage figures | **Derived here** from geometry, computed by `ccdsr/sampling.py` and tested in `tests/test_sampling.py` |
+| 5.4, 5.5 | Samples per point, shift per frame, sub-pixel coverage figures | **Derived here** from geometry, computed by [`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py) and tested in [`tests/test_sampling.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_sampling.py) |
 | 5.7 | IMX219 line time of 18.9 µs, and the list of what its registers expose | **Unverified**: from memory of [LinuxIMX219] (line length 3448 pixel clocks at 182.4 MHz). To be checked in data item R1. |
 | 5.7 | Frame rates for strip readout | **Estimate**, assuming 32 lines of overhead per frame |
-| 5.9 | Coverage with and without tilt (5 against 50 positions, holes of 0.51 against 0.11 to 0.13 pixels) | **Derived here**, computed by `ccdsr/sampling.py` |
+| 5.9 | Coverage with and without tilt (5 against 50 positions, holes of 0.51 against 0.11 to 0.13 pixels) | **Derived here**, computed by [`ccdsr/sampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/sampling.py) |
 | 5.9 | The array spans ±61° by ±54° at a 1 mm gap | **Derived here** from the sensor's size, 3.67 by 2.76 mm |
 | 5.9 | A shift is estimated to a small fraction of a pixel from many pixels | Method from [GuizarSicairos2008]. The accuracy for this instrument is to be measured at level 1. |
 | 6.2 | Shift and add; regularised reconstruction from many frames | [Fruchter2002], [Farsiu2004] |

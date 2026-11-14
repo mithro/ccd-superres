@@ -9,7 +9,7 @@ of the design, simulation chain, plan, calculator and level 1 pages:
 python docs/diagrams/make_diagrams.py
 ```
 
-The script writes each figure as SVG (used in these pages) and PNG. Flow
+The script is [`make_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_diagrams.py). It writes each figure as SVG (used in these pages) and PNG. Flow
 charts are written as Mermaid blocks inside the pages themselves.
 
 | Figure | Shows | Source of the numbers |
@@ -26,7 +26,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `exposure-comparison` | Smallest recoverable period for five exposure options under two light conditions | Analytic model |
 | `readout-timing` | When each row is exposed and read for three readout schemes | Illustrative timing |
 | `array-angles` | Directions collected by the array from one point at a 1 mm gap | Sensor dimensions |
-| `plan-status` | Plan items by phase and state | Read from `docs/plan.md` |
+| `plan-status` | Plan items by phase and state | Read from [`docs/plan.md`](plan.md) |
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
@@ -37,7 +37,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 ## Optical elements figures
 
 The figures on the [optical elements](optical-elements.md) page come from
-their own script, which also holds the small calculations that page quotes:
+their own script, [`make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py), which also holds the small calculations that page quotes:
 
 ```
 python docs/diagrams/make_optics_diagrams.py
@@ -69,7 +69,9 @@ python docs/diagrams/make_optics_diagrams.py
 ## Reconstruction methods figures
 
 The figures on the [reconstruction methods](reconstruction-methods.md) page
-come from a third script, which also prints the numbers quoted on that page:
+come from a third script,
+[`make_reconstruction_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_reconstruction_diagrams.py),
+which also prints the numbers quoted on that page:
 
 ```
 python docs/diagrams/make_reconstruction_diagrams.py
@@ -99,7 +101,8 @@ python docs/diagrams/make_reconstruction_diagrams.py
 ## Calibration and test figures
 
 The figures on the [calibration and test methods](calibration-and-test.md)
-page come from a fourth script. It also runs the small rehearsal simulations
+page come from a fourth script,
+[`make_calibration_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_calibration_diagrams.py). It also runs the small rehearsal simulations
 and prints the numbers quoted on that page:
 
 ```
