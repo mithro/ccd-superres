@@ -33,3 +33,17 @@ def test_explore_names_the_limit():
     regular = explore(s, Scan(fps=10, fraction_per_s=0.2, exposure_s=0.0003), gap_nm=100)
     assert regular.limited_by == "sampling pattern"  # 5 positions on one line
     assert regular.recoverable_nm == pytest.approx(2 * math.sqrt(2) * 0.51 * 1120, rel=0.02)
+
+
+def test_collimated_gap_model():
+    # Periods above the wavelength cross the gap; finer ones decay exponentially.
+    assert gap_transfer(600.0, 5000.0, "collimated", 405.0) == pytest.approx(1.0)
+    kappa = 2 * math.pi * math.sqrt(1 / 200.0**2 - 1 / 405.0**2)
+    assert gap_transfer(200.0, 100.0, "collimated", 405.0) == pytest.approx(math.exp(-kappa * 100))
+    assert gap_transfer(200.0, 100.0, "collimated", 405.0) == pytest.approx(0.065, abs=0.003)
+
+
+def test_mask_trades_light_for_resolution():
+    bare = recoverable_period(1.3e4, 50.0, edge_sigma_nm=100.0)
+    masked = recoverable_period(1.3e4, 50.0, edge_sigma_nm=0.0, aperture_nm=100.0)
+    assert masked < bare

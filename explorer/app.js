@@ -73,6 +73,9 @@
     { group: "Instrument" },
     { id: "gap", label: "Gap, sensor to surface", scale: log(10, 1e6), def: 3000, fmt: (v) => fmtLen(v) },
     { id: "edge", label: "Pixel edge softness", scale: lin(0, 1000), def: 0, fmt: (v) => fmtLen(v) || "0" },
+    { id: "mask", label: "Light-sensitive width of a pixel", scale: log(0.02, 1), def: 1,
+      fmt: (v, r) => (v > 0.999 ? "whole pixel" : "masked to " + (r ? fmtLen(v * r.pitchNm) : "")) },
+    { id: "wavelength", label: "Wavelength (collimated light only)", scale: log(150, 1000), def: 405, fmt: (v) => fmtLen(v) },
     { group: "Signal" },
     { id: "snr", label: "Signal-to-noise of one sample", scale: log(5, 500), def: 50, fmt: (v) => sig(v) },
     { id: "contrast", label: "Feature contrast", scale: log(0.01, 1), def: 1, fmt: (v) => sig(v * 100) + "%" },
@@ -83,9 +86,12 @@
     { name: "Same, 0.3 ms light pulse and tilt", set: { fraction: 0.2, fps: 10, exposure: 0.003, tilt: 0.0625, jitter: 0, passes: 1 } },
     { name: "Same, pulse and natural jitter only", set: { fraction: 0.2, fps: 10, exposure: 0.003, tilt: 0, jitter: 0.5, passes: 1 } },
     { name: "Slow scan, quarter pixel per frame", set: { fraction: 0.25 * 30 / 3280, fps: 30, exposure: 1, tilt: 0.0625, jitter: 0, passes: 1 } },
+    { name: "100 nm features on silicon", set: { fraction: 0.05 * 30 / 3280, fps: 30, exposure: 1, tilt: 0.0625, jitter: 0, passes: 1,
+      gap: 100, edge: 0, mask: 100 / 1120, wavelength: 405, gapModel: "collimated", sensor: "imx219" } },
   ];
 
-  const state = { sensor: "imx219", sweep: "gap" };
+  const state = { sensor: "imx219", sweep: "gap", gapModel: "diffuse" };
+  const TARGET_NM = 200;   // 100 nm lines and spaces
   CONTROLS.forEach((c) => { if (c.id) state[c.id] = c.def; });
 
   function params(over) {
@@ -95,6 +101,8 @@
       fractionPerS: st.fraction, fps: st.fps, exposureFraction: st.exposure, tiltTan: st.tilt,
       jitterPx: st.jitter, passes: st.passes, gapNm: st.gap, edgeSigmaNm: st.edge,
       snrSingle: st.snr, contrast: st.contrast,
+      gapModel: st.gapModel, wavelengthNm: st.wavelength,
+      apertureNm: st.mask * M.SENSORS[st.sensor].pitchUm * 1e3,
     };
   }
 
@@ -162,6 +170,21 @@
       }
       plot.append(s("path", { d: d, fill: "none", stroke: `var(${ser.color})`, "stroke-width": ser.width || 2,
         "stroke-dasharray": ser.dash || "", "stroke-linejoin": "round" }));
+    }
+    for (const bd of cfg.bands || []) {
+      svg.append(s("line", { x1: lx(bd.x), x2: lx(bd.x), y1: PAD.t, y2: H - PAD.b, stroke: "var(--s-pixel)", "stroke-width": 1.5 }));
+      const t = s("text", { x: lx(bd.x) + 5, y: PAD.t + 11 });
+      t.textContent = bd.label;
+      t.style.fill = "var(--fg)";
+      svg.append(t);
+    }
+    for (const bd of cfg.hbands || []) {
+      if (bd.y < cfg.y[0] || bd.y > cfg.y[1]) continue;
+      svg.append(s("line", { x1: PAD.l, x2: W - PAD.r, y1: ly(bd.y), y2: ly(bd.y), stroke: "var(--s-pixel)", "stroke-width": 1.5 }));
+      const t = s("text", { x: W - PAD.r - 4, y: ly(bd.y) - 5, "text-anchor": "end" });
+      t.textContent = bd.label;
+      t.style.fill = "var(--fg)";
+      svg.append(t);
     }
     for (const mk of cfg.markers || []) {
       if (!isFinite(mk.x) || mk.x < cfg.x[0] || mk.x > cfg.x[1]) continue;
@@ -242,6 +265,9 @@
     gap: { label: "Gap", key: "gap", range: [10, 1e6], fmt: fmtLen, axis: "gap between sensor and surface" },
     fraction: { label: "Speed", key: "fraction", range: [1e-4, 2], fmt: (v) => sig(v * 100, 2) + "%/s", axis: "speed (sensor lengths per second)" },
     fps: { label: "Frame rate", key: "fps", range: [1, 200], fmt: (v) => sig(v, 2), axis: "frame rate (frames per second)" },
+    wavelength: { label: "Wavelength", key: "wavelength", range: [150, 1000], fmt: fmtLen, axis: "wavelength (collimated light only)" },
+    mask: { label: "Sensitive width", key: "mask", range: [0.02, 1], fmt: (v) => sig(v * 100, 2) + "%", axis: "light-sensitive width (share of the pixel pitch)" },
+    edge: { label: "Edge softness", key: "edge", range: [5, 1000], fmt: fmtLen, axis: "pixel edge softness" },
     exposure: { label: "Exposure", key: "exposure", range: [1e-5, 1], fmt: (v) => sig(v * 100, 2) + "%", axis: "exposure (share of the frame period)" },
     snr: { label: "Signal-to-noise", key: "snr", range: [5, 500], fmt: (v) => sig(v, 2), axis: "signal-to-noise of one sample" },
     passes: { label: "Passes", key: "passes", range: [1, 1000], fmt: (v) => sig(v, 2), axis: "passes over the surface" },
@@ -275,6 +301,15 @@
     refs.sensorHint = h("span", { class: "hint" });
     controls.append(h("div", { class: "group" }, h("h2", { text: "Sensor" }),
       h("div", { class: "ctl" }, h("label", { for: "ctl-sensor", text: "Model" }), sensorSel, refs.sensorHint)));
+
+    const modelSel = h("select", { id: "ctl-gapmodel" });
+    modelSel.append(h("option", { value: "diffuse", text: "Matt surface, light from all directions" }),
+      h("option", { value: "collimated", text: "Mirror-like surface, collimated light" }));
+    modelSel.addEventListener("change", () => { state.gapModel = modelSel.value; update(); });
+    refs.gapModel = modelSel;
+    controls.append(h("div", { class: "group" }, h("h2", { text: "Surface and light" }),
+      h("div", { class: "ctl" }, h("label", { for: "ctl-gapmodel", text: "How light crosses the gap" }), modelSel,
+        h("span", { class: "hint", text: "A polished silicon chip is mirror-like." }))));
 
     let group = null;
     refs.ctl = {};
@@ -333,13 +368,14 @@
     results.append(charts);
     layout.append(results);
     wrap.append(layout);
-    wrap.append(h("footer", null, h("p", { text: "These are instant analytic estimates, not simulation results. They assume diffuse light across the gap, exactly known sample positions, and judge a feature recoverable when its attenuated signal exceeds the averaged noise. Sub-pixel coverage is computed from at most 600 samples of a point." })));
+    wrap.append(h("footer", null, h("p", { text: "These are instant analytic estimates, not simulation results. They assume exactly known sample positions, and judge a feature recoverable when its attenuated signal exceeds the averaged noise. Sub-pixel coverage is computed from at most 600 samples of a point." })));
     root.append(wrap);
     syncControls();
   }
 
   function syncControls() {
     refs.sensor.value = state.sensor;
+    refs.gapModel.value = state.gapModel;
     refs.sweepSel.value = state.sweep;
     for (const id in refs.ctl) {
       const c = refs.ctl[id];
@@ -366,6 +402,9 @@
       ` · ${sig(r.recoverableNm / r.pitchNm)} × pixel pitch`);
     refs.tiles.append(
       tile("Smallest recoverable feature period", fmtLen(r.recoverableNm), pill, true),
+      tile("Target: 100 nm lines and spaces", r.recoverableNm <= TARGET_NM ? "resolved" : "not resolved",
+        r.recoverableNm <= TARGET_NM ? "200 nm period is within reach of this setting"
+          : `needs ${sig(r.recoverableNm / TARGET_NM, 2)} × finer than this setting gives`),
       tile("Samples per surface point", fmtCount(r.samplesPerPoint * state.passes),
         `a point is under the sensor for ${fmtTime(r.timeUnderSensorS)}` + (state.passes > 1 ? ` per pass` : "")),
       tile("Shift per frame", sig(r.shiftPx) + " px", `${sig(r.shiftXPx)} along, ${sig(r.shiftYPx)} across`),
@@ -395,13 +434,14 @@
       xFmt: fmtLen, yFmt: (v) => (v >= 0.01 ? String(v) : "1e" + Math.round(Math.log10(v))),
       xTip: (v) => "period " + fmtLen(v), yTip: (v) => sig(v, 2),
       series: [
-        { name: "Gap", color: "--s-gap", points: periods.map((p) => [p, M.gapTransfer(p, state.gap)]) },
-        { name: "Pixel area", color: "--s-pixel", points: periods.map((p) => [p, M.pixelTransfer(p, pn, state.edge)]) },
+        { name: "Gap", color: "--s-gap", points: periods.map((p) => [p, M.gapTransfer(p, state.gap, r.optics.gapModel, r.optics.wavelengthNm)]) },
+        { name: "Pixel area", color: "--s-pixel", points: periods.map((p) => [p, M.pixelTransfer(p, r.optics.apertureNm, state.edge)]) },
         { name: "Motion blur", color: "--s-motion", points: periods.map((p) => [p, M.boxEnvelope(p, r.blurPx * pn)]) },
-        { name: "All three", color: "--s-total", width: 2.5, points: periods.map((p) => [p, M.combinedTransfer(p, state.gap, pn, r.blurPx, state.edge)]) },
-        { name: "Needed", color: "--fg2", dash: "5 4", width: 1.5, points: periods.map((p) => [p, M.requiredTransfer(p, r.samplesPerPixelArea, pn, r.snrSingle, r.contrast)]) },
+        { name: "All three", color: "--s-total", width: 2.5, points: periods.map((p) => [p, M.combinedTransfer(p, state.gap, pn, r.blurPx, state.edge, r.optics)]) },
+        { name: "Needed", color: "--fg2", dash: "5 4", width: 1.5, points: periods.map((p) => [p, M.requiredTransfer(p, r.samplesPerPixelArea, pn, r.snrEffective, r.contrast)]) },
       ],
       markers: [{ x: r.recoverableNm, low: true, label: "recoverable from " + fmtLen(r.recoverableNm) }],
+      bands: [{ x: TARGET_NM, label: "target 200 nm" }],
     });
     refs.tfTable.textContent = "";
     const tb = h("table", { class: "mini" });
@@ -421,7 +461,7 @@
     }
     const here = M.explore(params(), fast).recoverableNm;
     const ys = pts.map((p) => p[1]).filter(isFinite).concat(isFinite(here) ? [here] : []);
-    const ymin = Math.pow(10, Math.floor(Math.log10(Math.min.apply(null, ys.concat([pn])) * 0.8)));
+    const ymin = Math.pow(10, Math.floor(Math.log10(Math.min.apply(null, ys.concat([pn, TARGET_NM])) * 0.8)));
     const ymax = Math.pow(10, Math.ceil(Math.log10(Math.max.apply(null, ys.concat([pn])) * 1.2)));
     lineChart(refs.sweep, {
       id: "sweep", aria: "Smallest recoverable feature period against " + sw.label.toLowerCase(),
@@ -432,6 +472,7 @@
         { name: "Pixel pitch", color: "--fg2", dash: "2 3", width: 1, points: [[sw.range[0], pn], [sw.range[1], pn]] },
       ],
       markers: [{ x: state[sw.key], y: here, label: "now: " + fmtLen(here) }],
+      hbands: [{ y: TARGET_NM, label: "target: 200 nm period (100 nm features)" }],
     });
   }
 

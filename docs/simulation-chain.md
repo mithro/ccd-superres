@@ -54,7 +54,11 @@ will be replaced by measured ones as the cross-checks run.
 | 3 | Features are about a wavelength or larger and heights are small compared with feature widths. | Surfaces are treated as infinitely thin layers and light as a single scalar. Steep, deep or sub-wavelength structures and polarisation are wrong. |
 | 4 | Always, within classical optics. | Nothing physical. Cost limits it to patches of a few tens of micrometres in two dimensions, or a few micrometres in three. |
 
-The project's target of nanometre features lies where only level 4 is valid.
+The project's target, features of about 100 nm on silicon chips, lies where
+only level 4 is valid: the features are well below the wavelength of visible
+light and the surface is mirror-like, so the matt-surface kernel of levels 0
+and 1 does not apply either
+([design, section 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips)).
 The first hardware, at micrometre scale, lies where levels 1 to 3 overlap.
 That is why the chain is needed: the lower levels make large scans and
 reconstruction practical, and the upper levels tell us how far the lower ones
@@ -74,6 +78,12 @@ ignores, so a result always states its own blind spots.
 | Sensor stack | Pixel pitch and count, layers with thickness, shape and material, sensitive area, acceptance angle | 0 and 1 use pitch and a kernel. 2 uses shapes. 3 uses thin-layer equivalents. 4 uses everything. |
 | Scan | Speed, direction, frame rate, exposure, motion errors | 0 to 3. Level 4 produces a pixel response that the lower levels scan. |
 | Detector | Full well, read noise, gain variation, bit depth | 1 to 3 |
+
+The default scene is the project's target: smooth, mirror-like silicon
+carrying lines, spaces, corners, line ends and contact-like squares 100 nm
+wide and tens of nanometres high on a 200 nm period, in metal or oxide, with
+one deliberate defect. A scaled copy with 2 µm features is kept beside it for
+the levels and gaps where the 100 nm version is out of range.
 
 Outputs are shared too. Levels 1 to 3 write raw frames in one format, so the
 reconstruction and the metrics do not know which level produced them. Every
@@ -130,6 +140,17 @@ published in the documentation.
 | 9 | Checks between levels 2 and 3 | Measured limit of ray tracing |
 | 10 | Level 4: electromagnetic solver on small patches | Pixel response at nanometre scale |
 | 11 | Checks between levels 3 and 4 | Measured limit of scalar waves, kernels for nanometre gaps |
+
+Because the 100 nm target is decided by levels 3 and 4, one option is to
+bring a two-dimensional cross-section at level 4 forward, straight after step
+2, to check the estimates in section 4.6 of the design before the rest is
+built. That is a proposal for Tim, not a decision.
+
+All processing is offline and may use graphics cards and hundreds of cores,
+so every level is built to run as many independent jobs: tiles of surface,
+bundles of rays, patches for the electromagnetic solver and points of a
+parameter sweep. Levels 1 and 3 are written against an array interface that
+runs on a processor or a graphics card.
 
 Libraries are a choice for each step when it starts. Candidates for level 4
 are Meep for the time-domain solver and an existing coupled-wave package for

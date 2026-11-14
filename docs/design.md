@@ -2,6 +2,8 @@
 
 Status: draft for review. The scan sampling calculator (section 5.4) and the
 trade-off explorer (section 5.6) are implemented. The simulator is not.
+The stated goal is features of about 100 nm on silicon chips; section 4.6
+works out what that demands.
 Numbers marked "illustrative" come from the analytic model in section 4, not
 from simulation runs.
 
@@ -27,12 +29,40 @@ The simulator has two jobs:
 |---|---|
 | Optics | Lensless. The lenses on top of the sensor are removed. |
 | What is reconstructed | Surface reflectance first. Height is wanted too. Lighting is undecided. |
-| Feature scale | Nanometre scale, both laterally and in height. |
+| Target | Features of about 100 nm on silicon chips. Nanometre scale both laterally and in height. |
+| Effort | Significantly more computation is preferred over more hardware. |
+| Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
 | First hardware | Something like a Raspberry Pi camera sensor. |
 | Trajectory | Start as a model, end as a real instrument. |
 | Deliverables | Everything in this git repository, documented, with real diagrams. |
+
+### Design principle: computation before hardware
+
+Tim's preference is to spend significantly more computation rather than add
+hardware, with all processing done offline on powerful machines with graphics
+cards and hundreds of cores. The design follows that in four ways:
+
+- **Estimate instead of control.** Quantities a more expensive instrument
+  would fix mechanically are estimated from the data: the position of every
+  frame, the scan speed and its drift, tilt, the gain of each pixel and the
+  blur kernel itself (sections 6.4 and 6.5).
+- **Use what is known about the sample.** A chip is not an arbitrary picture.
+  It is a few materials in layers, with straight edges on a design grid, and
+  the layout may be known. That knowledge enters the reconstruction as a
+  prior, or the layout itself becomes the thing being fitted (section 6.5).
+- **Collect far more data than strictly needed.** Extra passes, tilts,
+  wavelengths and lighting directions cost scan time and computation, not
+  hardware.
+- **No speed limit on the methods.** Nothing has to run in real time, so
+  slow iterative, joint and model-fitting methods are acceptable, and so is a
+  full electromagnetic solver inside a fitting loop.
+
+The principle has one hard limit, set out in section 4.6: computation can
+only use information that reaches the detector. Detail that has decayed far
+below the noise before the light arrives cannot be bought back, because each
+thousandfold increase in samples buys only a modest step in resolution.
 
 ### Assumptions made here that need confirming
 
@@ -317,6 +347,109 @@ The plan is to build reflectance first, then add option 1 because it reuses
 the same model, and treat option 3 as a separate study once Tim has decided on
 lighting.
 
+### 4.6 The target: 100 nm features on silicon chips
+
+Lines and spaces 100 nm wide repeat every 200 nm, so the instrument has to
+recover a period of 200 nm. Two things about the sample change the picture
+drawn in section 4.1.
+
+First, a silicon chip is smooth and mirror-like, not matt. Under a directed
+beam it does not scatter light in all directions. Each pattern on it sends
+light into a few definite directions, and the rule is sharp: detail with a
+period longer than the wavelength leaves the surface as an ordinary beam and
+crosses any gap without loss, while detail finer than the wavelength never
+leaves. It exists only as a field that clings to the surface and fades with
+distance as
+
+$$
+\exp\!\left(-2\pi z \sqrt{1/\Lambda^2 - 1/\lambda^2}\right)
+$$
+
+for period $\Lambda$, wavelength $\lambda$ and gap $z$. For a 200 nm period
+in violet light (405 nm) that field falls by a factor of $e$ every 37 nm. The
+calculator and explorer now carry this "mirror-like surface, directed beam"
+model next to the matt one.
+
+Second, 200 nm is less than half the wavelength of any visible light, so with
+visible light the detail is always on the fading side of that rule.
+
+![Contrast of 100 nm lines and spaces against gap, for matt and mirror-like surfaces](diagrams/target-100nm.svg)
+
+What the analytic model gives for a 200 nm period, with 13,000 samples per
+pixel area (the 20% per second, 10 frames per second example over a full
+sensor), a single-sample signal-to-noise of 50 and full feature contrast:
+
+| Case | Largest gap that still recovers a 200 nm period |
+|---|---|
+| Matt surface, ideal sharp-edged pixel | 140 nm |
+| Same, with only 50 samples per pixel area | 35 nm |
+| Same, with 13 million samples (a thousand times more data) | 260 nm |
+| Mirror-like, 405 nm light | 123 nm |
+| Mirror-like, 650 nm light | 113 nm |
+| Mirror-like, 266 nm light | 162 nm |
+| Mirror-like, 193 nm light | Any gap |
+| Matt surface, pixel edges soft over 30 nm | 125 nm |
+| Matt surface, pixel edges soft over 50 nm | 96 nm |
+| Matt surface, pixel edges soft over 100 nm | Not recoverable at any gap |
+
+These are estimates from level 0 of the simulation chain. Where they sit
+below a wavelength, only level 4 can confirm them.
+
+What the target therefore demands:
+
+- **A gap of about 100 to 140 nm, or light with a wavelength near 200 nm.**
+  There is no third option for forming an image. At a gap of 1 µm in visible
+  light, the contrast of a 200 nm period reaching the detector is about
+  $10^{-13}$, and no number of samples recovers that. A thousand times more
+  data moves the limit only from 140 nm to 260 nm.
+- **The gap is measured from the light-sensitive silicon, not from the top of
+  the sensor.** The microlenses, colour filter and coatings on an IMX219
+  pixel are together of the order of a micrometre thick (section 5.3), which
+  is several times the whole gap budget. A near-field instrument needs them
+  removed and the bare face held within about 100 nm of the chip over the
+  area in use, which means a tilt below about 30 millionths of a radian
+  across a 3.7 mm sensor, and a chip surface that is itself flat to that
+  level. This is the hardware-heavy route.
+- **Pixel edges sharp to about 50 nm or better.** A 1.12 µm pixel spans more
+  than five periods, so it sees the pattern only through its edges. In this
+  model a mask with a 100 nm opening does not improve the limit, because the
+  light it blocks costs as much signal as the sharper response gains. Real
+  pixel edges are set by how charge spreads in the silicon and are not known
+  for this sensor. Level 4 is needed to estimate them.
+- **Light arriving at a slant relaxes the wavelength rule.** With the beam at
+  an angle $\theta$ from straight on, a period down to
+  $\lambda / (1 + \sin\theta)$ still leaves the surface as an ordinary
+  beam. Violet light at a steep slant therefore reaches a period just above
+  200 nm, and near-ultraviolet light (365 nm) at 60 degrees reaches 196 nm,
+  with the gap no longer critical. Recovering the pattern then means
+  combining many lighting directions by computation, which fits the design
+  principle. The calculator models only straight-on light so far. The
+  options for getting light into a lensless arrangement are covered in the
+  optical elements study (`docs/optical-elements.md`, in pull request 2) and
+  are not repeated here.
+- **A wave model for everything.** The matt-surface blur used by levels 0 and
+  1 is the wrong physics for polished silicon. The answer for this target
+  comes from levels 3 and 4.
+
+There is also a route that does not form an image at all, and it is the one
+that best matches the preference for computation. Chip factories measure line
+widths far below the wavelength by shining light on a pattern, recording how
+the reflected light varies with wavelength, angle and polarisation, and
+fitting a full electromagnetic model of the structure to those readings
+(optical scatterometry). Features finer than the wavelength change how
+strongly and with what phase each area reflects, even though their shape
+cannot be seen. If the layout is known or constrained, the question becomes
+"which layout parameters best explain the data", and it can be answered at
+ordinary gaps. The same applies to finding an isolated 100 nm feature, which
+can be detected and located much more finely than it can be imaged. What
+this route cannot do is show an unknown, arbitrary pattern at 100 nm.
+
+So the first thing to settle with Tim is what "looking for 100 nm features"
+has to deliver: a picture of an unknown layout, or the detection, location
+and measurement of features on a chip whose design rules or layout are known.
+The first needs the near field or short-wavelength slanted light. The second
+can lean almost entirely on computation.
+
 ## 5. Baseline parameters
 
 ### 5.1 Sensor
@@ -547,7 +680,9 @@ What it does:
 
 - **Controls:** sensor model, speed, frame rate, exposure or light pulse
   length, tilt, random position error, number of passes, gap, pixel edge
-  softness, single-sample signal-to-noise and feature contrast. Exposure is a
+  softness, single-sample signal-to-noise and feature contrast, plus the
+  surface type (matt, or mirror-like under a directed beam), the wavelength
+  and a mask opening on each pixel. Exposure is a
   free parameter from continuous down to a hundred-thousandth of the frame
   period, because the choice between a short exposure, a light pulse, a slow
   scan or modelling the smear has not been made.
@@ -559,7 +694,8 @@ What it does:
   the level needed to beat the noise; and the recoverable feature size swept
   against any one setting with the rest held fixed.
 - **Presets** for the settings discussed so far, including the 20% per second
-  at 10 frames per second example.
+  at 10 frames per second example and the 100 nm silicon target. The 200 nm
+  target period is marked on every plot.
 
 It is built on the analytic model only (sections 3.1, 4.2 and 5.4), so it
 answers in milliseconds and runs no simulation. The same formulas exist in
@@ -643,6 +779,11 @@ Expected scaling, to be confirmed by measurement in the build:
 | Demonstration patch | 10⁶ | 10⁷ | Seconds to a minute |
 | Full sensor footprint, tiled | 10⁸ | 10¹⁰ | Dominated by the streaming pass over frames |
 
+All of this is written against an array interface rather than against NumPy
+directly, so the same code runs on a processor with NumPy or on a graphics
+card with CuPy, JAX or PyTorch. Which of those to use is decided when level 1
+is built, by measurement.
+
 ### 6.4 Estimating motion from the data
 
 Each frame is a full two-dimensional picture of the surface, blurred but
@@ -663,6 +804,43 @@ rolling shutter.
 
 Per-pixel gain and offset are refined the same way, since every pixel sees the
 same surface statistics over a long scan.
+
+### 6.5 Spending computation instead of hardware
+
+Processing is offline, on machines with graphics cards and hundreds of cores,
+and more computation is preferred over more hardware. Beyond the linear solve
+above, that budget is spent on four things, in increasing order of cost.
+
+| Method | What it replaces or adds | Cost |
+|---|---|---|
+| Joint estimation of the surface with frame positions, speed drift, tilt, pixel gains and the blur kernel, alternating between them | Position encoders, a precision stage, flat-field and kernel calibration | Several times the basic solve |
+| Priors that match a chip: few materials, sharp straight edges, repeated cells | Signal-to-noise that would otherwise need more light or a smaller gap | Hundreds of iterations of a non-linear solver |
+| Fitting a layout: the unknowns are edge positions and widths on a known or partly known design, and the forward model is the wave or electromagnetic level | Imaging resolution, for samples whose design is constrained (section 4.6) | Thousands of forward runs of levels 3 or 4 |
+| Uncertainty from repeated solves on resampled data | Trust in a result that leans on priors | Tens of full solves |
+
+Priors need care. A strong prior produces a sharp, plausible picture whether
+or not the data supports it. Every result that uses one is therefore
+reported next to the plain least-squares result, and with the test in which
+the prior is given a deliberately wrong layout.
+
+How the work is split across cores:
+
+- **Tiles.** The surface is cut into patches that overlap by at least the
+  width of the blur kernel. Each patch is an independent job, and the
+  overlaps are blended afterwards. One patch fits on one graphics card, and
+  patches are spread over as many cards or cores as are available.
+- **Frames.** The streaming pass that accumulates the data is a sum over
+  frames, so frames are processed in any order by any number of workers and
+  the partial sums are added.
+- **Parameter studies.** Every point in a sweep, and every forward run in a
+  layout fit, is an independent job.
+- **The heavier simulation levels.** Rays are independent of each other.
+  Wave propagation is a set of Fourier transforms per tile and suits a
+  graphics card. The electromagnetic solver runs many small patches side by
+  side, and each patch can itself be split across cores.
+
+The command-line tools take a worker count and a tile size, and run the same
+way on a laptop with one worker as on a cluster.
 
 ## 7. Software design
 
@@ -727,6 +905,7 @@ Test surfaces, each chosen to probe one thing:
 
 | Surface | Probes |
 |---|---|
+| **Default scene: patterned silicon.** Smooth, mirror-like silicon carrying lines, spaces, corners, line ends and contact-like squares of metal or oxide, 100 nm wide and tens of nanometres high, on a 200 nm period, with one deliberate defect | The stated goal, with the real materials. Used at every level that can represent it. |
 | Bar groups of decreasing period, both orientations | Resolution along and across the scan |
 | Siemens star | Resolution in every direction at once |
 | Pairs of points at decreasing separation | Two-point resolution |
@@ -799,14 +978,22 @@ The build order follows the chain and is listed in
 
 Open questions for Tim:
 
-1. Is the conclusion in section 4.1 acceptable: the first hardware validates
-   the method at micrometre scale, and the simulator is used to specify what a
-   nanometre instrument would need?
-2. Section 5.3 concludes that removing only the module lens keeps the colour
+1. What must "looking for 100 nm features" deliver: a picture of an unknown
+   layout, or detecting, locating and measuring features on a chip whose
+   layout or design rules are known? Section 4.6 shows these lead to very
+   different instruments, and only the second can lean mainly on computation.
+2. Which of these is acceptable as hardware: removing the layers on the
+   sensor face and holding it about 100 nm from the chip, ultraviolet light,
+   or light from many slanted directions? At least one is needed to form an
+   image of a 200 nm period.
+3. Is it still acceptable that the first hardware validates the method at
+   micrometre scale (section 4.1), with the simulator used to specify the
+   100 nm instrument?
+4. Section 5.3 concludes that removing only the module lens keeps the colour
    filter, and removing the microlenses loses it. The baseline assumes only
    the module lens is removed. Is that the intended first setup?
-3. Is there any constraint on lighting (side, through the sample, single
+5. Is there any constraint on lighting (side, through the sample, single
    colour) that should be fixed now? It decides which height mechanism in
    section 4.5 is worth modelling.
-4. What gap is realistically achievable in the first setup? This is the one
+6. What gap is realistically achievable in the first setup? This is the one
    number that most changes the results.

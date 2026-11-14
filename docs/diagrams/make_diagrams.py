@@ -612,6 +612,52 @@ def level_validity():
     save(fig, "level-validity")
 
 
+# --------------------------------------------------------------------------
+# 10. What the 100 nm target demands of the gap and the wavelength
+# --------------------------------------------------------------------------
+def target_100nm():
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr.resolution import gap_transfer as gt
+
+    gap = np.logspace(1, 4, 300)
+    fig, ax = plt.subplots(figsize=(8.4, 4.8))
+    curves = [
+        (gt(200.0, gap, "collimated", 193.0), AQUA, "193 nm light"),
+        (gt(200.0, gap), BLUE, "matt surface"),
+        (gt(200.0, gap, "collimated", 405.0), ORANGE, "405 nm light"),
+    ]
+    for y, c, _ in curves:
+        ax.loglog(gap, np.maximum(y, 1e-12), color=c, lw=2)
+    ax.text(1.5e3, 0.42, "mirror-like surface, 193 nm light:\nno loss at any gap", color=INK,
+            fontsize=9, va="top")
+    ax.text(330, 2.0e-3, "matt surface,\nany wavelength", color=INK, fontsize=9, va="center")
+    ax.text(88, 2.0e-4, "mirror-like surface,\n405 nm light", color=INK, fontsize=9, ha="right",
+            va="center")
+    ax.axhline(1e-3, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.text(11, 1.25e-3, "illustrative noise floor", color=INK2, fontsize=9)
+    ax.axvspan(1e3, 1e4, color=YELLOW, alpha=0.18, lw=0)
+    ax.text(3.2e3, 2.5e-6, "about the thickness of the\nlayers on a pixel's face", color=INK2,
+            fontsize=9, ha="center")
+    ticks = [10, 100, 1e3, 1e4]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(["10 nm", "100 nm", "1 µm", "10 µm"])
+    ax.minorticks_off()
+    ax.set_xlim(10, 1e4)
+    ax.set_ylim(1e-6, 1.6)
+    ax.set_xlabel("gap between the light-sensitive layer and the chip surface")
+    ax.set_ylabel("contrast of 100 nm lines and spaces\nreaching the detector (1 = full)")
+    ax.grid(True, which="major", color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.set_title("100 nm features need either a gap near 100 nm or light near 200 nm",
+                 loc="left", fontsize=11, color=INK)
+    fig.tight_layout()
+    save(fig, "target-100nm")
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -622,4 +668,5 @@ if __name__ == "__main__":
     samples_vs_resolution()
     subpixel_coverage()
     level_validity()
+    target_100nm()
     print("wrote diagrams to", OUT)

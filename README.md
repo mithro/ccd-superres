@@ -4,6 +4,9 @@ Simulation of a lensless image sensor that is moved at a constant rate over a
 surface, with super-resolution reconstruction of the surface from the
 continuously captured pixel data.
 
+The goal is to find features of about 100 nm on silicon chips, spending
+computation rather than hardware wherever possible.
+
 Status: design stage. The scan sampling calculator and the trade-off explorer
 are implemented; the simulator and reconstruction are not written yet.
 

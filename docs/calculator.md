@@ -68,6 +68,16 @@ whose signal, after attenuation by the gap, the pixel area and motion blur,
 still exceeds the noise left after averaging, and never smaller than the
 sample positions can represent. It also names which effect sets the limit.
 
-These are estimates from closed-form formulas. They assume diffuse light
-across the gap and exactly known sample positions. The higher levels of the
+By default the surface is treated as matt. For a smooth, mirror-like surface
+such as a silicon chip, pass `gap_model="collimated"` and a `wavelength_nm`:
+detail coarser than the wavelength then crosses the gap without loss and finer
+detail fades exponentially. `aperture_nm` sets a mask opening smaller than the
+pixel. For the 100 nm target:
+
+```python
+result = explore(sensor, scan, gap_nm=100, gap_model="collimated", wavelength_nm=405)
+```
+
+These are estimates from closed-form formulas. They assume straight-on light
+and exactly known sample positions. The higher levels of the
 simulation chain exist to confirm or correct them.

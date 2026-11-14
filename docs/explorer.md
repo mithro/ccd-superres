@@ -20,6 +20,10 @@ simulation, only the analytic model, which is why it is instant.
   blur, with the level needed to beat the noise.
 - **A sweep** of the recoverable feature size against any one setting, with
   everything else held fixed.
+- **The 100 nm target.** A preset for 100 nm features on silicon, a choice
+  between a matt surface and a mirror-like one under a directed beam, the
+  wavelength, and a mask opening on each pixel. The 200 nm period of the
+  target is marked on the plots.
 
 ## Using it without the documentation
 

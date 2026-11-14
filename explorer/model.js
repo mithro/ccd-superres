@@ -56,7 +56,15 @@
     return Math.sin(a) / a;
   }
 
-  function gapTransfer(periodNm, gapNm) {
+  /* model "diffuse": matt surface, u K1(u). model "collimated": mirror-like surface
+   * under a collimated beam; periods above the wavelength pass, finer ones are
+   * evanescent and decay exponentially. */
+  function gapTransfer(periodNm, gapNm, model, wavelengthNm) {
+    if (model === "collimated") {
+      const lam = wavelengthNm || 550;
+      const k2 = 1 / (periodNm * periodNm) - 1 / (lam * lam);
+      return k2 <= 0 ? 1 : Math.exp(-2 * Math.PI * gapNm * Math.sqrt(k2));
+    }
     const u = (2 * Math.PI * gapNm) / periodNm;
     if (u < 1e-8) return 1;
     if (u > 700) return 0;
@@ -74,12 +82,16 @@
     return Math.exp(-2 * Math.PI * Math.PI * r * r);
   }
 
-  function pixelTransfer(periodNm, pitchNm, edgeSigmaNm) {
-    return boxEnvelope(periodNm, pitchNm) * softEdge(periodNm, edgeSigmaNm);
+  /* apertureNm is the width of the light-sensitive opening (the pitch for a bare pixel). */
+  function pixelTransfer(periodNm, apertureNm, edgeSigmaNm) {
+    return boxEnvelope(periodNm, apertureNm) * softEdge(periodNm, edgeSigmaNm);
   }
 
-  function combinedTransfer(periodNm, gapNm, pitchNm, blurPx, edgeSigmaNm) {
-    return gapTransfer(periodNm, gapNm) * pixelTransfer(periodNm, pitchNm, edgeSigmaNm) *
+  /* o: {apertureNm, gapModel, wavelengthNm}, all optional. */
+  function combinedTransfer(periodNm, gapNm, pitchNm, blurPx, edgeSigmaNm, o) {
+    const q = o || {};
+    return gapTransfer(periodNm, gapNm, q.gapModel, q.wavelengthNm) *
+      pixelTransfer(periodNm, q.apertureNm || pitchNm, edgeSigmaNm) *
       boxEnvelope(periodNm, blurPx * pitchNm);
   }
 
@@ -89,12 +101,15 @@
     return 1 / (contrast * snrSingle * Math.sqrt(nCell));
   }
 
+  /* A masked pixel collects less light: snrSingle is scaled by aperture / pitch. */
   function recoverablePeriod(nPerPixelArea, gapNm, pitchNm, snrSingle, contrast, blurPx,
-    edgeSigmaNm) {
+    edgeSigmaNm, o) {
+    const q = o || {};
+    const snr = snrSingle * (q.apertureNm || pitchNm) / pitchNm;
     const margin = (logP) => {
       const p = Math.exp(logP);
-      return combinedTransfer(p, gapNm, pitchNm, blurPx, edgeSigmaNm) /
-        requiredTransfer(p, nPerPixelArea, pitchNm, snrSingle, contrast) - 1;
+      return combinedTransfer(p, gapNm, pitchNm, blurPx, edgeSigmaNm, q) /
+        requiredTransfer(p, nPerPixelArea, pitchNm, snr, contrast) - 1;
     };
     let lo = Math.log(1e-2), hi = Math.log(1e12);
     if (margin(hi) < 0) return Infinity;
@@ -244,11 +259,14 @@
     const snr = params.snrSingle != null ? params.snrSingle : 50;
     const contrast = params.contrast != null ? params.contrast : 1;
     const edge = params.edgeSigmaNm || 0;
-    const noiseNm = recoverablePeriod(n, params.gapNm, pitchNm, snr, contrast, blurPx, edge);
+    const apertureNm = Math.min(params.apertureNm || pitchNm, pitchNm);
+    const optics = { apertureNm: apertureNm, gapModel: params.gapModel || "diffuse",
+      wavelengthNm: params.wavelengthNm || 550 };
+    const noiseNm = recoverablePeriod(n, params.gapNm, pitchNm, snr, contrast, blurPx, edge, optics);
     const samplingNm = 2 * Math.SQRT2 * cov.holePx * pitchNm;
     const period = Math.max(noiseNm, samplingNm);
-    const tGap = isFinite(period) ? gapTransfer(period, params.gapNm) : 0;
-    const tPix = isFinite(period) ? pixelTransfer(period, pitchNm, edge) : 0;
+    const tGap = isFinite(period) ? gapTransfer(period, params.gapNm, optics.gapModel, optics.wavelengthNm) : 0;
+    const tPix = isFinite(period) ? pixelTransfer(period, apertureNm, edge) : 0;
     const tMot = isFinite(period) ? boxEnvelope(period, blurPx * pitchNm) : 0;
     let limitedBy;
     if (samplingNm > noiseNm) limitedBy = "sampling pattern";
@@ -283,6 +301,8 @@
       transferPixel: tPix,
       transferMotion: tMot,
       snrSingle: snr,
+      snrEffective: snr * apertureNm / pitchNm,
+      optics: optics,
       contrast: contrast,
       edgeSigmaNm: edge,
       gapNm: params.gapNm,

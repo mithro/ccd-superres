@@ -19,6 +19,10 @@ CASES = [
     dict(fractionPerS=0.01, fps=30, exposureFraction=0.1, tiltTan=0.03, gapNm=1000,
          snrSingle=20, contrast=0.3, edgeSigmaNm=300, passes=4),
     dict(fractionPerS=0.2, fps=10, exposureFraction=0.003, tiltTan=0, gapNm=100),
+    dict(fractionPerS=0.002, fps=30, exposureFraction=0.05, tiltTan=0.0625, gapNm=80,
+         apertureNm=100, gapModel="collimated", wavelengthNm=405, passes=10),
+    dict(fractionPerS=0.002, fps=30, exposureFraction=0.05, tiltTan=0.0625, gapNm=5000,
+         gapModel="collimated", wavelengthNm=193),
 ]
 
 
@@ -48,7 +52,9 @@ def test_explore_matches_python(case):
     scan = Scan(fps=case["fps"], fraction_per_s=case["fractionPerS"],
                 exposure_s=case["exposureFraction"] / case["fps"], tilt_tan=case["tiltTan"])
     py = explore(sensor, scan, case["gapNm"], case.get("snrSingle", 50),
-                 case.get("contrast", 1), case.get("edgeSigmaNm", 0), case.get("passes", 1))
+                 case.get("contrast", 1), case.get("edgeSigmaNm", 0), case.get("passes", 1),
+                 aperture_nm=case.get("apertureNm"), gap_model=case.get("gapModel", "diffuse"),
+                 wavelength_nm=case.get("wavelengthNm", 550))
     b = py.budget
     assert js["shiftPx"] == pytest.approx(b.shift_px)
     assert js["samplesPerPoint"] == pytest.approx(b.samples_per_point)

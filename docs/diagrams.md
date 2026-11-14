@@ -18,6 +18,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `sensor-stack` | Layers on the sensor face, before and after removing the microlenses | Layer order from the cited cross-section study; not to scale |
 | `resolution-budget` | Contrast passed by the gap and by the pixel area | Analytic model |
 | `gap-requirement` | Smallest recoverable period against gap | Analytic model |
+| `target-100nm` | Contrast of 100 nm lines and spaces against gap, matt and mirror-like surfaces | Analytic model |
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
