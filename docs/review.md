@@ -305,7 +305,7 @@ the tests would notice.
 | Asset | Reviewed in | When |
 |---|---|---|
 | [`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py), [`ccdsr/level1_2d.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1_2d.py), their tests and the [level 1 page](level1.md) | [Pull request 30](https://github.com/mithro/ccd-superres/pull/30) | After pull requests 22 and 23 had merged, before position estimation merged |
-| [`ccdsr/constrained.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/constrained.py), [`tests/test_constrained.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_constrained.py), [`make_constrained_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_constrained_diagrams.py) and the [elimination page](constrained-reconstruction.md) | The pull request that added them | Before merging |
+| [`ccdsr/constrained.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/constrained.py), [`tests/test_constrained.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_constrained.py), [`make_constrained_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_constrained_diagrams.py) and the [elimination page](constrained-reconstruction.md) | [Pull request 33](https://github.com/mithro/ccd-superres/pull/33), in two rounds | Before merging |
 
 *Table: what review 5 covered.*
 
@@ -358,7 +358,7 @@ were checked by the tests and by rerunning the experiments.
 
 [Design, section 4.10](design.md#410-what-the-four-research-studies-changed)
 and the smaller edits that go with it were reviewed on 14 November 2026,
-before merging. The reviewer was given the change and the four study pages,
+before merging, in [pull request 33](https://github.com/mithro/ccd-superres/pull/33). The reviewer was given the change and the four study pages,
 and checked every table row and edited sentence against the study section
 it cites.
 
