@@ -227,7 +227,7 @@ explored as soon as it is modelled.
 | E1 | Test scenes and measures: bar groups, star, point pairs, edges, the patterned silicon scene, resolution by Fourier ring correlation ([design, section 8](design.md#8-validation-plan)) | Planned in the design. Not built. |
 | E2 | Calibration from the data: frame positions, speed, tilt, pixel gains, pixel response, noise maps | Planned in the design, sections 5.8, 5.9 and 6.4. Not built. |
 | E3 | Honesty tests for results that use prior knowledge: reconstruction from a deliberately wrong starting layout, and each random process switched on and off | Planned in the design, sections 4.7 and 5.8. Not built. |
-| E4 | A page of its own for calibration and test methods | Not started |
+| E4 | A page of its own for calibration and test methods | Done as a plan: [calibration and test methods](calibration-and-test.md). It sets out E1 to E3 in detail: the benchmark scenes and measures, what is solved from the data and what needs an outside measurement, and the tests against invented detail. |
 
 ## F. Stages of the leading candidate, in simulation
 
@@ -356,6 +356,7 @@ text in cells.
 | [References](references.md) | Yes | Yes | Not applicable | Text tables |
 | [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Nine scripted figures. Audit for text-only sections in progress. | Yes: data tables have one quantity per column with units in the header and right-aligned numbers, data in paragraphs was moved into tables, and comparisons in words are separate text tables |
 | [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Five figures and three flow charts. Figures for each field's mapping are being added. | Yes: data tables with units in the headers, kept separate from the text tables |
+| [Calibration and test methods](calibration-and-test.md) | Yes: summary, terms explained or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label. Journal sources were checked to exist by DOI. Web sources are marked as read in summary. | Fifteen scripted figures and four flow charts | Yes: data tables with units in the headers and a source column, kept separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 
 ## How the plan is kept

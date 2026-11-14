@@ -61,12 +61,14 @@ unless the entry says so.
 
 ## Reference lists of the other pages
 
-The two survey pages keep their own numbered lists, which are part of this
+Three pages keep their own numbered lists, which are part of this
 bibliography:
 
 - [Optical elements, section 14](optical-elements.md#14-references), keys
   O1 onwards.
 - [Reconstruction methods, section 11](reconstruction-methods.md#11-references).
+- [Calibration and test methods, section 14](calibration-and-test.md#14-references),
+  keys T1 onwards.
 
 New sources are added here, or to those lists for those pages, in the same
 pull request as the claim that needs them.
