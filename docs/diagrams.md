@@ -28,6 +28,8 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
+| `level1-reconstruction` | True bars, one raw frame and three reconstructions | Level 1 simulator, seed 1 |
+| `level1-crosscheck` | Level 1 blur and noise against the level 0 formulas | Level 1 simulator and analytic model |
 
 ## Reconstruction methods figures
 

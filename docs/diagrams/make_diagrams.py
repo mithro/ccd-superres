@@ -913,6 +913,110 @@ def plan_status():
     save(fig, "plan-status")
 
 
+def _level1_bars():
+    """The bar-group example used on the level 1 page."""
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr import level1 as l1
+
+    dx = 20.0
+    surface, groups = l1.bar_groups([4000, 2000, 1200, 800, 500], dx)
+    scan = l1.Scan1D(n_pixels=64, n_frames=160, shift_px=0.37)
+    frames = l1.simulate(surface, dx, l1.Optics1D(gap_nm=300), scan, l1.Noise1D(), seed=1)
+    return l1, dx, surface, groups, frames
+
+
+def level1_reconstruction():
+    """Truth, one raw frame, and three reconstructions of the bar groups."""
+    l1, dx, surface, groups, frames = _level1_bars()
+    plain, _ = l1.shift_and_add(frames)
+    wien = l1.wiener(frames)
+    lsq, _ = l1.least_squares(frames)
+    x = np.arange(surface.size) * dx / 1e3
+    fig, axes = plt.subplots(5, 1, figsize=(9.6, 8.6), sharex=True)
+    rows = [("the true surface", surface, INK),
+            ("one raw frame: 64 pixel readings", None, INK2),
+            ("all frames averaged in place (shift and add)", plain, BLUE),
+            ("averaged, then blur undone (Wiener filter)", wien, AQUA),
+            ("best fit to all readings (regularised least squares)", lsq, ORANGE)]
+    for ax, (name, y, c) in zip(axes, rows):
+        if y is None:
+            k = 20
+            px = (frames.positions_nm[k] % (surface.size * dx)) / 1e3
+            ax.plot(px, frames.readings[k] / frames.truth["light"], "o", ms=3.5, color=c)
+        else:
+            ax.plot(x, y, color=c, lw=1.3)
+        ax.set_ylim(-0.25, 1.45)
+        ax.set_yticks([0, 1])
+        ax.set_title(name, loc="left", fontsize=9.5, color=INK, pad=3)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    for period, a, b in groups:
+        axes[0].text((a + b) / 2 * dx / 1e3, 1.14, f"{period / 1e3:g} µm", ha="center", fontsize=8.5,
+                     color=INK2)
+    axes[2].set_ylabel("reflectance (share of light sent back)")
+    axes[-1].set_xlabel("position along the scan (µm)")
+    fig.suptitle("Level 1, one dimension: 1.12 µm pixels, 0.3 µm gap, 160 frames. Labels give each "
+                 "group's repeat distance.", x=0.01, ha="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "level1-reconstruction")
+
+
+def level1_crosscheck():
+    """Level 1 against the level 0 formulas: transfer, and noise of a fitted contrast."""
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    from ccdsr import level1 as l1
+    from ccdsr.resolution import box_envelope, gap_transfer
+
+    dx, n = 20.0, 4000
+    optics = l1.Optics1D(gap_nm=300)
+    scan = l1.Scan1D(n_pixels=64, n_frames=100, shift_px=0.37)
+    noise = l1.Noise1D()
+    periods = np.array([500.0, 640.0, 800.0, 1000.0, 1600.0, 2000.0, 3200.0, 5000.0, 8000.0, 16000.0])
+    measured_t, measured_err, predicted_err = [], [], []
+    for period in periods:
+        blurred = l1.blur(l1.sinusoid(period, dx, n), dx, optics, scan)
+        measured_t.append((blurred.max() - blurred.min()))
+        surface = l1.sinusoid(period, dx, n, contrast=0.5)
+        errs = [l1.sinusoid_amplitude(l1.simulate(surface, dx, optics, scan, noise, seed=s), period)[0]
+                - 0.5 for s in range(60)]
+        measured_err.append(np.std(errs))
+        predicted_err.append(l1.predicted_contrast_noise(None, period, optics, scan, noise))
+    fine = np.geomspace(400, 20000, 600)
+    fig, (a, b) = plt.subplots(1, 2, figsize=(10.4, 4.3))
+    a.loglog(fine, gap_transfer(fine, 300.0) * box_envelope(fine, 1120.0), color=INK2, lw=1.2,
+             ls=(0, (4, 3)), label="level 0: upper envelope")
+    a.loglog(fine, np.maximum(np.abs(l1.transfer(1 / fine, optics)), 1e-9), color=BLUE, lw=1.6,
+             label="exact formula")
+    a.loglog(periods, measured_t, "o", color=ORANGE, ms=6, label="level 1: measured on blurred sinusoids")
+    a.set_ylim(1e-4, 1.6)
+    a.set_ylabel("share of contrast that survives")
+    a.set_title("Blur", loc="left", fontsize=11)
+    b.loglog(fine, [l1.predicted_contrast_noise(None, q, optics, scan, noise) for q in fine], color=BLUE,
+             lw=1.6, label="predicted from the formulas")
+    b.loglog(periods, measured_err, "o", color=ORANGE, ms=6, label="level 1: scatter over 60 noisy runs")
+    b.axhline(0.5, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    b.text(19000, 0.62, "error as large as the pattern's own contrast (0.5): lost", fontsize=8.5,
+           color=INK2, ha="right")
+    b.set_ylim(1e-4, 30)
+    b.set_ylabel("error in the measured contrast (rms)")
+    b.set_title("Noise after combining 6,400 readings", loc="left", fontsize=11)
+    for ax in (a, b):
+        ax.set_xticks([500, 1000, 2000, 5000, 10000])
+        ax.set_xticklabels(["0.5", "1", "2", "5", "10"])
+        ax.minorticks_off()
+        ax.set_xlim(400, 20000)
+        ax.set_xlabel("repeat distance of the pattern (µm)")
+        ax.legend(frameon=False, fontsize=8.5, loc="lower right" if ax is a else "lower left")
+        _clean(ax)
+    fig.tight_layout()
+    save(fig, "level1-crosscheck")
+    return periods, measured_t, measured_err, predicted_err
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -930,4 +1034,6 @@ if __name__ == "__main__":
     readout_timing()
     array_angles()
     plan_status()
+    level1_reconstruction()
+    level1_crosscheck()
     print("wrote diagrams to", OUT)

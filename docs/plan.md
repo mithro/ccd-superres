@@ -210,7 +210,7 @@ method, assumptions, worked examples and cross-check results.
 | D0 | Level 0: analytic calculator and explorer | Done |
 | D1 | Shared scene description, raw frame format, readout scheme model, metrics, default scene of patterned silicon | Not started |
 | D1a | Approach files and the comparison runner: an approach as a named configuration, several run against the same scenes, one table and set of figures on the same measures | Not started |
-| D2 | Level 1: linear blur model with reconstruction, in one dimension and then two | Not started |
+| D2 | Level 1: linear blur model with reconstruction, in one dimension and then two | In progress. One dimension with three reconstruction methods and its cross-checks against level 0 is done: see [level 1](level1.md). Two dimensions, motion estimation and gain correction are next. |
 | D3 | Level 2: ray tracing | Not started |
 | D4 | Level 3: scalar wave propagation, with the coherent slanted-light scheme | Not started |
 | D5 | Level 4: full electromagnetic solver on small patches | Not started |
@@ -357,6 +357,7 @@ text in cells.
 | [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Yes: twenty figures from `docs/diagrams/make_optics_diagrams.py` and two flow charts, with units, labelled parts and stand-alone captions. Sections 3.3, 4.4, 4.5 and 11 to 13 remain text and tables. | Yes: data tables have one quantity per column with units in the header and right-aligned numbers, data in paragraphs was moved into tables, and comparisons in words are separate text tables |
 | [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Yes: 18 scripted figures and three flow charts, at least one per field and per derived result | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Calibration and test methods](calibration-and-test.md) | Yes: summary, terms explained or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label. Journal sources were checked to exist by DOI. Web sources are marked as read in summary. | Fifteen scripted figures and four flow charts | Yes: data tables with units in the headers and a source column, kept separate from the text tables |
+| [Simulation level 1](level1.md) | Yes: summary, glossary links, the formula followed by words, stand-alone captions | Yes: each step, method and table carries a key or a label | One flow chart and two scripted figures | Yes: data tables with units and right-aligned numbers, separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 
 ## How the plan is kept
