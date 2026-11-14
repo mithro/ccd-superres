@@ -52,4 +52,7 @@ See [comparing approaches](comparison.md).
 
 .. automodule:: ccdsr.compare
    :members:
+
+.. automodule:: ccdsr.run
+   :members:
 ```

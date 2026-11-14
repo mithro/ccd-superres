@@ -15,6 +15,9 @@ Status: design stage. The scan sampling calculator and the trade-off explorer
 are implemented, and so is the first simulator with reconstruction (level 1,
 in one and two dimensions). The more accurate simulation levels are planned.
 
+- [Getting started](docs/getting-started.md): diagrams of the current
+  configuration and how to try the explorer, the simulator and the
+  comparison of approaches.
 - [Project plan](docs/plan.md): every item of work in order and its state,
   with deep research ahead of the build stages.
 - [Design document](docs/design.md): problem statement, measurement model,

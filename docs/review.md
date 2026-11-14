@@ -406,3 +406,78 @@ in the findings table matched the result tables.
 page, link targets and the internals of the reconstructions, which review 5
 covered. The corrections were checked by the tests and by rerunning the
 comparison, not by a further reviewer.*
+
+## Review 8: the getting started page, the one-command run and Tim's answers
+
+The [getting started page](getting-started.md), the command behind it
+([`ccdsr/run.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/run.py)),
+its tests, and the places where Tim's answers on the light monitor and on
+chip design rules were written into the [design](design.md) and the
+[plan](plan.md) were reviewed on 14 November 2026, before merging. The
+reviewer was given the commit and Tim's exact words and not the author's
+conclusions. It ran every command on the page, tried deliberately bad
+inputs, and compared each quotation with what Tim wrote.
+
+It confirmed that every command on the page runs, that the picture on the
+page is exactly the one the command saves, that the example changes of
+settings take effect, that the listed defaults match the code, that the
+design values in the first table match the design, and that all links
+resolve.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | `False`, `no` or `off` given for a yes-or-no setting was read as a word, which counts as yes. Photon noise stayed on when switched off this way. | The usual spellings of true and false are understood, and a value of the wrong kind is refused with the setting named. Tested. |
+| 2 | Error | The first table gave a sensor tilt of 3.6° as what the two-dimensional code does. It is 0° unless set; 3.6° is the worked example. | Corrected. |
+| 3 | Error | The elimination page said in one table that a minimum-width rule is used and in another that it is not. | The first table now says the tests use none. |
+| 4 | Gap | Our own reading was recorded as Tim's input in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. His question about using pixels was written as a decision. | Each is now labelled "Our reading", and the pixel idea is recorded as his question. |
+| 5 | Gap | The beamforming study's questions and three places that list layout rules as inputs did not show the answers. | A note on the study's questions, and "optional, also run without" added in the design and plan. |
+| 6 | Gap | One date in the plan was stretched to cover an earlier answer. | Reworded. |
+| 7 | Gap | Impossible values were accepted: a negative gap (which scored better than the default), no frames, no light. | Every setting has an allowed range and is refused outside it, in approach files, changes and conditions. Tested. |
+| 8 | Gap | A missing approach file or an unwritable picture path ended in a Python error trace; several mistyped changes gave messages that did not name the setting. | One-line messages that name the setting. Tested. |
+| 9 | Gap | Following the page left `run.png` and `results/mine/` as new files in the repository. | Both are ignored by git. |
+| 10 | Wording | First table: "finest detail aimed for" was neither the aim nor the default result; elimination was listed as runnable by the command; partner beams were stated as decided; a unit column repeated the units. The default of `positions` and the claim about where level 1 is valid were loose. | Table rewritten with units in the cells; the validity statement now cites the [simulation chain](simulation-chain.md#where-each-level-is-valid). |
+| 11 | Minor | A quotation dropped its opening words without a mark; a caption did not match its drawing; an import sat inside a loop. | Fixed. |
+
+*Table: findings of review 8. Not checked by the reviewer: installing from a
+fresh clone, the explorer's "100 nm on silicon" preset, the Python examples
+linked from step 6, and how the diagram of what runs today is drawn in a
+browser. The corrections were checked by the tests and by a strict build of
+the pages, not by a second review.*
+
+## Review 9: click to enlarge for images and flow charts
+
+The viewer that opens any image or flow chart when it is clicked
+([`docs/_static/image-zoom.js`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.js),
+[`docs/_static/image-zoom.css`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.css),
+loaded from
+[`docs/conf.py`](https://github.com/mithro/ccd-superres/blob/main/docs/conf.py))
+was reviewed on 14 November 2026, before merging, in
+[pull request 37](https://github.com/mithro/ccd-superres/pull/37). The
+reviewer was given the commit and what it was meant to do, and not the
+author's tests or conclusions. It built the pages and drove them in the
+Chromium browser with a mouse, a keyboard and an emulated phone touch screen.
+
+It confirmed that the strict build passes, that all 136 pictures on the site
+(108 images and 28 flow charts) open, show fully, zoom and close, that the
+page returns to where it was, that light and dark themes both work, that
+images which are links to other places still follow their links, and that
+search, printing and the [explorer](explorer.md) are unaffected.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | On a touch screen, tapping beside the picture to close it also tapped whatever lay underneath on the page, which could follow a link or open a different picture. | The viewer now acts on the tap itself and swallows it. Retested on an emulated phone at the two places the reviewer gave. |
+| 2 | Gap | Escape and the zoom keys stopped working once keyboard focus had left the viewer's buttons, for example after a right click. | Keys are listened for on the whole page while the viewer is open. Retested. |
+| 3 | Gap | An image given a set width could not be opened from the keyboard: Enter went to the image file. No page has one today. | Handled. |
+| 4 | Gap | The buttons and the caption lay over the edge of 75 pictures in the fitted view. | The fitted view leaves room for both. Retested on 95 pictures over six pages: none overlap. |
+| 5 | Gap | Five files left behind by installing the package had been committed. | Removed, and ignored by git. |
+| 6 | Minor | Ctrl with + or - was taken by the viewer, blocking the browser's own zoom. | Left to the browser. |
+| 7 | Minor | The flow chart extension's own full-screen view copied our markings, so Enter there opened a second viewer on top. | Our viewer only opens from the page body. Retested. |
+| 8 | Minor | A flow chart caption carried a stray link mark, a figure showed its short description and not its caption, and captions were squeezed on a phone. | Fixed. |
+| 9 | Minor | A two-finger pinch zoomed but did not move the picture; Escape during a drag left the wrong cursor. | Fixed. |
+| 10 | Minor | A drawing written into a page as raw markup, which no page has, would not be covered. | Said in the script's opening comment. |
+| 11 | Minor | A screen reader hears each picture as a button, not an image; the phone Back button leaves the page and does not close the viewer; resizing the window resets the zoom. | Not changed. |
+
+*Table: findings of review 9. Not checked by the reviewer: Firefox, Safari,
+real phones and tablets (touch was emulated in Chromium), a real screen
+reader, and the pages as served by Read the Docs. The corrections were
+checked by the author's browser tests, not by a second review.*

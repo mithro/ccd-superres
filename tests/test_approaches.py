@@ -227,3 +227,82 @@ def test_options_and_seed_reach_the_run():
     assert cp.run_one(light, "bars", ideal, 0)["rms_error"] != pytest.approx(first["rms_error"], rel=1e-3)
     assert cp.run_one(usual, "bars", ideal, 1)["rms_error"] != pytest.approx(first["rms_error"], rel=1e-6)
     assert not np.allclose(ap.simulate(usual, scene, ideal, 0).readings, ap.simulate(usual, scene, ideal, 1).readings)
+
+
+def test_one_command_run_with_changed_settings(tmp_path, capsys):
+    from ccdsr import run
+
+    path = ROOT / "approaches" / "least-squares.toml"
+    usual = ap.load_approach(path)
+    changed = ap.load_approach(path, ["optics.gap_nm=1000", "noise.full_e=100", "positions=unknown",
+                                      "reconstruction.smoothness=1e-3", "scan.code=[1, 0, 1]"])
+    assert (changed.optics, changed.noise, changed.positions) == ({"gap_nm": 1000}, {"full_e": 100}, "unknown")
+    assert changed.options == {"smoothness": 1e-3} and changed.scan["code"] == (1, 0, 1)
+    assert usual.optics == {} and usual.positions == "known"
+    with pytest.raises(ap.InvalidApproach, match="unknown optics setting"):
+        ap.load_approach(path, ["optics.gap=3"])
+    with pytest.raises(ap.InvalidApproach, match="section.setting=value"):
+        ap.load_approach(path, ["optics.gap_nm"])
+    scene, frames, estimate, scores = run.run(usual)
+    wide = run.run(ap.load_approach(path, ["optics.gap_nm=1000"]))[3]
+    assert frames.optics.gap_nm == 300 and wide["rms_error"] > scores["rms_error"] + 0.03
+    same = cp.run_one(usual, "bars", ap.Condition("as set"), 0)                 # same as the runner
+    assert all(same[k] == v for k, v in scores.items())
+    out = tmp_path / "try.png"
+    run.main([str(path), "--set", "optics.gap_nm=1000", "--out", str(out)])
+    text = capsys.readouterr().out
+    assert "gap 1000 nm" in text and f"{wide['rms_error']:.3f}" in text and out.stat().st_size > 10000
+    run.main(["--list"])
+    listed = capsys.readouterr().out
+    assert "optics.gap_nm=300.0" in listed and "reconstruction.method=two_materials (needs: materials)" in listed
+    with pytest.raises(SystemExit, match="cannot run"):
+        run.main([str(path), "--scene", "nowhere"])
+
+
+@pytest.mark.parametrize("change, message", [
+    ("optics.gap_nm=-100", "at least 0"), ("scan.n_frames=0", "at least 1"), ("noise.full_e=0", "more than 0"),
+    ("scan.n_frames=50.5", "whole number"), ("optics.gap_nm=abc", "optics.gap_nm must be a number"),
+    ("optics.gap_nm=1,000", "optics.gap_nm must be a number"), ("optics.gap_nm.x=3", "must be a number"),
+    ("positions.x=3", "single setting"), ("reconstruction=wiener", "group of settings"), ("=5", "section.setting"),
+    ("optics.=5", "section.setting"), ("noise.photon=maybe", "true or false"), ("scan.code=[0, 0]", "at least one 1"),
+    ("scan.exposure_fraction=2", "more than 1"), ("scan.shift_px=0", "must not be 0"),
+    ("optics.gap_model=foggy", "one of"), ("knowledge.materials=perhaps", "true or false"),
+    ("reconstruction.smoothness=-1", "not negative"), ("optics=3", "group of settings"),
+])
+def test_unusable_values_are_refused_with_the_setting_named(change, message):
+    with pytest.raises(ap.InvalidApproach, match=message):
+        ap.load_approach(ROOT / "approaches" / "least-squares.toml", [change])
+
+
+def test_true_and_false_may_be_written_in_any_usual_way():
+    path = ROOT / "approaches" / "least-squares.toml"
+    for word in ("false", "False", "no", "OFF"):
+        assert ap.load_approach(path, [f"noise.photon={word}"]).noise == {"photon": False}
+    for word in ("true", "True", "yes", "on"):
+        assert ap.load_approach(path, [f"noise.photon={word}"]).noise == {"photon": True}
+    quiet = ap.simulate(ap.load_approach(path, ["noise.photon=False", "noise.read_e=0"]), ap.get_scene("bars"),
+                        ap.Condition("as set"), 0)
+    again = ap.simulate(ap.load_approach(path, ["noise.photon=False", "noise.read_e=0"]), ap.get_scene("bars"),
+                        ap.Condition("as set"), 1)
+    assert np.allclose(quiet.readings, again.readings)          # no noise left, so the seed changes nothing
+    needs = ROOT / "approaches" / "two-materials.toml"
+    for word in ("false", "False", "no"):
+        with pytest.raises(ap.InvalidApproach, match="needs the materials"):
+            ap.load_approach(needs, [f"knowledge.materials={word}"])
+    with pytest.raises(ap.InvalidApproach, match="at least 0"):
+        ap.simulate(ap.load_approach(path), ap.get_scene("bars"), ap.Condition("bad", optics={"gap_nm": -1}), 0)
+
+
+def test_run_command_reports_problems_in_one_line_and_has_a_default_picture(tmp_path, monkeypatch, capsys):
+    from ccdsr import run
+
+    path = str(ROOT / "approaches" / "least-squares.toml")
+    with pytest.raises(SystemExit, match="cannot run"):
+        run.main([str(tmp_path / "missing.toml")])
+    with pytest.raises(SystemExit, match="cannot save the picture"):
+        run.main([path, "--out", str(tmp_path / "no-such-folder" / "x.png")])
+    with pytest.raises(SystemExit, match="cannot run.*unknown scene"):
+        run.main([path, "--scene", "nowhere"])
+    monkeypatch.chdir(tmp_path)
+    run.main([path])
+    assert (tmp_path / "run.png").stat().st_size > 10000 and "picture saved to run.png" in capsys.readouterr().out

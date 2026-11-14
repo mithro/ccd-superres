@@ -72,6 +72,8 @@ The simulator has two jobs:
 | Hardware | All real hardware work happens at the very end, only once the simulation shows the methods will work (section 4.9). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
+| Light level | The lighting changes on human time scales, minutes to hours, not microseconds (Tim, 14 November 2026). He asked whether some of the sensor's own pixels could do the monitoring, and said a separate monitor could be added. Our reading: "lighting conditions" means the brightness of the light source, and monitor pixels are the first option to model. |
+| Chip design rules | They might be known but are not to be assumed (Tim, 14 November 2026). Our reading: approaches that use them are optional and are compared with ones that do not. |
 | Stage | A stage that moves in two directions is acceptable (Tim, 14 November 2026), so a scan may include a second direction or passes shifted sideways (section 6.4). |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
 | First hardware | Something like a Raspberry Pi camera sensor. |
@@ -260,7 +262,7 @@ last column says whether the reconstruction is told the true value.
 | Pixel | Row noise | Random offset per row per frame | No |
 | Pixel | Dead and hot pixels | Fixed mask | Optional |
 | Pixel | Quantisation and clipping | 10 or 12 bit, full well | Yes |
-| Light | Illumination flicker | Random $E_n$ per frame | No, estimated |
+| Light | Brightness of the light | A slow drift over minutes to hours (Tim's expectation), with a random value $E_n$ per frame kept as an optional worse case | No, estimated, or read from monitor pixels |
 | Light | Stripe position of each beam pair | One value per frame and pair, a slow drift plus a random part | No, estimated. Needed to about 3 nm (section 4.10) |
 | Motion, slow | Speed error | Constant scale error on $v$ | No, estimated |
 | Motion, slow and fast | Speed fluctuation | Random walk plus periodic term along the scan | No, estimated |
@@ -974,10 +976,10 @@ findings enter it as settings and components that any approach can use.
 | Position search components | Drift per tile, sharpness, and joint geometry solve, each replaceable and comparable | | | | Radar |
 | `beam_layout` | Rule that places the beam directions, including the no-repeated-spacing rule | 6 | 10 | beams | Beamforming |
 | `reference_on_sensor` | Whether the mirror reflection reaches the sensor and acts as a reference beam | | | choice | Beamforming |
-| `frame_brightness` | Known (a light monitor) or unknown (solved for) | | | choice | Beamforming |
+| `frame_brightness` | Known from a separate monitor, known from monitor pixels on the sensor itself (Tim's suggestion), or unknown and solved for as a slow drift | | | choice | Beamforming; Tim, 14 November 2026 |
 | `position_knowledge` | Exact, rough or none | | | choice | Beamforming |
 | `position_handling` | One best guess, all candidates weighed, or weighed with a rule on motion | | | choice | Beamforming |
-| Scene rules | Number of materials and minimum feature width | | | | Beamforming |
+| Scene rules (optional: every approach is also run without them, see section 11, item 10) | Number of materials and minimum feature width | | | | Beamforming |
 | Read noise per reading | In the sensor model, so readout schemes are compared at the same light level | | | electrons | Multi-frame |
 | Path model | One position estimate per 6 to 150 rows, depending on scene contrast | 6 | 150 | rows | Multi-frame |
 | Scan patterns | With tilt, with a cross pass, with irregular spacing | | | | Multi-frame |
@@ -1933,13 +1935,31 @@ Open questions for Tim:
    ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim)).
    Scans with a second direction and with sideways-shifted passes are
    therefore allowed in any approach (section 6.4).
-9. Is a small monitor of the laser's brightness acceptable in the final
-   hardware, and may the lighting change from frame to frame
-   ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim))?
-10. Which rules may the reconstruction assume about the chip: how many
-    materials in the layer to be imaged, the minimum feature width, and
-    whether the layout or its design rules are known? Reconstruction by
-    elimination (section 6.6) depends on them.
+9. Answered on 14 November 2026. The question was whether a small monitor
+   of the laser's brightness is acceptable, and whether the lighting may
+   change from frame to frame
+   ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim)).
+   Tim: "... yes we could add a light monitor, but we could just use some
+   pixels for light monitoring? The lighting conditions would change at
+   human time scales (minutes / hours) not microseconds." Taken up as
+   follows.
+
+   | Point | How it is taken up | Status |
+   |---|---|---|
+   | A separate light monitor | Allowed in the final hardware | Tim's answer ("we could add a light monitor") |
+   | Some of the sensor's own pixels as the monitor | The preferred option to model: a group of pixels that always sees a known plain area, or light that has not touched the chip, and so tracks the brightness | Tim's suggestion, put as a question. Where those pixels sit and what they look at is an Assumption to be tested in the simulator |
+   | How fast the brightness changes | Modelled as a slow drift over minutes to hours, so it is a few numbers per scan to solve for, not one per frame | The time scale is Tim's answer; we read "lighting conditions" as the brightness of the light source. Modelling it as a slow drift with a few numbers per scan is our reading. Whether a laser diode also flickers faster than that is Unverified here and is for [plan item R10](plan.md#data-collection) to check |
+   | Changing the lighting on purpose between frames (switching beams, a moving diffuser) | Kept as a setting to compare in simulation; switching between beams is already part of the leading candidate | Not settled by the answer. Read here as allowed in simulation |
+
+   *Table 11a. How the answer on lighting is taken up.*
+10. Answered on 14 November 2026: "The chips design rules might be known
+    but should not be assumed." The question was which rules the
+    reconstruction may assume about the chip. Our reading: the main line of
+    work must not depend on design rules. An approach that uses them is a
+    separate, optional approach, compared with the same approach without them, so that what
+    the rules add is measured (section 6.6). The number of materials in
+    the layer and their reflectances are still an open point: the first
+    version of reconstruction by elimination is told them.
 
 ## 12. Where each claim comes from
 
