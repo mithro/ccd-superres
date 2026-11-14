@@ -943,6 +943,45 @@ enough to manufacture a plausible one. Every result that leans on a
 physical rule is also run with the rule weakened, and from a deliberately
 wrong start, and only the detail that survives counts as seen.
 
+### 9.4 Using time to eliminate candidates
+
+Tim's addition (14 November 2026): "Temporal properties of the real world
+can also be used to help eliminate incorrect or impossible solution
+spaces."
+
+The field leans on time in several ways, mostly without naming it. The
+whole method rests on one temporal fact: the object is the same in every
+recording. The rest are listed below.
+
+**Table 9.4a: facts about time, and what each rules out.** A text table.
+The last column is a **Judgement** where no source is given.
+
+| Fact about time | What it eliminates | How the field uses it | Source | On this project |
+|---|---|---|---|---|
+| The chip does not change during the scan | Any candidate surface that differs from one recording to the next | The foundation of ptychography: one object explains all recordings | [[P14](#p14)] | Holds, provided heating by the laser is negligible (**Assumption**) |
+| The sensor has mass and moves smoothly | Position sets that jump between neighbouring recordings | Positions described by a few numbers for the whole scan, in place of one free value each | [[P39](#p39), [P41](#p41)] | The constant-rate scan is the simplest case: a straight line in time plus a slow wobble |
+| The speed is the same in every recording | Blur that differs from recording to recording | One shared blur, or a small shared set of patterns, for the whole scan | [[P50](#p50)] | Holds by design |
+| The path during an exposure is continuous | Blur shapes that no path could produce | One light pattern summed along the known path, in place of several free patterns. Better in noise. | [[P52](#p52)] | The path during a pulse is a short straight segment |
+| Vibration is fast, drift is slow | Mistaking one for the other | Many short exposures with the jitter of each solved afterwards; this is how the 4 nm chip result was reached | [[P34](#p34)] | Short pulses freeze vibration; drift is fitted as a slow curve |
+| The light source changes slowly, or in sudden jumps between a few states | Light patterns that differ arbitrarily from recording to recording | The light in each recording is a mix of a few fixed shapes | [[P46](#p46), [P23](#p23)] | Fits a laser diode, which hops between a few colours |
+| Noise is fresh in every recording; the chip is not | Detail that appears in one half of the recordings and not the other | Splitting the recordings in two and comparing the results | [Calibration and test, section 7](../calibration-and-test.md#7-tests-that-catch-invented-detail) | Thousands of recordings of each point make this test strong |
+| Each row of the sensor is read at a known, slightly different time | Candidates inconsistent with the order of the rows | Treating one frame as many time samples | [[P80](#p80)] | The rolling shutter becomes a fine clock on the motion |
+| A moving scene changes smoothly in time | Sudden changes between consecutive reconstructed frames | A reconstruction that represents space and time together | [[P12](#p12)] | Mainly useful if the chip is powered and changing, which is outside the present plan |
+
+What carries over, in one sentence: every quantity in the instrument has
+its own rhythm (the chip never changes, the scan changes steadily, drift
+changes slowly, vibration changes fast and regularly, noise changes every
+recording), and a candidate that needs one of them to behave with the wrong
+rhythm can be dropped. The simulator should therefore give every instrument
+unknown an explicit model in time, and the reconstruction should fit those
+models and not a free value per recording. Radar's version of the same idea
+is the subject of plan item B1.
+
+Two cautions. A smoothness rule on the motion must not be so strong that it
+hides a real jolt, so jolts need their own model: a rare, sudden step. And
+the first row of the table is an assumption about the chip that should be
+checked at the laser powers the project ends up using.
+
 ## 10. Ideas this study turned up
 
 Tim asked that the research find things he had not named. These came out
@@ -990,7 +1029,8 @@ To the design:
 
 7. **Record Tim's elimination principle in the reconstruction section**:
    positions are searched for, candidates are tested against simulation,
-   and physical rules remove the impossible ones (section 9). The simulator
+   physical rules remove the impossible ones, and every instrument unknown
+   gets a model in time (section 9). The simulator
    build thread owns that change.
 
 To the simulator parameters:
@@ -1190,7 +1230,7 @@ Numbers read from: Abstract.
 Numbers read from: Abstract.
 
 (p27)=
-[P27] Wang et al., "Fourier ptychographic topography", Optics Express, 2023.
+[[P27](#p27)] Wang et al., "Fourier ptychographic topography", Optics Express, 2023.
 [doi:10.1364/oe.481712](https://doi.org/10.1364/oe.481712).
 Numbers read from: Abstract.
 
