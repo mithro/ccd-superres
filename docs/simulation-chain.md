@@ -85,6 +85,11 @@ wide and tens of nanometres high on a 200 nm period, in metal or oxide, with
 one deliberate defect. A scaled copy with 2 µm features is kept beside it for
 the levels and gaps where the 100 nm version is out of range.
 
+The scene description is also what makes the simulator neutral between
+approaches: each of its parts is a swappable component, and a named choice
+for every part is an approach
+([design, section 7.1](design.md#71-approaches-as-named-configurations)).
+
 Outputs are shared too. Levels 1 to 3 write raw frames in one format, so the
 reconstruction and the metrics do not know which level produced them. Every
 level from 2 up can also write the footprint of a pixel on the surface, which
@@ -142,7 +147,7 @@ published in the documentation.
 | 11 | Checks between levels 3 and 4 | Measured limit of scalar waves, kernels for nanometre gaps |
 
 The build also follows the staged path to a 100 nm picture in
-[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture): steps
+[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate): steps
 3 to 5 cover its stage 1, and stages 2 to 4 need levels 3 and 4.
 
 Because the 100 nm target is decided by levels 3 and 4, one option is to

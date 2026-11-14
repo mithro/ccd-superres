@@ -35,6 +35,8 @@ The simulator has two jobs:
 | Randomness | Deliberately adding random noise, and modelling the randomness already present, to improve the reconstruction is in scope (section 5.8). |
 | Sensor control | The sensor's control functions are expected to be pulled apart and driven differently from the stock camera, so the readout scheme is a replaceable model (section 5.7). |
 | Two dimensions | The two-dimensional nature of the sensor is to be used to get more detail (section 5.9). |
+| Exploration | The simulator is for exploring many different approaches, not one specific approach. Comparing approaches is a deliverable (section 7.1). |
+| Hardware | All real hardware work happens at the very end, only once the simulation shows the methods will work (section 4.9). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
@@ -496,7 +498,13 @@ reconstructed, and it may be reached in several stages. The measuring routes
 above therefore become stages on the way to the picture, not alternatives to
 it.
 
-### 4.7 A staged path to the picture
+### 4.7 A staged path to the picture: the current leading candidate
+
+The simulator is built to explore many approaches, not this one
+(section 7.1). The path below is the candidate that looks strongest from the
+analysis so far, and it is itself one named configuration per stage. It is
+kept as the reference that other approaches are compared against, and it is
+replaced if the comparisons favour another.
 
 The end goal is a reconstructed picture of an unknown layout with features of
 about 100 nm. Each stage below is useful on its own, and each hands its result
@@ -517,12 +525,12 @@ flowchart LR
     S3 -.->|"better starting<br/>estimate"| S2
 ```
 
-This is the single staged plan for the project. The optical elements study
+This is the single staged plan for the leading candidate. The optical elements study
 (`docs/optical-elements.md`, pull request 2) uses the same stage numbers.
 
 | Stage | What it produces | Hardware | Computation | Simulation levels | Passes on |
 |---|---|---|---|---|---|
-| 0. Measure the pixels | How strongly a pixel responds to fine light stripes and to light from each angle. This is the shared unknown of section 4.6 and decides how far every later stage gets. | The sensor, one laser diode and a mirror, to cross two beams on the sensor | Small | 4, to compare with the measurement | The pixel response, used as a kernel by every level |
+| 0. Measure the pixels | How strongly a pixel responds to fine light stripes and to light from each angle. This is the shared unknown of section 4.6 and decides how far every later stage gets. Until the gate of section 4.9 is passed it is replaced by an uncertain range and a level 4 estimate. | The sensor, one laser diode and a mirror, to cross two beams on the sensor | Small | 4, to estimate it beforehand and to compare with the measurement afterwards | The pixel response, used as a kernel by every level |
 | 1. Coarse picture | A picture of the chip at micrometre scale: blocks, wide wiring, pads | A scan and simple lighting | The linear solve of section 6, with frame positions estimated from the data | 0 and 1 | Position of every frame, speed, tilt, pixel gains, and a map of the chip to register everything else against |
 | 2. True picture to 150 to 200 nm lines | A picture of the layout, with height, not restricted to any assumed kind of structure. Lines of 150 to 200 nm are expected, and 110 to 145 nm is the limit of the formula in section 4.6. | Pulsed 405 nm laser beams at a steep slant from several directions, switched on in pairs, and several colours | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
 | 3. Detect, locate and fit | From the same data, with no new hardware: edges, isolated lines and defects located to tens of nanometres, the repeat distance and direction of each regular region, and line widths and heights fitted with an electromagnetic model. Together these give a picture at about 100 nm that is partly inferred, and is labelled as such. | None | Very large: the electromagnetic solver inside a fitting loop, thousands of runs, one independent job per region | 4 | A layout estimate: the best description of the chip that straight edges and a few materials allow |
@@ -549,9 +557,11 @@ reconstructed from a deliberately wrong starting layout, and only the detail
 that appears in both counts as seen. And each stage reports its result at the
 scale it can support, so a stage 3 result is never presented as a true picture.
 
-In the simulator the stages are run in the same order on the default scene,
-which gives the first evidence of how far each one gets before any hardware
-is bought. Stage 4 is at the edge of what is possible (section 4.6), and the
+No hardware is built or bought, and no measurement is made on a real sensor,
+until the simulation has passed the gate of section 4.9. That includes stage
+0. Until then every stage, stage 0 among them, exists only in the simulator,
+and the "Hardware" column above describes what the simulated instrument
+contains. The stages are run in the same order on the default scene. Stage 4 is at the edge of what is possible (section 4.6), and the
 simulator's job is to say how close to 100 nm it comes and what limits it.
 
 ### 4.8 Motion blur: cause, model and reversal
@@ -631,6 +641,59 @@ no change to the light (section 5.7).
 
 The explorer has an "Exposure pattern" setting for comparing the three, a
 choice of whether light is proportional to on-time, and the read noise.
+
+### 4.9 Simulation first: the unknown pixel response and the gate before hardware
+
+Tim's rule is that all real hardware work is done at the very end, only once
+the simulation shows the methods will work. Two things follow.
+
+**The simulation has to carry the main unknown.** How a pixel responds to
+fine light stripes and to light from steep angles was to be measured in
+stage 0. With no hardware until the end, it is handled in three ways
+together:
+
+1. **As an uncertain parameter.** The response is described by a few
+   numbers: the softness of the pixel's edges (from ideally sharp to soft
+   over about 300 nm), the range of angles it accepts (from about ±20° to
+   ±60°), how much pixels differ from each other, and the leakage of light
+   and charge into neighbours. Every approach is run across that whole range
+   and not at one assumed value.
+2. **By estimating it.** The electromagnetic level (level 4) is run on a
+   model of the pixel's layers built from the published cross-sections
+   (section 5.3), with their unknown thicknesses varied too. That narrows
+   the range, and shows which layer matters most. It does not replace a
+   measurement, and the result is reported as a range.
+3. **By making approaches insensitive to it.** Approaches whose result
+   barely changes across the range are preferred over ones that are better
+   at the favourable end only. Approaches that estimate the response from
+   the scan data itself are included for the same reason.
+
+The same treatment applies to the other quantities only hardware can settle:
+the achievable gap and its stability, vibration, the coherence and pointing
+of the light source, and the true noise of the sensor.
+
+**"The simulation shows a method works" is a defined gate.** An approach
+passes when all of the following hold, and hardware work starts only for
+approaches that pass.
+
+| Condition | What it requires |
+|---|---|
+| Agreed scenes | It is run on the default patterned silicon scene and the standard test scenes of section 8, including scenes it was not tuned on and one with a layout that breaks its assumptions |
+| Agreed measures | Its resolution by Fourier ring correlation, bar contrast, defect detection and position error meet the target set for its stage in section 4.7, with the numbers fixed before the run |
+| Robust to the unknowns | It still meets the target across the whole uncertain range of pixel response, gap, vibration, source and noise, or the part of the range where it fails is stated and is one a first measurement could rule in or out |
+| Blind | The reconstruction is given only what a real instrument would record. Positions, gains and pixel response are estimated or taken from the uncertain range, never from the truth |
+| Levels agree | The data it is tested on comes from the most accurate level valid for it (level 3 or 4 for anything below a wavelength), and the levels agree within their cross-check tolerances where they overlap |
+| Honest about priors | For any result that leans on prior knowledge, the wrong-layout test of section 4.7 passes |
+| Repeatable | The result is committed with its approach file and seeds, and reruns to the same numbers |
+| Buildable on paper | Every part it assumes exists as a purchasable item or a described modification, with its tolerance taken from the robustness runs |
+
+The output of the gate is a short report per approach: pass or fail on each
+line, the hardware list, and the first measurements to make. The first of
+those is the pixel response, because it collapses the widest uncertain
+range.
+
+Approaches that fail are kept, with the reason, since a different sensor or
+source may later change the answer.
 
 ## 5. Baseline parameters
 
@@ -992,7 +1055,7 @@ Randomness that is already there, modelled and estimated:
 | Position error of each frame | Becomes the sub-pixel sampling pattern, once measured | The frames themselves (section 6.4) | `jitter_px`, speed and wobble terms of section 3.2 |
 | Speed variation within and between frames | Gives each frame a slightly different smear, which fills the zeros of the others | The trajectory estimate | `speed_noise` |
 | Gain of each pixel | Removed as an error. It also labels each pixel, which helps registration. | The scan: every pixel sees the same surface | `gain_sigma` |
-| Sensitivity pattern inside each pixel | Pixels are not identical inside. Once measured (stage 0), the differences act as a fixed random mask over the sensor and carry detail finer than a pixel. | Stage 0 measurement, then refined in the solve | `pixel_response_sigma` |
+| Sensitivity pattern inside each pixel | Pixels are not identical inside. Once measured (stage 0) or estimated in the solve, the differences act as a fixed random mask over the sensor and carry detail finer than a pixel. | Stage 0 measurement, then refined in the solve | `pixel_response_sigma` |
 | Read noise and its pixel-to-pixel differences | Each reading is weighted by its own reliability. Noisy and flickering pixels count for less. | Dark frames, and residuals of the solve | `read_noise_e`, `read_noise_map` |
 | Light level per pulse | Removed as a per-frame factor | The frames | `pulse_energy_sigma` |
 
@@ -1221,6 +1284,71 @@ Design rules:
   provide, so real data can be substituted later.
 - Fixed random seeds, so every figure is reproducible.
 
+### 7.1 Approaches as named configurations
+
+Tim wants the simulator to explore many different approaches, not one. So no
+approach is built into the code. Every part of the instrument and of the
+processing is a component with a fixed interface, each component has several
+interchangeable implementations, and an approach is nothing more than a
+named choice of one implementation and its settings for each part.
+
+| Component | It answers | Implementations planned (more can be added without touching the rest) |
+|---|---|---|
+| Scene | What is on the surface | Patterned silicon at 100 nm (default), scaled copy at 2 µm, bar groups, star, point pairs, edge, random texture, a layout file |
+| Illumination | What light arrives, from where, when | Diffuse glow, collimated straight-on, slanted coherent beam, coherent beam pairs, speckle through a fixed diffuser, several wavelengths in turn, pulsed or coded in time |
+| Optical elements | What sits in the light path | None, per-pixel collimator tubes, pixel masks, coded mask or diffuser on the sensor, colour filter and microlenses, liquid in the gap |
+| Gap | Distance and tilt between sensor and surface, and their errors | Fixed, tilted, vibrating, several gaps in turn |
+| Propagation | How light gets from surface to sensor | Level 1 kernel, level 2 rays, level 3 scalar waves, level 4 electromagnetic patch (section 10) |
+| Sensor | Pixel grid, pixel response in position and angle, noise | IMX219 as sold, IMX219 with layers removed, other sensors, a response swept over its uncertain range (section 4.9), a level 4 estimate, a measured response once hardware exists |
+| Readout | Which pixels are read when, and for how long (section 5.7) | Rolling full frame, strip, short line exposure, global shutter, per-row exposure, random row order |
+| Scan | The path of the sensor and its errors | One straight pass, tilted pass, several directions, dithered, stepped |
+| Exposure | The pattern of light or shutter within a reading (section 4.8) | Continuous, short pulse, coded |
+| Randomness | Which random processes are present or added (section 5.8) | Each one on or off, with its size and seed |
+| Reconstruction | How the picture is recovered | Shift and add, Wiener, regularised least squares, joint estimation, phase recovery (ptychography), layout fitting, methods from the research items of the plan |
+| Uncertain parameters | What is not known until hardware exists (section 4.9) | Ranges for pixel response, gap, vibration, source and noise, sampled the same way for every approach |
+| Metrics | How a result is judged | Error against truth, resolution by Fourier ring correlation, bar contrast, defect found or missed, position error, scan time, data volume, computation used |
+
+How this is used:
+
+- **An approach is a file.** One short text file under `approaches/` names
+  the implementation and settings for every component. It has a name, a
+  one-line description and a list of the hardware it assumes. The staged
+  path of section 4.7 is five such files.
+- **A comparison is a list of approaches and a list of scenes.** One command
+  runs every approach on every scene, with the same seeds, and writes one
+  table and one set of figures: the same metrics side by side, the
+  reconstructions next to the truth, and what each approach cost in
+  hardware, scan time, data and computation. Runs are independent jobs, so a
+  comparison spreads over as many cores as are available.
+- **Results are committed.** Each comparison writes to `results/` with the
+  approach files and code version that produced it, and is published in the
+  documentation, so a ranking can always be traced and repeated.
+- **Not every combination is valid.** A component declares what it needs. A
+  phase-recovery reconstruction needs coherent light and a wave level, and a
+  level 1 kernel cannot represent slanted beams. An invalid combination is
+  refused with the reason, not run to a wrong answer.
+- **New ideas enter as new implementations.** A method found by the research
+  items, or a new optical element, is added as one more implementation of
+  one component, and can at once be compared with everything else.
+- **The explorer follows the same structure.** Its analytic model is the
+  cheapest implementation of each component, so an approach can be tried
+  there in seconds before it is run through the simulator.
+
+Approaches the first comparison will include, so that the leading candidate
+is tested and not assumed:
+
+| Approach | Illumination | Elements | Gap | Reconstruction |
+|---|---|---|---|---|
+| Plain contact scan | Diffuse | None | As small as practical | Regularised least squares |
+| Collimator tubes | Diffuse | Per-pixel tubes | Micrometres | Regularised least squares |
+| Masked pixels in the near field | Any | 100 nm openings | About 100 nm | Regularised least squares |
+| Straight-on coherent | Collimated 405 nm | None | About 1 mm | Phase recovery |
+| Slanted beam pairs (leading candidate) | Pulsed 405 nm pairs from several directions | None | About 1 mm | Phase recovery with position solving |
+| Speckle lighting | 405 nm through a fixed diffuser | None | About 1 mm | Phase recovery with the pattern solved |
+| Coded mask on the sensor | Slanted 405 nm | Random scattering layer | About 1 mm | Phase recovery |
+| Shorter wavelength or liquid | 365 nm, or 405 nm with water | None | About 1 mm | Phase recovery |
+| Layout fitting | Several colours and angles | Polariser | About 1 mm | Fit of a layout model |
+
 ### Repository layout
 
 ```
@@ -1232,9 +1360,10 @@ ccdsr/                    the package, one file per module above
   sampling.py             scan sampling calculator (implemented)
   resolution.py           analytic resolution model (implemented)
 explorer/                 trade-off explorer web page (implemented)
+approaches/               one file per named approach (section 7.1)
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study
-results/                  committed figures and summary tables
+results/                  committed figures, summary tables and approach comparisons
 tests/                    unit and end-to-end tests
 ```
 

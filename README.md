@@ -10,6 +10,8 @@ computation rather than hardware wherever possible.
 Status: design stage. The scan sampling calculator and the trade-off explorer
 are implemented; the simulator and reconstruction are not written yet.
 
+- [Project plan](docs/plan.md): every item of work in order and its state,
+  with deep research ahead of the build stages.
 - [Design document](docs/design.md): problem statement, measurement model,
   resolution limits, reconstruction method, software layout and build stages.
 - [Simulation chain](docs/simulation-chain.md): the five simulation levels,
