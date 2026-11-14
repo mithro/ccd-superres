@@ -1062,7 +1062,7 @@ def pixel_fringe_response(pixel_nm=1120.0):
         ax.plot(period, env, color=col, lw=2.2, label=lab)
         out[soft] = float(np.interp(200.0, period, env))
     for p, lab in [(200, "detail of the target:\n200 nm period"),
-                   (3300, "beat pattern from\nbeam pairs: 3300 nm")]:
+                   (3970, "beat pattern from\nbeam pairs: about 4000 nm")]:
         ax.axvline(p, color=INK, lw=0.9, ls=":")
         ax.text(p * 1.05, 1.5e-3, lab, fontsize=9, va="bottom")
     ax.axvline(pixel_nm, color=INK2, lw=0.9, ls="--")
@@ -1085,9 +1085,13 @@ def pixel_fringe_response(pixel_nm=1120.0):
 # --------------------------------------------------------------------------
 # 18. Beam pairs: fine detail and fine stripes make a coarse pattern
 # --------------------------------------------------------------------------
-def beam_pair_beat(pixel_nm=1120.0, wavelength_nm=405.0, slant_deg=72.0, detail_nm=200.0):
+def beam_pair_beat(pixel_nm=1120.0, wavelength_nm=405.0, slant_deg=72.0, detail_nm=225.0):
+    # The detail period must be one that 405 nm light can carry away from the
+    # chip: at least wavelength / (sin(slant) + sin(collection angle)), which is
+    # 225 nm for a 72 degree slant and a 58 degree collection angle. A 200 nm
+    # period is beyond that limit in air, so it is not used as the example.
     fringe_nm = wavelength_nm / (2 * np.sin(np.radians(slant_deg)))
-    beat_nm = 1 / (1 / detail_nm - 1 / fringe_nm)
+    beat_nm = abs(1 / (1 / detail_nm - 1 / fringe_nm))
     x = np.arange(0, 11200, 2.0)
     detail = 0.5 + 0.2 * np.sign(np.sin(2 * np.pi * x / detail_nm))
     fringes = 1 + np.cos(2 * np.pi * x / fringe_nm)
