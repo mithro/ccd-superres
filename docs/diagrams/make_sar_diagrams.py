@@ -723,7 +723,70 @@ def fig_rotation_coverage():
     save(fig, "rotation-coverage")
 
 
+# --------------------------------------------------------------------------
+# Published radar and sonar figures, in their own units and scaled to the
+# instrument.  The rule: a length is divided by the wavelength of the system
+# that reported it and multiplied by the instrument's 405 nm, so that it
+# stays the same number of wavelengths.
+
+C_M_S = 299_792_458.0
+
+# name: wavelength in metres
+SCALING_SYSTEMS = {
+    "Satellite radar, 9.65 GHz": C_M_S / 9.65e9,
+    "Airborne radar, 9.6 GHz": C_M_S / 9.6e9,
+    "Airborne radar, 18 mm example": 18e-3,
+    "Low-frequency radar, 55 MHz": C_M_S / 55e6,
+    "Sonar, 150 kHz in water": 1500.0 / 150e3,
+    "Terahertz, 214 um": 214e-6,
+}
+
+# (what, system, length in metres)
+SCALING_FIGURES = [
+    ("Quarter of a wavelength", "Satellite radar, 9.65 GHz", C_M_S / 9.65e9 / 4),
+    ("Stripmap resolution 3 m", "Satellite radar, 9.65 GHz", 3.0),
+    ("Stripmap swath 30 km", "Satellite radar, 9.65 GHz", 30e3),
+    ("Sliding spotlight resolution 1.1 m", "Satellite radar, 9.65 GHz", 1.1),
+    ("Staring spotlight resolution 0.24 m", "Satellite radar, 9.65 GHz", 0.24),
+    ("TOPS resolution 16 m", "Satellite radar, 9.65 GHz", 16.0),
+    ("TOPS scene width 120 km", "Satellite radar, 9.65 GHz", 120e3),
+    ("Reflector position 2.6 cm", "Satellite radar, 9.65 GHz", 0.026),
+    ("Picture resolution 1 m", "Satellite radar, 9.65 GHz", 1.0),
+    ("Resolution 0.30 m", "Airborne radar, 9.6 GHz", 0.30),
+    ("Resolution 0.15 m", "Airborne radar, 9.6 GHz", 0.15),
+    ("Quadratic limit, 90 degrees", "Airborne radar, 18 mm example", 18e-3 * 90 / 720),
+    ("Cubic limit, 30 degrees", "Airborne radar, 18 mm example", 18e-3 * 30 / 720),
+    ("Ripple or random limit, 1 degree", "Airborne radar, 18 mm example", 18e-3 * 1 / 720),
+    ("Aperture length 2 000 m", "Low-frequency radar, 55 MHz", 2000.0),
+    ("Aperture error 50 m", "Low-frequency radar, 55 MHz", 50.0),
+    ("Recovered to 5 cm", "Low-frequency radar, 55 MHz", 0.05),
+    ("Sway between pings 20 um", "Sonar, 150 kHz in water", 20e-6),
+    ("Circular resolution 55 um", "Terahertz, 214 um", 55e-6),
+]
+
+
+def nice_length(metres):
+    """A length in the most readable unit."""
+    for unit, size in (("km", 1e3), ("m", 1.0), ("mm", 1e-3), ("um", 1e-6), ("nm", 1e-9)):
+        if metres >= size:
+            return f"{metres / size:.3g} {unit}"
+    return f"{metres / 1e-9:.2g} nm"
+
+
+def print_scaling():
+    print("Scaling of published figures to the instrument (405 nm):")
+    for name, lam in SCALING_SYSTEMS.items():
+        factor = lam / (WAVELENGTH_NM * 1e-9)
+        print(f"  {name:32s} wavelength {nice_length(lam):>9s}   shrink by {factor:12,.0f}"
+              f"   1 m becomes {nice_length(1.0 / factor)}")
+    for what, system, metres in SCALING_FIGURES:
+        lam = SCALING_SYSTEMS[system]
+        print(f"  {what:38s} {nice_length(metres):>9s} = {metres / lam:10.3g} wavelengths"
+              f" -> {nice_length(metres / lam * WAVELENGTH_NM * 1e-9)}")
+
+
 if __name__ == "__main__":
+    print_scaling()
     fig_modes()
     fig_autofocus()
     fig_gap_autofocus()
