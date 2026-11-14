@@ -89,3 +89,26 @@ python docs/diagrams/make_calibration_diagrams.py
 | `calib-frc-demo` | A prior that invents detail passes a split-data test and fails against the truth | Two-dimensional toy calculation |
 | `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
 | `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
+
+## Radar and synthetic aperture figures
+
+The figures on the
+[radar and synthetic aperture methods](research/synthetic-aperture-radar.md)
+page come from
+[`make_sar_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_sar_diagrams.py),
+which also runs the small rehearsal calculations and prints the numbers
+quoted on that page:
+
+```
+python docs/diagrams/make_sar_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `sar-modes-map` | Four radar arrangements and the instrument arrangement matching each | Illustrative |
+| `sar-phase-tolerance` | Energy kept against random position error, and the spread of a point under slow bends | Formula and random simulation |
+| `sar-autofocus-demo` | Phase gradient autofocus and sharpness maximisation on invented radar-like data | One-dimensional toy calculation, fixed seed |
+| `sar-gap-autofocus-demo` | The gap found from a brightness-only recording by sharpness and by map drift | One-dimensional wave calculation with photon noise |
+| `sar-rotation-coverage` | Surface detail covered by fixed beams and by a turning chip | Scalar far-field formula |
+| `sar-blind-speeds` | Sample positions and noise growth against movement per frame, steady and jittered | One-dimensional calculation |
+| `sar-depth-from-colour` | Depth response from four colours, sixteen colours and a sweep | Ideal calculation, no noise |
