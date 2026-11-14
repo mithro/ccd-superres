@@ -557,6 +557,61 @@ def subpixel_coverage():
     save(fig, "subpixel-coverage")
 
 
+# --------------------------------------------------------------------------
+# 9. Where each simulation level is valid
+# --------------------------------------------------------------------------
+def level_validity():
+    levels = [
+        ("0  Analytic calculator", [(3e3, 1e6, 1.0), (500, 3e3, 0.35)]),
+        ("1  Linear blur model", [(3e3, 1e6, 1.0), (500, 3e3, 0.35)]),
+        ("2  Ray tracing", [(1e4, 1e6, 1.0), (1e3, 1e4, 0.35)]),
+        ("3  Scalar wave propagation", [(1e3, 1e6, 1.0), (250, 1e3, 0.35)]),
+        ("4  Full electromagnetic solver", [(1, 3e4, 1.0)]),
+    ]
+    fig, ax = plt.subplots(figsize=(9.6, 4.4))
+    for i, (name, spans) in enumerate(levels):
+        y = len(levels) - 1 - i
+        for lo, hi, alpha in spans:
+            ax.barh(y, hi - lo, left=lo, height=0.5, color=BLUE, alpha=alpha, lw=0)
+        ax.text(0.8, y, name, ha="right", va="center", fontsize=10, color=INK)
+    ax.axvspan(400, 700, color=YELLOW, alpha=0.25, lw=0)
+    ax.text(360, -0.5, "visible wavelengths", ha="right", va="center",
+            fontsize=9, color=INK2)
+    ax.axvline(1120, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.text(1300, -0.5, "pixel pitch 1.12 µm", fontsize=9, color=INK2, va="center")
+    ax.text(3.6e4, 0, "larger scenes cost too much to compute", fontsize=9, color=INK2,
+            va="center")
+    # Overlaps used for cross-checks between neighbouring levels
+    checks = [(3.5, 3e4, "0 and 1"), (2.5, 1e5, "1 and 2"), (1.5, 1e5, "2 and 3"),
+              (0.5, 5e3, "3 and 4")]
+    for y, x, label in checks:
+        ax.plot([x, x], [y - 0.25, y + 0.25], color=ORANGE, lw=2.5,
+                solid_capstyle="round")
+        ax.text(x * 1.25, y, "check " + label, fontsize=9, color=INK, va="center")
+    ax.set_xscale("log")
+    ax.set_xlim(1, 1e6)
+    ax.set_ylim(-0.75, len(levels) - 0.2)
+    ax.set_yticks([])
+    ticks = [1, 10, 100, 1e3, 1e4, 1e5, 1e6]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(["1 nm", "10 nm", "100 nm", "1 µm", "10 µm", "100 µm", "1 mm"])
+    ax.minorticks_off()
+    ax.set_xlabel("smallest of: feature size, gap, pixel structure")
+    ax.grid(True, axis="x", color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    for sp in ("top", "right", "left"):
+        ax.spines[sp].set_visible(False)
+    ax.barh([], [])
+    ax.plot([], [], color=BLUE, lw=7, label="valid")
+    ax.plot([], [], color=BLUE, lw=7, alpha=0.35, label="approximate")
+    ax.plot([], [], color=ORANGE, lw=2.5, label="cross-check with the next level")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=3, frameon=False)
+    ax.set_title("Where each simulation level can be trusted (indicative ranges)",
+                 loc="left", fontsize=11, color=INK)
+    fig.tight_layout()
+    save(fig, "level-validity")
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -566,4 +621,5 @@ if __name__ == "__main__":
     sensor_stack()
     samples_vs_resolution()
     subpixel_coverage()
+    level_validity()
     print("wrote diagrams to", OUT)

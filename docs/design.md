@@ -535,8 +535,9 @@ Limits to keep in view:
 Speed, frame rate, exposure, samples per point, sub-pixel coverage, motion
 blur, gap and recoverable resolution all depend on each other, and Tim wants
 to explore those trade-offs easily and quickly. The tool for that is a single
-web page, [`explorer/index.html`](../explorer/index.html), which opens straight
-from the repository in any browser with nothing to install.
+web page, `explorer/index.html`, which opens straight from the repository in
+any browser with nothing to install. It is also embedded in the
+documentation, on [the explorer page](explorer.md).
 
 Why a web page rather than a notebook: it needs no Python environment, it
 responds on every slider movement, and it can be opened on any device or
@@ -772,80 +773,29 @@ Checks, in build order:
   [doi:10.1109/tip.2004.834669](https://doi.org/10.1109/tip.2004.834669).
   Regularised multi-frame reconstruction.
 
-## 10. Ray tracing simulation (later stage)
+## 10. The simulation chain
 
-Tim wants an eventual ray-tracing simulation that can demonstrate feature
-sizes and pixel sampling schemes. It is planned as a second forward model
-beside the linear one, not a replacement.
+The simulator is built as a chain of progressively more accurate levels that
+share one scene description and are cross-checked against each other:
 
-```mermaid
-flowchart LR
-    S["Surface<br/>height and reflectance"] --> L["Linear model<br/>blur then sample<br/>(sections 3 and 6)"]
-    S --> RT["Ray tracer<br/>light source, surface facets,<br/>sensor stack geometry"]
-    L --> F["Raw frames"]
-    RT --> F
-    F --> REC["Same reconstruction"]
-    RT -. "measured blur kernel per pixel" .-> L
-```
+0. Analytic calculator (implemented; sections 5.4 and 5.6).
+1. Linear blur model (sections 3 and 6 of this document).
+2. Ray tracing, for surface shape, lighting geometry, the sensor stack and
+   pixel sampling schemes.
+3. Scalar wave propagation, for diffraction and interference.
+4. A full electromagnetic solver on small patches, for nanometre scale.
 
-What the ray tracer adds that the linear model cannot do:
-
-- **Real three-dimensional surface shape.** Shadowing, occlusion by raised
-  features, slope-dependent brightness and light bouncing between surface and
-  sensor. The linear model treats the surface as a flat brightness map.
-- **The actual lighting geometry.** Light entering from the side of the gap,
-  from behind, or through the sensor, instead of an assumed uniform glow.
-- **The sensor stack.** Microlenses, colour filters, the wire grid and the
-  acceptance angle of each pixel traced as geometry, including edge pixels
-  that look sideways (section 5.3).
-- **Pixel sampling schemes.** Any layout of sensitive areas, masks, tilts or
-  scan paths can be drawn and traced, and the picture of which rays reach
-  which pixel is itself the demonstration.
-- **Blur kernels for the linear model.** Tracing a point source gives the
-  true footprint of each pixel, which replaces the analytic gap formula in
-  the fast model and in the explorer.
-
-How it fits: it produces raw frames in the same format as the linear model,
-so the reconstruction and the metrics are shared. The linear model stays the
-workhorse for large parameter sweeps because it is thousands of times faster.
-
-### Where ray tracing is valid
-
-Ray tracing treats light as straight lines and ignores its wave nature. That
-is accurate only while every relevant dimension is much larger than the
-wavelength, which for visible light is about 0.4 to 0.7 µm.
-
-| Situation | Ray tracing | Reason |
-|---|---|---|
-| Features and gap of tens of micrometres or more | Valid | Everything is many wavelengths across |
-| Features or gap of a few micrometres | Approximate | Diffraction starts to soften shadows and spread light; treat results as indicative |
-| Features, gap or pixel structures near or below a micrometre | Not valid | Diffraction dominates; rays predict sharp shadows that do not exist |
-| Nanometre height read through interference (section 4.5) | Not valid | Interference is a wave effect that rays do not have |
-| Nanometre gaps | Not valid | Light couples through near-field effects, not along rays |
-
-This matters here because the pixels are 1.12 µm, about two wavelengths, and
-the project's target is nanometre features. The ray tracer will therefore be
-honest for the first hardware at micrometre scale and for demonstrating
-sampling schemes, and it will be wrong in exactly the regime the project
-ultimately cares about. For that regime the plan is a wave-optics model
-(scalar diffraction for the gap, and a full electromagnetic solver for the
-pixel structures if needed). The design keeps the forward model behind one
-interface so that rays, waves and the linear approximation are
-interchangeable and can be checked against each other where their ranges of
-validity overlap.
+Ray tracing ignores the wave nature of light, so it is valid only where
+every dimension is many wavelengths. The pixels here are about two
+wavelengths across and the target features are far smaller, which is why the
+chain continues to wave models. The levels, the range where each is valid,
+the shared scene description and the specific cross-checks between
+neighbours are set out in [the simulation chain](simulation-chain.md).
 
 ## 11. Build stages and open questions
 
-| Stage | Content | Outcome |
-|---|---|---|
-| 1 | One-dimensional model along the scan, with reconstruction | Maths verified against analytic curves |
-| 2 | Two-dimensional reflectance model with tilt, rolling shutter and pixel noise; least-squares reconstruction | First surface reconstructions and figures |
-| 3 | Motion errors and motion estimation from the data | Tolerances for the stage and mechanics |
-| 4 | Limit study across gap, noise, sampling and motion | Resolution map of the instrument |
-| 5 | Height: blur-width model, two-gap reconstruction | Whether height is recoverable without interference |
-| 6 | Interference model for height, if lighting allows | Nanometre height sensitivity study |
-| 7 | Ray-tracing forward model (section 10): surface shape, lighting geometry, sensor stack, sampling schemes | Demonstrations of feature sizes and sampling schemes at micrometre scale; measured blur kernels for the fast model |
-| 8 | Wave-optics forward model for sub-micrometre features and gaps | Results valid in the nanometre regime |
+The build order follows the chain and is listed in
+[the simulation chain](simulation-chain.md#build-order).
 
 Open questions for Tim:
 

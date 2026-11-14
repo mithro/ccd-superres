@@ -9,6 +9,9 @@ are implemented; the simulator and reconstruction are not written yet.
 
 - [Design document](docs/design.md): problem statement, measurement model,
   resolution limits, reconstruction method, software layout and build stages.
+- [Simulation chain](docs/simulation-chain.md): the five simulation levels,
+  from the analytic calculator to a full electromagnetic solver, where each
+  is valid, and how neighbouring levels are cross-checked.
 - Scan sampling calculator: how many samples each surface point gets, the
   shift per frame, sub-pixel coverage and motion blur for a given speed and
   frame rate.
@@ -24,3 +27,13 @@ are implemented; the simulator and reconstruction are not written yet.
 - Tests: `pip install -e .[test]` then `pytest`.
 - [Diagram sources](docs/diagrams/make_diagrams.py): regenerate the figures
   with `python docs/diagrams/make_diagrams.py`.
+
+## Documentation site
+
+The `docs/` folder is a Sphinx site configured for Read the Docs
+(`.readthedocs.yaml`). To build it locally:
+
+```
+pip install -r docs/requirements.txt -e .
+python -m sphinx -b html docs docs/_build/html
+```
