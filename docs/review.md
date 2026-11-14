@@ -443,3 +443,41 @@ fresh clone, the explorer's "100 nm on silicon" preset, the Python examples
 linked from step 6, and how the diagram of what runs today is drawn in a
 browser. The corrections were checked by the tests and by a strict build of
 the pages, not by a second review.*
+
+## Review 9: click to enlarge for images and flow charts
+
+The viewer that opens any image or flow chart when it is clicked
+([`docs/_static/image-zoom.js`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.js),
+[`docs/_static/image-zoom.css`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.css),
+loaded from
+[`docs/conf.py`](https://github.com/mithro/ccd-superres/blob/main/docs/conf.py))
+was reviewed on 14 November 2026, before merging, in
+[pull request 37](https://github.com/mithro/ccd-superres/pull/37). The
+reviewer was given the commit and what it was meant to do, and not the
+author's tests or conclusions. It built the pages and drove them in the
+Chromium browser with a mouse, a keyboard and an emulated phone touch screen.
+
+It confirmed that the strict build passes, that all 136 pictures on the site
+(108 images and 28 flow charts) open, show fully, zoom and close, that the
+page returns to where it was, that light and dark themes both work, that
+images which are links to other places still follow their links, and that
+search, printing and the [explorer](explorer.md) are unaffected.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | On a touch screen, tapping beside the picture to close it also tapped whatever lay underneath on the page, which could follow a link or open a different picture. | The viewer now acts on the tap itself and swallows it. Retested on an emulated phone at the two places the reviewer gave. |
+| 2 | Gap | Escape and the zoom keys stopped working once keyboard focus had left the viewer's buttons, for example after a right click. | Keys are listened for on the whole page while the viewer is open. Retested. |
+| 3 | Gap | An image given a set width could not be opened from the keyboard: Enter went to the image file. No page has one today. | Handled. |
+| 4 | Gap | In the fitted view, at a window of 1280 by 720, the caption lay over the edge of 40 of the 136 pictures and the buttons over 35. | The fitted view leaves room for both. Retested on 95 pictures over six pages: none overlap. |
+| 5 | Gap | Five files left behind by installing the package had been committed. | Removed, and ignored by git. |
+| 6 | Minor | Ctrl with + or - was taken by the viewer, blocking the browser's own zoom. | Left to the browser. |
+| 7 | Minor | The flow chart extension's own full-screen view copied our markings, so Enter there opened a second viewer on top. | Our viewer only opens from the page body. Retested. |
+| 8 | Minor | A flow chart caption carried a stray link mark, a figure showed its short description and not its caption, and captions were squeezed on a phone. | Fixed. |
+| 9 | Minor | A two-finger pinch zoomed but did not move the picture; Escape during a drag left the wrong cursor. | Fixed. |
+| 10 | Minor | A drawing written into a page as raw markup, which no page has, would not be covered. | Said in the script's opening comment. |
+| 11 | Minor | A screen reader hears each picture as a button, not an image; the phone Back button leaves the page and does not close the viewer; resizing the window resets the zoom. | Not changed. |
+
+*Table: findings of review 9. Not checked by the reviewer: Firefox, Safari,
+real phones and tablets (touch was emulated in Chromium), a real screen
+reader, and the pages as served by Read the Docs. The corrections were
+checked by the author's browser tests, not by a second review.*

@@ -26,6 +26,12 @@ myst_heading_anchors = 3
 exclude_patterns = ["_build", "diagrams/*.py"]
 html_theme = "furo"
 html_title = "Scanning lensless sensor super-resolution"
+
+# Clicking any image or flow chart on any page opens it in a zoomable viewer.
+# The two files below are loaded on every page, so new images need no markup.
+html_static_path = ["_static"]
+html_css_files = ["image-zoom.css"]
+html_js_files = ["image-zoom.js"]
 autodoc_member_order = "bysource"
 
 
