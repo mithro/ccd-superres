@@ -37,6 +37,7 @@ link here the first time they use a term that is not explained on the spot.
 | Diffuser | A layer that scatters light, like frosted glass. |
 | Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. |
 | Diversity | Measurements that differ in kind, such as a different gap, lighting direction or light pattern, and not only in position. Phase recovery needs it. |
+| Drizzle | The standard astronomical way of combining shifted frames into a picture on a finer grid: each input pixel is shrunk and laid onto the fine grid at its measured position, and overlaps are averaged. See [multi-frame reconstruction](research/multi-frame-reconstruction.md#3-combining-many-undersampled-frames). |
 | Electromagnetic solver | A program that calculates how light behaves from the basic equations of electricity and magnetism. Slow, and as exact as the description of the materials it is given. |
 | Evanescent wave | Light that carries detail finer than the wavelength. It clings to the surface and fades within a fraction of a wavelength, so it never reaches a distant detector. |
 | Exposure | The time during which a pixel adds up light for one reading. |
@@ -68,6 +69,7 @@ link here the first time they use a term that is not explained on the spot.
 | Line time | The time a sensor takes to read one row of pixels, 18.9 millionths of a second for the IMX219. |
 | Line width | The width of one line of a pattern. With lines and spaces of equal width it is half the period. |
 | Linear | Said of a model in which doubling the cause doubles the reading. Such problems can be solved in one pass. |
+| Lucky imaging | Taking thousands of very short exposures through the unsteady atmosphere and keeping, or weighting most heavily, the sharpest ones. |
 | Mask (coded mask) | A layer with a fine pattern of clear and dark, or thick and thin, areas, placed in the light path so that the recorded pattern keeps fine detail. |
 | Maximum likelihood | Fitting that gives each reading the weight it deserves from the known statistics of its noise, instead of treating all readings alike. |
 | Microlens | The tiny lens built on top of each pixel of a sensor to gather light into it. |
@@ -94,6 +96,7 @@ link here the first time they use a term that is not explained on the spot.
 | Probe | The patch or pattern of light that falls on the surface in ptychography. It can be worked out from the data along with the picture. |
 | Ptychography | A method that scans a sample under coherent light, records many overlapping brightness patterns, and computes a sharp picture, including phase, from the overlap. |
 | Pulse | A short flash of light. |
+| Push-broom | A camera with one line of pixels that builds a picture line by line as it is carried over the scene, like a broom pushed across a floor. |
 | Read noise | The noise the sensor's electronics add to every reading, even in the dark. |
 | Readout scheme | The order and timing in which a sensor's pixels are exposed and read. |
 | Reconstruction | Computing the picture of the surface from the recorded readings. |
@@ -123,6 +126,7 @@ link here the first time they use a term that is not explained on the spot.
 | Talbot effect | The reappearance of a sharp copy of a grating's pattern at set distances behind it when it is lit by a parallel beam of one colour. |
 | Tile (patch) | A small square of the surface that is processed on its own, so that many can be processed at once. |
 | Tilt | The small angle between the direction of the scan and the rows of the pixel grid. |
+| Time-delay integration (TDI) | A sensor with many lines that moves the collected charge from line to line at the speed of the moving image, so one patch of scene is collected many times and read once. "Digital" TDI reads every line and does the lining up and adding in the computer. |
 | Tolerance | How large an error in a quantity can be before the result is noticeably worse. |
 | Transfer (transfer function) | For each size of detail, the share of its contrast that survives a stage of the instrument. 1 means untouched, 0 means lost. |
 | Twin (simulated twin) | A simulation of a measurement procedure, run with known hidden values to show that the procedure recovers them before it is tried on hardware. |
