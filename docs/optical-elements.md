@@ -54,6 +54,10 @@ micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
   is about 110 to 145 nm lines. Reaching 100 nm needs ultraviolet light of
   about 365 nm or shorter, or water in the gap. Neither has been demonstrated
   with a lensless sensor looking at an opaque surface.
+- **The pixels are five times wider than the detail**, and may not be able to
+  read it directly. Lighting with pairs of beams from one laser turns fine
+  detail into coarse patterns the pixels can read. How the pixels respond to
+  fine fringes is the first thing to measure (section 9.3).
 - **Much can be measured at 100 nm without resolving it**, and this is where
   computation substitutes for hardware: finding and locating isolated
   features, measuring the line width of regular arrays from colour and
@@ -64,8 +68,8 @@ micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
 
 Ranked recommendation for this target, explained in section 10:
 
-1. **Pulsed single-colour laser light, slanted, from several directions, with
-   ptychographic reconstruction** that also solves for the scan positions.
+1. **Pulsed single-colour laser light, slanted, from several directions and in
+   beam pairs, with ptychographic reconstruction** that also solves for the scan positions.
    Start at 405 nm.
 2. **Several colours**, separated by the sensor's own colour filter.
 3. **Known-structure fitting**: chip layout rules as prior knowledge, and
@@ -596,7 +600,7 @@ interference mechanisms.
 Tim's target is features of about 100 nm on silicon chips. This section takes
 "100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
 that width repeat every 200 nm. An isolated 100 nm line or dot is a different
-and easier problem (section 9.4).
+and easier problem (section 9.5).
 
 ### 9.1 What changes
 
@@ -651,7 +655,67 @@ earlier (225 nm lines [O7], 250 nm [O6], 308 nm [O22]) were all through
 transparent samples. The only lensless result in reflection found is 2 µm
 [O4]. Reaching even 150 nm lines on an opaque chip without a lens would be new.
 
-### 9.3 The routes to finer detail
+### 9.3 What the pixels can actually see
+
+The formula above says which detail reaches the sensor as light. It does not
+say the pixels can read it, and for this sensor that is a separate limit. The
+design document raises the same point in its section 4.6.
+
+When the light scattered by fine detail meets the plain mirror reflection at
+the sensor, the two interfere and form fringes with the same period as the
+detail itself: about 200 nm for the target. A 1.12 µm pixel covers more than
+five such fringes and averages them. What survives depends on how sharp the
+edges of the pixel's sensitive area are:
+
+| Pixel edges | Contrast left in 200 nm fringes |
+|---|---|
+| Perfectly sharp | About 6 % (fringe period divided by π times the pixel width) |
+| Soft over 100 nm or more | Essentially none |
+
+The edge sharpness of the IMX219 is unknown. So the collection angles assumed
+in section 9.2 describe which directions of light the pixel responds to at
+all. They do not mean the pixel can read fringes that fine: ±58° corresponds
+to fringes down to about 240 nm at 405 nm, which is exactly the regime where
+the pixel may see nothing.
+
+Fine detail can still reach coarse pixels, in three ways. The first two do not
+depend on the pixel edges.
+
+1. **Two mutually coherent beams at once.** If the chip is lit by two slanted
+   beams from the same laser, they form light fringes on the chip (section
+   4.3). Fine detail then beats against those fringes and appears at the
+   sensor as a coarse pattern. Example: 405 nm beams from opposite sides at
+   72° make fringes of 213 nm period, and chip detail of 200 nm period beats
+   against them with a period of about 3 µm, which the pixels read at nearly
+   full contrast. This is the standard remedy when the detector is coarser
+   than the detail [O14]. It needs both beams on together. Lighting from one
+   direction at a time does not do it.
+2. **Where the scattered light lands.** Across a gap of about a millimetre,
+   light scattered at different angles lands on different pixels, hundreds of
+   micrometres apart. The brightness map of that scattered light carries the
+   fine detail without any fine fringes. Conventional ptychography works this
+   way: its detector pixels are far coarser than the detail recovered [O57].
+   Whether this is well enough conditioned at a millimetre gap with wide-area
+   lighting is not known, and is a question for the simulator.
+3. **Sharp pixel edges.** If the edges turn out sharp, the 6 % that survives
+   is recoverable by averaging, as the design document describes for
+   sub-pixel detail in general.
+
+Consequences for this page:
+
+- The line widths in section 9.2 remain the limit set by wavelength and
+  angle, but reaching them relies on mechanisms 1 or 2, not on the pixels
+  reading 200 nm fringes directly.
+- Lighting with pairs of beams from one laser becomes part of the first
+  recommendation, not an alternative to it. The added hardware is small: a
+  mirror beside the chip turns one beam into two.
+- **One measurement should come before any other hardware work:** the
+  response of the pixels to fine fringes. Two beams from a laser diode
+  crossing directly on the sensor make fringes of any chosen period, and the
+  contrast recorded against period gives the edge sharpness. The same
+  two-beam arrangement is the lighting for mechanism 1, so nothing is wasted.
+
+### 9.4 The routes to finer detail
 
 | Route | What it gains | Hardware it adds | Computation it adds | With a Raspberry Pi class sensor |
 |---|---|---|---|---|
@@ -666,7 +730,7 @@ the comfortable limits are: 193 nm lasers [O47], extreme ultraviolet at
 13.5 nm [O48, O49] and X-rays [O50], all with ptychographic reconstruction.
 The method is the same as proposed here. Only the wavelength differs.
 
-### 9.4 Measuring 100 nm features without resolving them
+### 9.5 Measuring 100 nm features without resolving them
 
 A feature does not have to be resolved to be found, counted or measured. This
 is where computation can stand in for hardware, and several published results
@@ -685,7 +749,7 @@ assumed kind of structure is wrong the answer will be wrong but look
 confident. The reconstruction should report how much of each result comes from
 the data and how much from the assumption.
 
-### 9.5 What is realistic
+### 9.6 What is realistic
 
 | Goal | Verdict with a Raspberry Pi class sensor |
 |---|---|
@@ -738,11 +802,11 @@ expensive.
 
 | Rank | Option | Hardware added | Computation added | What it delivers for 100 nm features |
 |---|---|---|---|---|
-| 1 | Pulsed, slanted, single-colour laser light from several directions, with ptychographic reconstruction that also solves for positions (sections 4.1, 4.2, 4.4, 9.3) | Small: a few laser diodes and a pulse driver. Sensor as sold, gap about 1 mm. | Very large | Images down to about 110 to 145 nm lines at 405 nm. Height to nanometres. Everything below builds on it. |
+| 1 | Pulsed, slanted, single-colour laser light from several directions, in pairs of beams from one laser, with ptychographic reconstruction that also solves for positions (sections 4.1 to 4.4, 9.3, 9.4) | Small: a few laser diodes, a mirror or beam splitter to make beam pairs, and a pulse driver. Sensor as sold, gap about 1 mm. | Very large | Images down to about 110 to 145 nm lines at 405 nm. Height to nanometres. Everything below builds on it. |
 | 2 | Several colours through the Bayer filter (sections 4.5, 5.3) | Trivial: two more diodes | Moderate | Removes ambiguities in phase and height. Supplies the colour data that rank 3 needs. |
-| 3 | Known-structure fitting and measurement without resolving (section 9.4) | None, or one polariser | Very large, including an electromagnetic solver | Locates isolated 100 nm features, measures line widths of regular arrays, checks against a layout. The main way to reach 100 nm with visible light. |
+| 3 | Known-structure fitting and measurement without resolving (section 9.5) | None, or one polariser | Very large, including an electromagnetic solver | Locates isolated 100 nm features, measures line widths of regular arrays, checks against a layout. The main way to reach 100 nm with visible light. |
 | 4 | Thin scattering layer on the sensor, coded ptychography (section 5.2) | One passive layer, calibrated once | Very large | Better-conditioned reconstruction, slow height changes recovered, positions recovered more robustly. Does not change the wavelength limit. |
-| 5 | Near ultraviolet, then liquid in the gap, then deep ultraviolet (section 9.3) | Growing: ultraviolet sources, possibly a stripped sensor, liquid handling | None extra | The only steps that truly resolve 100 nm lines and spaces. Take them only if ranks 1 to 4 fall short. |
+| 5 | Near ultraviolet, then liquid in the gap, then deep ultraviolet (section 9.4) | Growing: ultraviolet sources, possibly a stripped sensor, liquid handling | None extra | The only steps that truly resolve 100 nm lines and spaces. Take them only if ranks 1 to 4 fall short. |
 
 Adopt regardless: one tube around the whole assembly as a stray light baffle.
 
@@ -751,12 +815,13 @@ Dropped for this target, with reasons:
 - **Tubes and collimator arrays.** They sharpen diffuse light from matt
   surfaces and reach a few micrometres. A silicon chip is a mirror, and the
   target is 20 times finer.
-- **Fringe lighting as a separate option.** For a mirror-like surface a pair
-  of slanted beams is the same thing as rank 1, so it is folded into it.
-- **Sub-pixel openings and near-field gaps.** Hardware-heavy, and section 9.3
+- **Fringe lighting as a separate option.** It is now part of rank 1.
+  Section 9.3 shows that beam pairs are what let coarse pixels read fine
+  detail.
+- **Sub-pixel openings and near-field gaps.** Hardware-heavy, and section 9.4
   shows the gap needed is not buildable over a chip.
 
-Why this order. Rank 1 is the foundation: it is the cheapest hardware on the
+Why this order. Rank 1 is the foundation: it is nearly the cheapest hardware on the
 whole list and it converts the problem into computation, which is what Tim
 asked for. Ranks 2 and 3 add almost no hardware and are where a large
 computing budget buys the most, because they bring in information (colour,
@@ -796,9 +861,11 @@ become settings and not separate programs. Names are suggestions.
 | Sensor | `mask` | Complex transmission of a layer at the sensor plane, and its height above the pixels | 5.2 | 4 |
 | Gap | `reference_reflectance` | Reflectance of a reference flat or of the sensor face | 6.2 | 3 |
 | Gap | `refractive_index` | Of the medium in the gap | 6.3 | 3 |
-| Light | `pulse_length_s` | Length of each light pulse, for vibration and motion blur | 9.5 | 3 |
+| Light | `pulse_length_s` | Length of each light pulse, for vibration and motion blur | 9.6 | 3 |
 | Sensor | `pixel_angular_response` | Response of a pixel against arrival angle, measured or assumed | 9.2 | 3 |
-| Surface | `layout_prior` | Rules or a layout file describing allowed structure: edge directions, materials, pitches | 9.4 | Reconstruction |
+| Sensor | `pixel_fringe_response` | Contrast a pixel records against fringe period. Follows from the pixel width and edge softness of the design document, and is to be measured | 9.3 | 1, 3 |
+| Light | `beam_pairs` | Pairs of directions lit at once by mutually coherent beams | 9.3 | 3 |
+| Surface | `layout_prior` | Rules or a layout file describing allowed structure: edge directions, materials, pitches | 9.5 | Reconstruction |
 | Surface | `surface_model` | Thin sheet (reflectance and height maps) or full three-dimensional structure solved electromagnetically | 9, 10 | 3, 4, solver |
 | Surface | `specular_fraction` | Share of mirror-like reflection, which polarisers select or reject | 7 | 1 |
 
@@ -847,16 +914,19 @@ chips), and the target raises new ones:
 
 1. **Must unknown structure be imaged at 100 nm, or is it enough to detect,
    locate and measure features of that size?** The second is realistic with
-   simple hardware. The first probably needs ultraviolet light (section 9.5).
+   simple hardware. The first probably needs ultraviolet light (section 9.6).
 2. **Are the 100 nm features dense lines and spaces, or isolated?** Isolated
    features are far easier.
 3. **Is the layout known, or are its rules known?** A layout file or design
-   rules make the known-structure fitting of section 9.4 possible.
+   rules make the known-structure fitting of section 9.5 possible.
 4. **Which layer carries the features, and what lies above it?** Finished
    chips have protective and wiring layers over the finest features. Light
    has to reach them and return.
 5. **Is ultraviolet light, a stripped sensor or liquid on the chip acceptable
    if visible light falls short?**
+
+One open measurement, not a question for Tim: the response of the pixels to
+fine fringes (section 9.3).
 
 ## 13. Limits of these estimates
 
@@ -883,6 +953,10 @@ chips), and the target raises new ones:
   angles. The collection angles of the sensor are assumed, not measured, and
   noise, stray reflections and imperfect coherence all cost resolution in
   practice. Published systems typically reach somewhat less than the formula.
+- Whether pixels of 1.12 µm can record the fine detail at all depends on
+  their edge sharpness and on the two work-arounds of section 9.3. None of
+  the three has been measured or simulated for this sensor. This is the
+  largest open risk for the 100 nm target.
 - Statements about the sensor's response to ultraviolet light are general
   knowledge about silicon sensors with polymer colour filters, not
   measurements of the IMX219.
@@ -1097,3 +1171,6 @@ The 100 nm target:
 - [O56] Attota, Germer and Silver, "Through-focus scanning-optical-microscope
   imaging method for nanoscale dimensional analysis", Optics Letters, 2008.
   [doi:10.1364/ol.33.001990](https://doi.org/10.1364/ol.33.001990)
+- [O57] Maiden and Rodenburg, "An improved ptychographical phase retrieval
+  algorithm for diffractive imaging", Ultramicroscopy, 2009.
+  [doi:10.1016/j.ultramic.2009.05.012](https://doi.org/10.1016/j.ultramic.2009.05.012)
