@@ -13,6 +13,7 @@ increasing accuracy that are checked against each other.
 |---|---|---|
 | [Design](design.md) | The problem, the measurement model, what limits resolution, noise, the sensor, reconstruction | Draft for review |
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
+| [Reconstruction methods](reconstruction-methods.md) | Survey of methods from radar, astronomy, ptychography and other fields, what each could reach, a ranked shortlist and a staged reconstruction plan | Survey for review |
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
@@ -27,6 +28,7 @@ its assumptions, worked examples, and the results of its cross-checks.
 
 design
 simulation-chain
+reconstruction-methods
 calculator
 explorer
 diagrams

@@ -22,3 +22,20 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
+
+## Reconstruction methods figures
+
+The figures on the [reconstruction methods](reconstruction-methods.md) page
+come from a second script, which also prints the numbers quoted on that page:
+
+```
+python docs/diagrams/make_reconstruction_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `recon-ladder` | Smallest line width each approach can reach | Formulas and published figures, labelled per bar |
+| `recon-analogy` | Radar geometry beside the scanning sensor | Illustrative |
+| `recon-fourier-coverage` | Which surface detail reaches the sensor for each kind of lighting | Scalar far-field formula |
+| `recon-passband-demo` | Bar groups through ideal cut-offs | One-dimensional calculation |
+| `recon-sparsity-conditioning` | Noise cost of resolving crowded point features | One-dimensional calculation, best case |
