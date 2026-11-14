@@ -457,6 +457,61 @@ def sensor_stack():
     save(fig, "sensor-stack")
 
 
+# --------------------------------------------------------------------------
+# 7. How far more samples push the limit
+# --------------------------------------------------------------------------
+def recoverable_period(n_per_pixel_area, z_nm, pitch_nm=1120.0, snr_single=50.0):
+    """Smallest period whose signal still exceeds the noise after averaging.
+
+    Optimistic on purpose: full-contrast feature, ideal sharp pixel edges,
+    perfectly known positions. A feature of period L is judged over a cell of
+    (L/2)^2, which holds n * (L / 2p)^2 samples.
+    """
+    from scipy.optimize import brentq
+
+    def margin(log_period):
+        period = np.exp(log_period)
+        n_cell = n_per_pixel_area * (period / (2 * pitch_nm)) ** 2
+        signal = gap_transfer(period, z_nm) * box_envelope(period, pitch_nm)
+        return np.log(signal * snr_single * np.sqrt(n_cell) + 1e-300)
+
+    return np.exp(brentq(margin, np.log(1e-2), np.log(1e9)))
+
+
+def samples_vs_resolution():
+    n = np.logspace(0, 12, 121)
+    gaps = [(300, "gap 0.3 µm"), (3e3, "gap 3 µm"), (3e4, "gap 30 µm")]
+    fig, ax = plt.subplots(figsize=(8.2, 5.0))
+    for (z, label), c in zip(gaps, BLUE_RAMP):
+        y = np.array([recoverable_period(k, z) for k in n])
+        ax.loglog(n, y, color=c, lw=2)
+        ax.text(n[-1] * 1.5, y[-1], label, va="center", fontsize=9, color=INK)
+    ax.axhline(1120, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.text(1.3, 1350, "pixel pitch 1.12 µm", color=INK2, fontsize=9)
+    n_pass = 3280 * 4
+    ax.axvline(n_pass, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.text(n_pass * 1.3, 2.2e5, "one pass of the\nbaseline sensor", color=INK2,
+            fontsize=9, va="top")
+    ticks = [100, 1e3, 1e4, 1e5]
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(["100 nm", "1 µm", "10 µm", "100 µm"])
+    ax.set_xticks([1, 1e3, 1e6, 1e9, 1e12])
+    ax.set_xticklabels(["1", "thousand", "million", "billion", "trillion"])
+    ax.minorticks_off()
+    ax.set_xlim(1, 1e12)
+    ax.set_ylim(60, 3e5)
+    ax.set_xlabel("samples collected per pixel-sized area of surface")
+    ax.set_ylabel("smallest recoverable feature period")
+    ax.grid(True, which="major", color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.set_title("A million times more samples buys less than a factor of two: the gap sets the floor",
+                 loc="left", fontsize=11, color=INK)
+    fig.tight_layout()
+    save(fig, "samples-vs-resolution")
+
+
 if __name__ == "__main__":
     scan_geometry()
     cross_section()
@@ -464,4 +519,5 @@ if __name__ == "__main__":
     resolution_budget()
     gap_requirement()
     sensor_stack()
+    samples_vs_resolution()
     print("wrote diagrams to", OUT)

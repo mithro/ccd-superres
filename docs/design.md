@@ -219,7 +219,59 @@ lateral features, because the gap cannot be made small enough. The simulator
 is designed so the gap is a free parameter, which lets it show exactly what
 gap, flatness and motion accuracy a later instrument would need.
 
-### 4.2 The pixel area
+### 4.2 What a huge number of samples buys, and what it does not
+
+The instrument collects an enormous number of samples, and that does recover
+resolution finer than the pixel size. It is the point of the design. The
+sample count does two separate things:
+
+1. **It removes the pixel pitch as a limit.** Samples land on the surface far
+   more densely than the pixels are spaced (section 2), so detail smaller than
+   a pixel is sampled properly instead of being aliased.
+2. **It lowers the noise floor.** Averaging `N` samples improves
+   signal-to-noise by `√N`. The pixel area attenuates fine detail only in
+   proportion to its size, so this averaging is enough to undo the pixel blur
+   well below one pixel.
+
+What it cannot do is restore detail that was attenuated exponentially before
+it reached the sensor. Each extra factor of `e` in gap attenuation needs
+`e² ≈ 7` times more samples to overcome, so the gain from more samples is
+logarithmic:
+
+![Smallest recoverable feature period against sample count for three gaps](diagrams/samples-vs-resolution.svg)
+
+The plot is deliberately optimistic: full-contrast features, ideal sharp pixel
+edges, exactly known positions, and a single-sample signal-to-noise of 50. One
+pass of the baseline sensor gives about 13 000 samples per pixel-sized area
+(3280 pixels in a row each cross it, sampling four times on the way).
+
+| Gap | One pass | A million times more samples | Compared with the 1.12 µm pixel |
+|---|---|---|---|
+| 0.3 µm | 0.34 µm | 0.17 µm | 3 to 7 times finer than a pixel |
+| 3 µm | 2.0 µm | 1.2 µm | Coarser than a pixel, reaching about one pixel |
+| 30 µm | 16 µm | 10 µm | Much coarser than a pixel |
+
+So the answer to "can the sample count beat the sensor's pixel size" is yes,
+by a large factor, provided the gap is smaller than the pixel. With a gap
+larger than the pixel, the same sample count is spent fighting the gap
+instead, and a million-fold increase in samples buys less than a factor of
+two. This agrees with the estimate in section 4.1; it is not a more
+pessimistic or more optimistic result, only the same law plotted against
+sample count.
+
+Two things could genuinely move these curves, and both are parameters of the
+simulator rather than assumptions baked into it:
+
+- **A narrower acceptance angle.** The gap model assumes each pixel accepts
+  light from all directions. A pixel that only accepts light from near
+  straight ahead sees a smaller patch of surface for the same gap. Intact
+  microlenses do some of this, which is another reason to keep them at first.
+- **Directional lighting.** If the surface is lit by a collimated beam and
+  mostly reflects or transmits it without scattering, light crosses the gap in
+  nearly straight lines and the spreading is set by diffraction rather than
+  geometry. That is a different, wave-optics model (section 4.5).
+
+### 4.3 The pixel area
 
 A bare pixel with perfectly sharp edges would pass fine detail at a contrast
 of about (feature period) / (π × pixel width), which thousands of averaged
@@ -233,7 +285,7 @@ A later option is an opaque mask with one small opening per pixel. Resolution
 is then set by the opening rather than the pixel, at the cost of light. Related
 lensless instruments have used exactly this (section 9).
 
-### 4.3 Sampling, motion and noise
+### 4.4 Sampling, motion and noise
 
 - Sampling: the step `d` and the track spacing `p·sin θ` must both be at most
   half the smallest period to be recovered. Both are cheap to make small.
@@ -241,7 +293,7 @@ lensless instruments have used exactly this (section 9).
   or be estimated from the data to that accuracy.
 - Noise: sets the contrast floor. Averaging over `N` pixels lowers it by `√N`.
 
-### 4.4 Height
+### 4.5 Height
 
 Tim wants height as well as reflectance, with lighting undecided. There are
 three candidate ways height reaches the pixel, in increasing order of modelling
@@ -601,6 +653,6 @@ Open questions for Tim:
    the module lens is removed. Is that the intended first setup?
 3. Is there any constraint on lighting (side, through the sample, single
    colour) that should be fixed now? It decides which height mechanism in
-   section 4.4 is worth modelling.
+   section 4.5 is worth modelling.
 4. What gap is realistically achievable in the first setup? This is the one
    number that most changes the results.
