@@ -220,7 +220,10 @@ def summarise(records, measure, how="median"):
             value = np.inf
         if value is not None:
             cells.setdefault(key, []).append(value)
-    pick = {"median": np.median, "worst": np.max, "lost": lambda v: np.sum(np.array(v) > LOST_NM)}[how]
+    # the finest period is one of a few fixed values, so its median is taken as the coarser of
+    # the two middle runs when their number is even, never a value between two bar groups
+    median = (lambda v: np.percentile(v, 50, method="higher")) if measure == "finest_period_nm" else np.median
+    pick = {"median": median, "worst": np.max, "lost": lambda v: np.sum(np.array(v) > LOST_NM)}[how]
     return {k: (v if isinstance(v, str) else float(pick(v))) for k, v in cells.items()}
 
 
@@ -352,10 +355,13 @@ def _rounded(value, figures=6):
 
 
 def _code_version():
+    """The commit the code was at, with "-dirty" if code or inputs had uncommitted changes."""
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, text=True, check=True,
+                              cwd=Path(__file__).parent.parent).stdout.strip()
     try:
-        # "-dirty" is added if the code had changes not yet committed when the comparison ran
-        return subprocess.run(["git", "describe", "--always", "--dirty", "--exclude", "*"], capture_output=True,
-                              text=True, cwd=Path(__file__).parent, check=True).stdout.strip()
+        changed = git("status", "--porcelain", "--", "ccdsr", "approaches", "comparisons")
+        return git("rev-parse", "--short", "HEAD") + ("-dirty" if changed else "")
     except Exception:
         return "unknown"
 
