@@ -72,6 +72,7 @@ The simulator has two jobs:
 | Hardware | All real hardware work happens at the very end, only once the simulation shows the methods will work (section 4.9). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
+| Stage | A stage that moves in two directions is acceptable (Tim, 14 November 2026), so a scan may include a second direction or passes shifted sideways (section 6.4). |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
 | First hardware | Something like a Raspberry Pi camera sensor. |
 | Trajectory | Start as a model, end as a real instrument. |
@@ -935,7 +936,7 @@ follows.
 | Weighting readings | Weight every reading by how well it was taken; do not pick the best and drop the rest | | | [Multi-frame, section 4](research/multi-frame-reconstruction.md#4-lucky-imaging-choosing-or-weighting-frames) | Section 6.4 |
 | Doing without measured positions | Possible. In a toy calculation it cost about 8 times more frames, and exactly steady motion removed the cost. Nearly steady motion was not tested | 8 | times | [Multi-frame, section 5.3](research/multi-frame-reconstruction.md#53-doing-without-measured-positions-ruling-out-what-cannot-be) | Section 6.6; to be tested in the simulator under [plan item D2b](plan.md#d-simulation-chain) |
 | Weighing every candidate position | Halves the error of picking the single best candidate when the noise is 2 to 3 times the scene contrast, and makes no difference when they are equal. Ruling out jumps in time gains a further 1.6 to 2 times. Toy calculation in which the method was told the true noise and average step | 2 | times | [Beamforming, section 8](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time) | Section 6.6 |
-| Pixel gains from the scan itself | One straight pass leaves one unknown per track across the scan, seen as streaks. The sensor tilt already separates differences between neighbouring pixels; what remains is smooth trends fixed to the sensor, above all an uneven laser beam. A second pass shifted sideways by one pixel removed the streaks on a toy sensor of 12 columns. On the real sensor shifts at several scales, small and large, or a second scan direction are advised (Estimate). If frame brightness is unknown, three more numbers stay unfixed | 1 | pixel | [Beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap) | Section 6.4 and open question 8 |
+| Pixel gains from the scan itself | One straight pass leaves one unknown per track across the scan, seen as streaks. The sensor tilt already separates differences between neighbouring pixels; what remains is smooth trends fixed to the sensor, above all an uneven laser beam. A second pass shifted sideways by one pixel removed the streaks on a toy sensor of 12 columns. On the real sensor shifts at several scales, small and large, or a second scan direction are advised (Estimate). If frame brightness is unknown, three more numbers stay unfixed | 1 | pixel | [Beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap) | Section 6.4. Tim has accepted a two-axis stage (question 8 of section 11) |
 | Pixel response from the scan itself | Differences between pixels can be found. The shape common to all pixels needs a known scene, several gaps or sharp edges | | | [Beamforming, section 6.5](research/beamforming.md#65-the-pixels-response) | Section 6.4 |
 | Enough readings | Useful readings per pixel area must exceed a floor: 96, or 192 when height is also wanted | 96 | readings | [Beamforming, section 2.3](research/beamforming.md#23-counting-what-is-wanted-against-what-is-recorded) | To be added to the scan calculator of section 5.4, together with a warning for blind speeds, under [plan item C1a](plan.md#c-fold-the-research-into-the-design) |
 | Sidelobes | False copies of bright features beside the true ones limit a picture after resolution does | | | [Radar, section 7.1](research/synthetic-aperture-radar.md#71-resolution-sidelobes-and-what-processing-adds) | Sidelobe level added to the measures of section 8 |
@@ -1585,7 +1586,8 @@ The research studies add four points to this plan (Table 4.10b).
 - **What the scan cannot fix.** One straight pass leaves one unknown gain
   per track across the scan, seen as streaks. A second pass shifted
   sideways, by a pixel and by larger steps, or a second scan direction,
-  removes them in a toy calculation
+  removes them in a toy calculation. Tim has accepted a two-axis stage, so
+  both are available
   ([beamforming study](research/beamforming.md#64-a-toy-calculation-and-a-trap)). The response
   shape that all pixels share cannot be found from the scan alone and needs
   a known scene, several gaps or sharp edges.
@@ -1924,10 +1926,13 @@ Open questions for Tim:
    allows.
 7. Is the light fixed to the chip stage, or does it ride with the sensor?
    The position accuracy needed depends on it (Table 4.10b).
-8. Can the stage move the sensor in two directions, or make a second pass
-   shifted sideways by about a pixel? Calibrating pixel gains without
-   streaks needs one of the two
+8. Answered on 14 November 2026: "Two-axis stage is acceptable." The
+   question was whether the stage can move the sensor in two directions,
+   or make a second pass shifted sideways, which calibrating pixel gains
+   without streaks needs
    ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim)).
+   Scans with a second direction and with sideways-shifted passes are
+   therefore allowed in any approach (section 6.4).
 9. Is a small monitor of the laser's brightness acceptable in the final
    hardware, and may the lighting change from frame to frame
    ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim))?
