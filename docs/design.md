@@ -8,6 +8,39 @@ picture at that scale.
 Numbers marked "illustrative" come from the analytic model in section 4, not
 from simulation runs.
 
+## In plain words
+
+The idea is to take an ordinary camera chip, remove its lens, hold it just
+above a silicon chip, and slide it slowly across. Every pixel takes readings
+the whole time. Because the chip moves a tiny amount between readings, each
+spot on the surface is measured thousands of times from slightly different
+positions. A computer then combines all those readings into one picture that
+is much sharper than the camera's own pixels. The goal is to see features
+about 100 nanometres wide, which is roughly a thousandth of the width of a
+hair and ten times smaller than one pixel.
+
+The main things this document establishes:
+
+- **What limits sharpness is mostly light, not the pixels.** Detail smaller
+  than the wavelength of the light normally fades away within a tiny
+  distance of the surface. To see 100 nm features one must either get
+  extremely close, which is impractical, or use laser light arriving at a
+  steep slant from several sides and let a computer untangle the result
+  (sections 4.6 and 4.7).
+- **Taking more readings helps, but slowly.** A thousand times more data
+  buys only a modest gain, so computation has to be spent cleverly, not
+  just in bulk (section 4.2).
+- **Movement during a reading smears the picture.** The smear is known
+  exactly and can be undone, and short flashes of light avoid it
+  (section 4.8).
+- **The simulator is built to compare many approaches**, not to prove one
+  (section 7.1), and no hardware is built until the simulation shows an
+  approach works (section 4.9).
+
+Terms are explained where they first appear, and all of them are collected
+in the [glossary](glossary.md). Every equation is followed by what it means
+in words, so the equations can be skipped.
+
 ## 1. Purpose
 
 Build a Python simulation of an image sensor that is moved at a constant rate,
@@ -94,6 +127,8 @@ thousandfold increase in samples buys only a modest step in resolution.
 
 ![Top view of the scan geometry](diagrams/scan-geometry.svg)
 
+*Figure: the sensor seen from above. The grid is the sensor's pixels, turned by a small angle against the direction it moves in. The lines are the paths individual pixels trace over the surface. Because of the turn, the paths of neighbouring pixels fall between each other, so together they cover the surface much more finely than one pixel width.*
+
 The sensor slides over the surface at velocity `v` and is read out `f` times
 per second. Between readouts it moves a step `d = v / f`, which is chosen to be
 a fraction of the pixel pitch `p`. Each pixel therefore records a time series
@@ -112,7 +147,11 @@ pixels" matter:
 
 ![Sample centres from one pixel and from a full sensor row](diagrams/sampling-pattern.svg)
 
+*Figure: where readings land on the surface. Left, the readings of a single pixel form one line of closely spaced dots along the scan. Right, the readings of a whole row of pixels on a slightly turned sensor fill in the space between those lines.*
+
 ![Side view of sensor, gap and surface](diagrams/cross-section.svg)
+
+*Figure: the sensor and the surface seen from the side. Light from one point of the surface spreads out as it crosses the gap, so it lands on several pixels. The larger the gap, the wider the spread and the blurrier the raw readings.*
 
 Each sample is not a point measurement. A pixel collects light from a patch of
 surface whose size is set by the pixel's own area, by the distance travelled
@@ -141,7 +180,11 @@ $$
 m_{k,n} = g_k \, E_n \iint B\big(\mathbf{r} - \mathbf{r}_k(t_{k,n})\big)\, \rho(\mathbf{r})\, d^2\mathbf{r} + o_k
 $$
 
-where
+In words: the reading of a pixel is the average brightness of the patch of
+surface under it, weighted by a blur shape $B$ centred on wherever that
+pixel was at that moment, then scaled by how sensitive that particular pixel
+is and how bright the light was in that frame, plus a small fixed offset.
+The symbols are:
 
 - $\mathbf{r}_k(t) = \mathbf{r}_k^0 + \mathbf{v}\,t + \boldsymbol{\epsilon}(t)$ is the
   pixel's position over the surface: its place in the rotated array, plus
@@ -163,20 +206,34 @@ $$
 m = D\, S\, K\, \rho + \text{noise}
 $$
 
-where $K$ is the blur (a convolution), $S$ picks out the sample positions
+In words: take the true surface, blur it once, read the blurred picture off
+at every place and moment a pixel sampled it, and scale each reading by its
+pixel's sensitivity. That list of numbers, plus noise, is what the sensor
+records. Reconstruction is running these three steps backwards.
+
+Here $K$ is the blur (a convolution), $S$ picks out the sample positions
 (interpolation, a few non-zeros per row) and $D$ holds gains. This factoring is
 what makes both the simulation and the inversion tractable (section 6).
 
 ### 3.1 The three blur terms
 
-In spatial frequency $\mathbf{f} = (f_x, f_y)$, with $|\mathbf{f}| = 1/\Lambda$ for a
-feature of period $\Lambda$:
+Each blur is described by its transfer: for a pattern that repeats every
+$\Lambda$ (its period), the share of the pattern's contrast that survives.
+A transfer of 1 leaves the pattern untouched and 0 erases it. Fineness is
+written as spatial frequency $\mathbf{f} = (f_x, f_y)$, the number of repeats
+per unit length, so $|\mathbf{f}| = 1/\Lambda$:
 
 | Term | Transfer function | Meaning |
 |---|---|---|
 | Gap | $H_\text{gap} = u\,K_1(u)$, $u = 2\pi z_0 \lvert\mathbf{f}\rvert$ | Diffuse light spreading across the gap. $K_1$ is a modified Bessel function. Falls as $e^{-2\pi z_0/\Lambda}$. |
 | Pixel | $\text{sinc}(a f_{x'})\,\text{sinc}(a f_{y'})\, e^{-2\pi^2\sigma_e^2 \lvert\mathbf{f}\rvert^2}$ | Square sensitive area of width $a$ in the rotated sensor frame, with edges softened over $\sigma_e$. |
 | Motion | $\text{sinc}(v\, t_\text{exp}\, f_x)$ | Smear over the exposure time $t_\text{exp}$. Continuous capture means $t_\text{exp} = 1/f$, so the smear equals the step $d$. |
+
+In words: the gap erases detail smaller than itself very abruptly. The
+pixel weakens detail smaller than itself gradually, by about the ratio of
+the detail size to the pixel size. Motion does the same along the direction
+of travel, by the ratio of the detail size to the distance moved during one
+reading.
 
 The gap term comes from a diffuse point on the surface illuminating a plane at
 distance $z_0$: the irradiance falls off as $z_0^2 / (r^2 + z_0^2)^2$, a spot
@@ -222,6 +279,8 @@ whether the instrument can reach its goal.
 
 ![Attenuation of fine detail by the gap and by the pixel area](diagrams/resolution-budget.svg)
 
+*Figure: how much of each size of detail survives. Detail size runs along the bottom, and the height of each line is the share of its contrast that gets through. The pixel's own size weakens fine detail gently. The gap wipes it out abruptly once the detail is smaller than about the gap.*
+
 Reading the chart: a stage that passes a contrast of 1 leaves detail of that
 size untouched. Detail whose contrast falls below the noise floor is lost. The
 floor drawn at 1/1000 is illustrative; where it really sits depends on light
@@ -235,6 +294,8 @@ attenuation only down to the noise floor, and against an exponential, better
 signal-to-noise buys almost nothing:
 
 ![Smallest recoverable feature period versus gap](diagrams/gap-requirement.svg)
+
+*Figure: the finest pattern that can be recovered, for each gap between sensor and surface. The relation is almost a straight line: the finest recoverable repeat distance is about three quarters of the gap, whatever the quality of the readings.*
 
 Illustrative results from the analytic model:
 
@@ -279,6 +340,8 @@ it reached the sensor. Each extra factor of `e` in gap attenuation needs
 logarithmic:
 
 ![Smallest recoverable feature period against sample count for three gaps](diagrams/samples-vs-resolution.svg)
+
+*Figure: what more readings buy. The number of readings of each spot runs along the bottom and the finest recoverable pattern up the side, for three gaps. The lines fall only slowly: a million times more readings improves sharpness by about a factor of two.*
 
 The plot is deliberately optimistic: full-contrast features, ideal sharp pixel
 edges, exactly known positions, and a single-sample signal-to-noise of 50. One
@@ -374,7 +437,9 @@ $$
 \exp\!\left(-2\pi z \sqrt{1/\Lambda^2 - 1/\lambda^2}\right)
 $$
 
-for period $\Lambda$, wavelength $\lambda$ and gap $z$. For a 200 nm period
+for period $\Lambda$, wavelength $\lambda$ and gap $z$. In words: the finer
+the pattern compared with the wavelength, the faster its trace dies away
+with distance from the surface. For a 200 nm period
 in violet light (405 nm) that field falls by a factor of $e$ every 37 nm. The
 calculator and explorer now carry this "mirror-like surface, directed beam"
 model next to the matt one.
@@ -383,6 +448,8 @@ Second, 200 nm is less than half the wavelength of any visible light, so with
 visible light the detail is always on the fading side of that rule.
 
 ![Contrast of 100 nm lines and spaces against gap, for matt and mirror-like surfaces](diagrams/target-100nm.svg)
+
+*Figure: how much of a pattern of 100 nm lines reaches the sensor, against the gap. For a matt surface, and for a mirror-like surface under violet light, almost nothing is left beyond a gap of a few hundred nanometres. Only light with a wavelength shorter than the pattern's repeat distance (the green line) carries it across any gap. The shaded band on the right is the thickness of the layers sitting on top of a pixel.*
 
 What the analytic model gives for a 200 nm period, with 13,000 samples per
 pixel area (the slow baseline scan of section 5.2 over a full sensor), a single-sample signal-to-noise of 50 and full feature contrast:
@@ -739,6 +806,8 @@ gain variation 1 percent, edge softness 0.3 µm.
 
 ![Layers of the sensor before and after removing the microlenses](diagrams/sensor-stack.svg)
 
+*Figure: the layers on the face of the sensor, in order, not to scale. Left, as sold: a tiny lens and a colour filter sit on top of each pixel. Right, with those layers removed, which brings the light-sensitive silicon closer to the surface but also removes the colour filter.*
+
 A published electron-microscope cross-section of the IMX219 [R2] gives the
 layer order on the light-facing side, from the outside in:
 
@@ -859,6 +928,8 @@ every 5 frames, so the samples pile up on 5 positions along the scan and a
 single position across it. The figure shows this, and two ways out.
 
 ![Sub-pixel positions of the samples of one surface point](diagrams/subpixel-coverage.svg)
+
+*Figure: where, inside one pixel, the readings of a single spot on the surface fall. Each square is one pixel and each dot one reading. Straight, regular motion puts all readings on a few repeated positions. A small turn of the sensor, or natural wobble in the motion, spreads them over the whole pixel, which is what sharpening needs.*
 
 **Continuous exposure smears the image at this speed.** The sensor moves 65.6
 pixels during one frame period. Sub-pixel reconstruction needs each sample
@@ -1140,6 +1211,10 @@ $$
 $$
 
 with $W$ the per-sample noise weights and $\lambda$ controlling smoothness.
+In words: find the surface whose predicted readings match the recorded ones
+as closely as possible, trusting quiet readings more than noisy ones, while
+mildly preferring a smooth surface so that noise is not turned into false
+detail.
 
 ### 6.3 Solving the large inverse problem
 
