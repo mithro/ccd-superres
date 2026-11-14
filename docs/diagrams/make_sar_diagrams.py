@@ -349,7 +349,7 @@ FEATURES = [(-310e3, 600, 0.35, 0.0), (-180e3, 400, 1.0, 1.2), (-60e3, 1200, 0.5
             (260e3, 700, 0.4, 0.3), (330e3, 400, 1.0, 2.0)]
 
 
-def hologram(gap_um, rng, n_pix=2048, photons=20000.0, feats=None):
+def hologram(gap_um, rng, n_pix=2048, photons=4000.0, feats=None):
     """Brightness on the pixels above a mostly flat mirror with a few lines."""
     n = n_pix * SUB
     x = (np.arange(n) - n / 2) * DX_NM
@@ -431,13 +431,12 @@ def fig_gap_autofocus():
         est_s.append(fine[int(np.argmax(s2))])
         d2 = [half_picture_shift(p2, g) for g in (280.0, 320.0)]
         est_d.append(280.0 - d2[0] * 40.0 / (d2[1] - d2[0]))
-    print("gap autofocus on brightness-only recording (true gap 300 um):")
-    print(f"  sharpness peak at          {best_fine:7.2f} um")
-    print(f"  drift zero crossing at     {gap_from_drift:7.2f} um")
+    print("gap autofocus on brightness-only recording (true gap 300 um, 4000 photons/pixel):")
+    print(f"  one recording: sharpness peak at {best_fine:7.2f} um, "
+          f"drift line (21 gaps) crosses zero at {gap_from_drift:7.2f} um")
     print(f"  drift slope                {slope:7.4f} px/um (upper bound for evenly weighted views {predicted:.4f})")
-    print(f"  scatter about the line     {resid_um:7.2f} um of gap")
-    print(f"  20 noise trials, sharpness {np.mean(est_s):7.2f} +- {np.std(est_s):.2f} um")
-    print(f"  20 noise trials, drift     {np.mean(est_d):7.2f} +- {np.std(est_d):.2f} um")
+    print(f"  20 noise trials, sharpness search        {np.mean(est_s):7.2f} +- {np.std(est_s):.2f} um")
+    print(f"  20 noise trials, drift from two gaps     {np.mean(est_d):7.2f} +- {np.std(est_d):.2f} um")
     print("  bias against line width, no noise (all eight lines the same width):")
     for width in (300, 1000, 2000, 4000, 8000):
         feats = [(c, width, 0.5, 0.0) for c, _, _, _ in FEATURES]
@@ -570,20 +569,32 @@ def noise_penalty(offsets, q):
 def fig_blind_speeds():
     rng = np.random.default_rng(5)
     q, frames = 8, 64
-    steps = np.linspace(0.02, 3.0, 2981)
+    # Steps on a grid of 1/840 pixel, so that every fraction with a
+    # denominator up to 8 is hit exactly.
+    steps = np.arange(17, 2521) / 840.0
     regular = np.array([noise_penalty((np.arange(frames) * s) % 1.0, q) for s in steps])
-    jit = []
-    for s in steps:
-        vals = [noise_penalty((np.arange(frames) * s + rng.normal(scale=0.2, size=frames)) % 1.0, q)
-                for _ in range(8)]
-        jit.append(np.median(vals))
-    jit = np.array(jit)
-    print("multi-receiver sampling (8 fine samples per pixel from 64 frames):")
-    print(f"  regular steps: share of speeds with penalty > 2: "
-          f"{np.mean(~(regular < 2)) * 100:.1f} %")
-    print(f"  jittered 0.2 px: median penalty {np.median(jit):.2f}, worst {jit.max():.2f}")
-    for s in (1.0, 0.5, 1.25, 1.37):
-        print(f"  step {s:.3f} px: regular {noise_penalty((np.arange(frames) * s) % 1.0, q):.2f}")
+
+    def jittered(s, sigma):
+        return noise_penalty((np.arange(frames) * s + rng.normal(scale=sigma, size=frames)) % 1.0, q)
+
+    trials = np.array([[jittered(s, 0.2) for _ in range(8)] for s in steps])
+    jit = np.median(trials, axis=1)
+    blind = ~np.isfinite(regular)
+    print("multi-receiver sampling (8 fine samples per pixel from 64 frames, steps of 1/840 px):")
+    print(f"  steady: blind (cannot be rebuilt) at {blind.sum()} of {len(steps)} steps; "
+          f"noise more than doubled at {np.mean(~(regular < 2)) * 100:.1f} %; "
+          f"median growth elsewhere {np.median(regular[~blind]):.2f}")
+    print(f"  jitter 0.2 px: median growth {np.median(jit):.2f}; worst median of 8 trials "
+          f"{jit.max():.2f}; worst single trial {trials.max():.1f}; "
+          f"single trials above 2: {np.mean(trials > 2) * 100:.2f} %")
+    for sigma in (0.2, 0.1, 0.05):
+        v = [jittered(1.0, sigma) for _ in range(200)]
+        print(f"  at exactly 1 px/frame, jitter {sigma:.2f} px: median growth {np.median(v):.3g}")
+    for nf in (16, 256):
+        r = np.array([noise_penalty((np.arange(nf) * s) % 1.0, q) for s in steps])
+        print(f"  steady, {nf} frames: noise more than doubled at {np.mean(~(r < 2)) * 100:.1f} % of steps")
+    for s_ in (1.0, 0.5, 1.25, 1.125, 1.37):
+        print(f"  step {s_:.3f} px: steady {noise_penalty((np.arange(frames) * s_) % 1.0, q):.2f}")
 
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2), gridspec_kw={"width_ratios": [1.0, 1.9]})
     ax = axes[0]
@@ -605,7 +616,8 @@ def fig_blind_speeds():
         ax.spines[side].set_visible(False)
     ax = axes[1]
     shown = np.where(np.isfinite(regular), regular, 1e3)
-    ax.plot(steps, shown, color=BLUE, lw=0.9, label="steady speed")
+    ax.plot(steps, shown, color=BLUE, lw=0.9,
+            label="steady speed (lines running off the top: cannot be rebuilt at all)")
     ax.plot(steps, jit, color=ORANGE, lw=1.2, label="same speed with 0.2 pixel random jitter")
     ax.set_yscale("log")
     ax.set_ylim(0.9, 300)
@@ -666,7 +678,7 @@ def fig_depth_from_colour():
 # --------------------------------------------------------------------------
 def fig_rotation_coverage():
     s = np.sin(np.deg2rad(SLANT_DEG))
-    n = 601
+    n = 1761
     f = np.linspace(-2.2, 2.2, n)
     fx, fy = np.meshgrid(f, f)
 
@@ -696,7 +708,7 @@ def fig_rotation_coverage():
         reach = []
         for ang in (0.0, 45.0):
             t = np.deg2rad(ang)
-            r = np.linspace(0, 2.2, 2201)
+            r = np.linspace(0, 2.2, 8801)
             inside = np.interp(r * np.cos(t), f, np.arange(n)), np.interp(r * np.sin(t), f, np.arange(n))
             vals = m[np.round(inside[1]).astype(int), np.round(inside[0]).astype(int)]
             edge = r[vals][-1] if vals.any() else 0.0

@@ -105,10 +105,10 @@ python docs/diagrams/make_sar_diagrams.py
 
 | Figure | Shows | Source of the numbers |
 |---|---|---|
-| `sar-modes-map` | Four radar arrangements and the instrument arrangement matching each | Illustrative |
-| `sar-phase-tolerance` | Energy kept against random position error, and the spread of a point under slow bends | Formula and random simulation |
-| `sar-autofocus-demo` | Phase gradient autofocus and sharpness maximisation on invented radar-like data | One-dimensional toy calculation, fixed seed |
-| `sar-gap-autofocus-demo` | The gap found from a brightness-only recording by sharpness and by map drift | One-dimensional wave calculation with photon noise |
-| `sar-rotation-coverage` | Surface detail covered by fixed beams and by a turning chip | Scalar far-field formula |
-| `sar-blind-speeds` | Sample positions and noise growth against movement per frame, steady and jittered | One-dimensional calculation |
-| `sar-depth-from-colour` | Depth response from four colours, sixteen colours and a sweep | Ideal calculation, no noise |
+| [`sar-modes-map`](diagrams/sar-modes-map.svg) | Four radar arrangements and the instrument arrangement matching each | Illustrative |
+| [`sar-phase-tolerance`](diagrams/sar-phase-tolerance.svg) | Energy kept against random position error, and the spread of a point under slow bends | Formula and random simulation |
+| [`sar-autofocus-demo`](diagrams/sar-autofocus-demo.svg) | Phase gradient autofocus and sharpness maximisation on invented radar-like data | One-dimensional toy calculation, fixed seed |
+| [`sar-gap-autofocus-demo`](diagrams/sar-gap-autofocus-demo.svg) | The gap found from a brightness-only recording by sharpness and by map drift | One-dimensional wave calculation with photon noise |
+| [`sar-rotation-coverage`](diagrams/sar-rotation-coverage.svg) | Surface detail covered by fixed beams and by a turning chip | Scalar far-field formula |
+| [`sar-blind-speeds`](diagrams/sar-blind-speeds.svg) | Sample positions and noise growth against movement per frame, steady and jittered | One-dimensional calculation |
+| [`sar-depth-from-colour`](diagrams/sar-depth-from-colour.svg) | Depth response from four colours, sixteen colours and a sweep | Ideal calculation, no noise |
