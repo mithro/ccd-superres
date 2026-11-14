@@ -9,6 +9,7 @@ link here the first time they use a term that is not explained on the spot.
 | Aperture | The opening through which light is collected. A wider opening, or a wider range of angles, lets finer detail through. |
 | Approach | One complete way of building and running the instrument: a choice of light, optical parts, gap, sensor, readout, scan, exposure and reconstruction method. |
 | Artefact | A false feature in a reconstructed picture that comes from the method and not from the surface. |
+| Band (cut-off) | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. Detail beyond the cut-off does not reach the sensor. |
 | Bayer filter | The pattern of red, green and blue filters laid over the pixels of a colour sensor, one colour per pixel. |
 | Beam pair | Two beams from the same laser reaching the surface from different sides at the same time. Where they cross they form fringes. |
 | Beam splitter | A part-silvered mirror that divides one beam of light into two. |
@@ -24,6 +25,7 @@ link here the first time they use a term that is not explained on the spot.
 | Collimator | A plate of tubes or holes that lets through only light travelling nearly straight along them. |
 | Contrast | How much brighter the bright parts of a pattern are than the dark parts. Blur lowers contrast. When it falls below the noise, the pattern is lost. |
 | Convolution | The mathematical name for smearing: every point of a picture is replaced by a copy of the blur kernel, and the copies are added up. |
+| Deconvolution | Undoing a known blur by computation. |
 | Die | The bare piece of silicon that is the sensor chip itself, without its package. |
 | Diffraction | The spreading of light into a fan of directions when it meets fine structure. Finer structure sends light out at steeper angles. |
 | Diffraction pattern (hologram) | The pattern of ripples that coherent light forms on the sensor after leaving the surface. It holds the detail of the surface in scrambled form. |
@@ -31,6 +33,7 @@ link here the first time they use a term that is not explained on the spot.
 | Diffuse light | Light travelling in all directions, as from a frosted bulb or from a matt surface. |
 | Diffuser | A layer that scatters light, like frosted glass. |
 | Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. |
+| Diversity | Measurements that differ in kind, such as a different gap, lighting direction or light pattern, and not only in position. Phase recovery needs it. |
 | Electromagnetic solver | A program that calculates how light behaves from the basic equations of electricity and magnetism. Slow, and as exact as the description of the materials it is given. |
 | Evanescent wave | Light that carries detail finer than the wavelength. It clings to the surface and fades within a fraction of a wavelength, so it never reaches a distant detector. |
 | Exposure | The time during which a pixel adds up light for one reading. |
@@ -41,12 +44,15 @@ link here the first time they use a term that is not explained on the spot.
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
 | Frame | One complete readout of the sensor. |
 | Fringes | The regular bright and dark stripes formed where two coherent beams overlap. |
+| Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow, but accurate for detail smaller than the wavelength. |
 | Gap | The distance between the light-sensitive layer of the sensor and the surface being examined. |
 | Gate | The defined set of conditions a simulated approach must pass before any hardware is built for it. |
 | Global shutter | A sensor in which every pixel is exposed at the same instant. See rolling shutter. |
 | Grating | A plate carrying fine, evenly spaced lines. |
+| Hologram | A recording of the fringes made when light scattered from an object overlaps with an undisturbed reference beam. It holds the phase in a form a camera can record. |
 | Interference | What happens when two light waves overlap. Where they are in step they add and the light is bright. Where they are out of step they cancel and it is dark. |
 | Inverse problem | Working out the cause from the effect: here, the surface from the recorded readings. |
+| Iteration | One round of an improve-and-check loop. Most reconstruction methods repeat such a round tens or hundreds of times. |
 | Iterative | Said of a calculation that guesses an answer, compares it with the data, improves the guess and repeats. |
 | Laser diode | A small electronic light source that gives coherent light of a single colour. |
 | LED | A small electronic light source that gives a band of colour and is not coherent. |
@@ -76,21 +82,26 @@ link here the first time they use a term that is not explained on the spot.
 | Pixel response | How strongly a pixel reacts to light depending on exactly where on the pixel it lands and from what angle it arrives. |
 | Polariser | A filter that passes only light vibrating in one direction, as polarising sunglasses do. |
 | Prior | Something assumed to be true about the surface before looking at the data, for example that chips have straight edges. |
+| Probe | The patch or pattern of light that falls on the surface in ptychography. It can be worked out from the data along with the picture. |
 | Ptychography | A method that scans a sample under coherent light, records many overlapping brightness patterns, and computes a sharp picture, including phase, from the overlap. |
 | Pulse | A short flash of light. |
 | Read noise | The noise the sensor's electronics add to every reading, even in the dark. |
 | Readout scheme | The order and timing in which a sensor's pixels are exposed and read. |
 | Reconstruction | Computing the picture of the surface from the recorded readings. |
+| Redundancy | Measuring the same thing many times in different ways. It is what makes self-calibration and phase recovery possible. |
 | Reflectance | The share of incoming light that a point of the surface sends back. |
 | Refractive index | The factor by which a material slows light. The wavelength inside the material is shorter by the same factor: 1.33 for water. |
+| Registration | Working out how far one picture is shifted relative to another. |
 | Regularisation | Adding a mild preference, such as smoothness, so that a reconstruction does not amplify noise into false detail. |
 | Resolution | The finest detail that can be told apart. |
 | Rolling shutter | A sensor that exposes and reads its rows one after another, so each row sees a slightly later moment. |
 | Sample | One reading from one pixel at one moment. |
 | Scatterometry | Measuring the dimensions of a regular pattern that is too fine to see, by fitting a model to how it reflects light at different colours and angles. |
+| Self-calibration | Calibration done from the ordinary measurement data, with no separate test. |
 | Sensor | The camera chip: a grid of pixels that turn light into electrical readings. |
 | Signal-to-noise | How large the wanted signal is compared with the noise. Higher is better. |
 | Sinc | The mathematical shape that describes how much of each detail size a box-shaped smear lets through. It falls steadily and touches zero at certain sizes. |
+| Sparse | Made of few, well-separated features. |
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Stage | Used in two senses: a step of the staged path (stage 0 to stage 4), and the moving platform that carries a sample or the sensor. |
@@ -98,6 +109,7 @@ link here the first time they use a term that is not explained on the spot.
 | Super-resolution | Recovering detail finer than the pixels by combining many readings taken at slightly different positions. |
 | Synthetic aperture | A large collecting opening built up by computation from many readings taken at different positions or angles. |
 | Talbot effect | The reappearance of a sharp copy of a grating's pattern at set distances behind it when it is lit by a parallel beam of one colour. |
+| Tile (patch) | A small square of the surface that is processed on its own, so that many can be processed at once. |
 | Tilt | The small angle between the direction of the scan and the rows of the pixel grid. |
 | Transfer (transfer function) | For each size of detail, the share of its contrast that survives a stage of the instrument. 1 means untouched, 0 means lost. |
 | Ultraviolet | Light with a wavelength shorter than about 400 nm, which the eye cannot see. |
