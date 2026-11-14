@@ -1,0 +1,13 @@
+name = "fast-scan-continuous-light"
+description = "The fast scan with the light on all the time, so every reading is smeared over 2.37 pixels of movement. Least squares with the smear in its model."
+hardware = ["sensor with its lens removed", "steady light", "scan stage", "position readout, taken as exact"]
+positions = "known"
+
+[scan]
+shift_px = 2.37
+n_frames = 31
+exposure_fraction = 1.0
+
+[reconstruction]
+method = "least_squares"
+smoothness = 1e-2

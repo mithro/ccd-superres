@@ -1,0 +1,8 @@
+name = "wiener"
+description = "Shift and add, then undo the known blur wherever the signal is above the noise."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout, taken as exact"]
+positions = "known"
+
+[reconstruction]
+method = "wiener"
+noise_to_signal = 1e-3

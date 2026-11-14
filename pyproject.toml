@@ -2,7 +2,7 @@
 name = "ccdsr"
 version = "0.0.1"
 description = "Scanning lensless sensor super-resolution simulator"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["numpy", "scipy", "matplotlib"]
 
 [project.optional-dependencies]

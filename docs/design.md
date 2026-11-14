@@ -1776,8 +1776,11 @@ How this is used:
   cheapest implementation of each component, so an approach can be tried
   there in seconds before it is run through the simulator.
 
-Approaches the first comparison will include, so that the leading candidate
-is tested and not assumed:
+A first version of this exists for level 1 in one dimension, with 13
+approaches: see [comparing approaches](comparison.md).
+
+Approaches the full comparison will include once the wave levels exist, so
+that the leading candidate is tested and not assumed:
 
 | Approach | Illumination | Elements | Gap | Reconstruction |
 |---|---|---|---|---|
@@ -1803,6 +1806,7 @@ ccdsr/                    the package, one file per module above
   resolution.py           analytic resolution model (implemented)
 explorer/                 trade-off explorer web page (implemented)
 approaches/               one file per named approach (section 7.1)
+comparisons/              lists of approaches, scenes and conditions to run together
 data/                     collected data, each item with its source and licence
 examples/                 runnable scripts that produce the result figures
 studies/                  parameter sweeps for the limit study

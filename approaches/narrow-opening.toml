@@ -1,0 +1,11 @@
+name = "narrow-opening"
+description = "Each pixel masked down to an opening a quarter of its width, which blurs less and collects a quarter of the light. Least squares, positions given."
+hardware = ["sensor with its lens removed and a mask of 280 nm openings on the pixels", "diffuse light", "scan stage", "position readout, taken as exact"]
+positions = "known"
+
+[optics]
+aperture_nm = 280.0
+
+[reconstruction]
+method = "least_squares"
+smoothness = 1e-2

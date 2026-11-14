@@ -1,0 +1,11 @@
+name = "two-materials"
+description = "A fit that is told the two reflectances on the surface and pulls every point towards one of them. Positions are given."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout, taken as exact"]
+positions = "known"
+
+[knowledge]
+materials = true
+
+[reconstruction]
+method = "two_materials"
+smoothness = 1e-3

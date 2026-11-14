@@ -1,0 +1,11 @@
+name = "two-materials-position-solving"
+description = "Reconstruction by elimination, step-by-step form: smooth-path position solving, then the two-material fit. No position readout."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage"]
+positions = "unknown"
+
+[knowledge]
+materials = true
+
+[reconstruction]
+method = "two_materials_positions"
+path_stiffness = 10.0

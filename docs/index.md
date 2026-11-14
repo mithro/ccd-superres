@@ -26,6 +26,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
 | [Reconstruction by elimination](constrained-reconstruction.md) | Using the simulator to test candidate surfaces and positions and rule out the physically impossible: material limits, layout rules and a smooth sensor path | First version in one dimension |
+| [Comparing approaches](comparison.md) | How an approach is written as one short file, and the first comparison: 13 approaches on 4 surfaces under 6 conditions, 10 runs each | First version, level 1 in one dimension |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
 | [Glossary](glossary.md) | Plain-language meanings of the terms used across the documentation | Kept current |
 | [References](references.md) | The shared list of sources, and how claims are labelled as sourced, derived, estimated or assumed | Kept current |
@@ -52,6 +53,7 @@ calculator
 explorer
 level1
 constrained-reconstruction
+comparison
 diagrams
 glossary
 references

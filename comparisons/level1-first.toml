@@ -1,0 +1,53 @@
+name = "level1-first"
+description = "First comparison: thirteen level 1 approaches in one dimension, on four scenes under six conditions."
+approaches = [
+    "approaches/shift-and-add.toml",
+    "approaches/wiener.toml",
+    "approaches/least-squares.toml",
+    "approaches/least-squares-light-smoothing.toml",
+    "approaches/least-squares-planned-positions.toml",
+    "approaches/position-solving.toml",
+    "approaches/smooth-path-position-solving.toml",
+    "approaches/two-materials.toml",
+    "approaches/two-materials-position-solving.toml",
+    "approaches/narrow-opening.toml",
+    "approaches/fast-scan-short-pulse.toml",
+    "approaches/fast-scan-continuous-light.toml",
+    "approaches/fast-scan-coded-light.toml",
+]
+scenes = ["bars", "random_layout", "isolated_lines", "soft_ramps"]
+seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+[[conditions]]
+name = "ideal"
+description = "Steady motion, full light, gap 300 nm, sharp pixel edges."
+
+[[conditions]]
+name = "shaky"
+description = "Each frame misplaced at random by 0.3 pixel rms."
+[conditions.scan]
+jitter_px = 0.3
+
+[[conditions]]
+name = "wandering"
+description = "The path wanders smoothly by 1 pixel rms, each wander lasting about 20 frames."
+[conditions.scan]
+wander_px = 1.0
+
+[[conditions]]
+name = "dim"
+description = "One twenty-fifth of the light: 100 electrons at full brightness."
+[conditions.noise]
+full_e = 100.0
+
+[[conditions]]
+name = "wide gap"
+description = "Gap of 1 µm instead of 300 nm."
+[conditions.optics]
+gap_nm = 1000.0
+
+[[conditions]]
+name = "soft pixels"
+description = "Pixel edges soft over 150 nm instead of sharp."
+[conditions.optics]
+edge_sigma_nm = 150.0

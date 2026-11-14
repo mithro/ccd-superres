@@ -1,0 +1,8 @@
+name = "least-squares-planned-positions"
+description = "The same fit, but trusting the planned constant speed with no position readout. The baseline for doing nothing about motion errors."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage"]
+positions = "unknown"
+
+[reconstruction]
+method = "least_squares"
+smoothness = 1e-2
