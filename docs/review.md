@@ -380,7 +380,8 @@ The [comparison page](comparison.md), the code behind it
 ([`ccdsr/approaches.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/approaches.py),
 [`ccdsr/compare.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/compare.py)),
 its tests, the 13 approach files and the committed results were reviewed on
-14 November 2026, before merging. The reviewer was given the code and pages
+14 November 2026, before merging, in
+[pull request 34](https://github.com/mithro/ccd-superres/pull/34). The reviewer was given the code and pages
 and not the author's conclusions, reran the comparison, and changed the code
 on purpose in 16 small ways to see whether the tests would notice.
 
