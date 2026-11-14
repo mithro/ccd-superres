@@ -16,6 +16,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
 | [Filters, gratings and other optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
 | [Reconstruction methods](reconstruction-methods.md) | Survey of methods from radar, astronomy, ptychography and other fields, what each could reach, a ranked shortlist and a staged reconstruction plan | Survey for review |
+| [Radar and synthetic aperture methods](research/synthetic-aperture-radar.md) | Deep study B1: how radar builds a sharp picture from an uncertain path, which autofocus methods work on brightness-only data, how radar modes map onto the instrument, radar's limits on resolution and noise, and the new ideas it suggests | Study for review |
 | [Calibration and test methods](calibration-and-test.md) | What must be known about the instrument and how well, what is solved from the scan and what needs an outside measurement, how resolution is measured, the tests against invented detail, and the common benchmark for every approach | Plan for review |
 | [Review record](review.md) | Which pages, scripts and figures have been independently checked, what was checked, what was found and what is still unchecked | Kept current |
 | [Scan calculator](calculator.md) | Samples per point, shift per frame, sub-pixel coverage, motion blur and resolution estimates from scan settings | Implemented |
@@ -38,6 +39,7 @@ design
 simulation-chain
 optical-elements
 reconstruction-methods
+research/synthetic-aperture-radar
 calibration-and-test
 calculator
 explorer
