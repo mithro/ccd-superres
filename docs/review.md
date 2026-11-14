@@ -443,3 +443,31 @@ fresh clone, the explorer's "100 nm on silicon" preset, the Python examples
 linked from step 6, and how the diagram of what runs today is drawn in a
 browser. The corrections were checked by the tests and by a strict build of
 the pages, not by a second review.*
+
+### Third pass: original units and scaled units
+
+On 14 November 2026 the page gained a section that gives satellite and
+telescope figures in their own units and then scaled to nanometres, in
+[pull request 38](https://github.com/mithro/ccd-superres/pull/38). A third
+reviewer checked that change before merging.
+
+| Check | Coverage | Result |
+|---|---|---|
+| Every scaled number and unit conversion recomputed | All | All correct |
+| Original-unit figures compared with the cited source | All with a text available | 1 wrong, 3 resting on unlabelled assumptions |
+| Figure compared with caption and tables | 1 of 1 | Labels and caption corrected |
+| Links, anchors and build | All | Clean |
+
+| Finding | What was done |
+|---|---|
+| SkySat's 50 to 70 cm is the pixel of the operator's enlarged product, not of the camera | Camera pixel reworked to 0.75 m, and every figure built on it corrected |
+| Hubble's position errors were given in thousandths of a second of arc as if published that way. They are published in pixels, and the conversion assumes which of the camera's detectors was used. | Marked as an assumption wherever they appear. One converted figure with no basis was removed. |
+| "Finer than anything the field has done" compared a resolution aim with grid spacings, and counted a simulation as done | Rewritten as a judgement that separates flown systems from simulated ones and grids from measured gains |
+| The reason given for the scaling rule claimed that a bare pixel sees only its own width of surface | Replaced: the rule matches sample spacing only, not blur |
+| Time is not scaled, but two passages read as if it were | Said so plainly |
+| Several passages still gave pixels only | Scaled values added |
+
+Not checked: the full texts of the Hubble position paper (MF31), the
+drizzle paper (MF17) and the SPOT 5 paper (MF8) were not available to the
+reviewer.
+

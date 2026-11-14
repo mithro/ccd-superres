@@ -631,10 +631,12 @@ MAS_RAD = np.pi / 180 / 3600 / 1000   # one thousandth of a second of arc
 # footprint is the pixel angle times an example distance of 1000 parsecs.
 STAR_M = 1000 * PC_M
 SCALE_CASES = [
-    ("SPOT 5 (Earth)", 5.0, 2.5, "sample spacing after combining", None),
+    ("SPOT 5 (Earth)", 5.0, 2.5, "output grid spacing", None),
     ("HiRISE (Mars)", 0.25, 0.0625, "pointing drift allowed in 10 ms", 250e3),
-    ("SkySat (Earth)", 0.6, 0.3, "sample spacing after combining", None),
-    ("PROBA-V (Earth)", 300.0, 100.0, "sample spacing after combining", 820e3),
+    # SkySat: the 0.6 m standard product is a 1.25 times enlargement, so the
+    # camera pixel is 0.75 m; the measured gain in resolution is 0.10 m.
+    ("SkySat (Earth)", 0.75, 0.10, "measured gain in resolution", None),
+    ("PROBA-V (Earth)", 300.0, 100.0, "grid the result is scored on", 820e3),
     ("Hubble, star at 1000 parsecs", 100 * MAS_RAD * STAR_M,
      0.2 * MAS_RAD * STAR_M, "repeating position error left", STAR_M),
     ("Gaia, star at 1000 parsecs", 58.9 * MAS_RAD * STAR_M,
@@ -660,16 +662,22 @@ def scale_map():
         ax.plot(other, y - 0.28, "^", color=BLUE, ms=7)
         ax.plot(pitch, y, "s", color=ORANGE, ms=8)
         ax.plot(other / n, y - 0.28, "^", color=ORANGE, ms=7)
-        ax.text(3e-11, y - 0.12, name, ha="right", va="center", fontsize=9)
-        ax.text(np.sqrt(pitch * px), y + 0.16, f"divide by {n:.2g}",
-                fontsize=8, color=INK2, ha="center")
-        ax.text(other / n * 0.55, y - 0.28, f"{other / n * 1e9:.3g} nm",
+        ax.text(1e-13, y + 0.02, name, ha="right", va="center", fontsize=9)
+        ax.text(1e-13, y - 0.28, what, ha="right", va="center", fontsize=8,
+                color=INK2)
+        mant, expo = f"{n:.1e}".split("e")
+        ax.text(np.sqrt(pitch * px), y + 0.16,
+                f"divide by {mant} $\\times 10^{{{int(expo)}}}$", fontsize=8,
+                color=INK2, ha="center")
+        nm = other / n * 1e9
+        ax.text(other / n * 0.55, y - 0.28,
+                f"{nm:.0f} nm" if nm >= 10 else f"{nm:.1f} nm",
                 fontsize=8, color=ORANGE, ha="right", va="center")
         d = "" if dist is None else f", distance {dist:.4g} m -> {dist / n * 1e3:.4g} mm"
         print(f"  {name}: pixel {px:.4g} m, factor {n:.4g}, {what} "
               f"{other:.4g} m -> {other / n * 1e9:.4g} nm{d}")
     ax.set_xscale("log")
-    ax.set_xlim(1e-11, 1e15)
+    ax.set_xlim(1e-12, 1e15)
     ax.set_ylim(-0.8, len(SCALE_CASES) - 0.4)
     ax.set_yticks([])
     ax.set_xlabel("length (metres)")
@@ -680,7 +688,7 @@ def scale_map():
         plt.Line2D([], [], marker="s", ls="", color=BLUE, ms=8,
                    label="one pixel on the original scene"),
         plt.Line2D([], [], marker="^", ls="", color=BLUE, ms=7,
-                   label="a result in original units (table S3)"),
+                   label="a result in original units (tables S3, S4)"),
         plt.Line2D([], [], marker="s", ls="", color=ORANGE, ms=8,
                    label="the pixel after scaling"),
         plt.Line2D([], [], marker="^", ls="", color=ORANGE, ms=7,
@@ -698,8 +706,6 @@ def scale_map():
     print(f"  Gaia spin 60 arcsec/s = {60000 / 58.9:.1f} pixels/s = "
           f"{60000 / 58.9 * PITCH_UM / 1000:.3f} mm/s scaled; 4500 lines = "
           f"{4500 * 58.9 / 1000:.1f} arcsec = {4500 * PITCH_UM / 1000:.2f} mm")
-    print(f"  Asteroid 0.14 arcsec/s on 40 mas pixels would be "
-          f"{140 / 40:.1f} pixels/s")
     print(f"  Lucky imaging at 40 mas per pixel: 0.63 arcsec = "
           f"{630 / 40 * PITCH_UM:.1f} um, 0.26 arcsec = "
           f"{260 / 40 * PITCH_UM:.1f} um")
