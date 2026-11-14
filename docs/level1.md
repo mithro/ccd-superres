@@ -1,7 +1,5 @@
 # Simulation level 1: blur and sample
 
-## In plain words
-
 Level 1 is the first simulator that produces sensor readings and turns them
 back into a picture of the surface. It treats the surface as a flat strip of
 bright and dark, blurs it the way the gap and the pixels would, reads it off

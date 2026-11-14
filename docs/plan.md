@@ -1,5 +1,19 @@
 # Project plan
 
+The project wants to photograph the fine wiring of silicon chips with a
+bare camera sensor and a great deal of computing. Nobody knows yet which way
+of doing that works best, so the plan is in this order:
+
+1. **Read and collect first.** Study what radar, astronomy, microscopy and
+   other fields already know about getting sharp pictures from blurry,
+   moving measurements, look for ideas nobody has suggested yet, and gather
+   real data about sensors, materials and chips.
+2. **Simulate many approaches.** Build a simulator in which every part of
+   the instrument can be swapped, and compare the candidate approaches
+   fairly on the same test pictures.
+3. **Only then build hardware,** and only for approaches the simulation has
+   shown to work, judged against conditions written down in advance.
+
 This page is the single list of what the project will do, in order, and where
 each item stands. It is updated in the same pull request as the work it
 describes, so the state shown here is the state of the repository.
@@ -24,22 +38,6 @@ research and simulation. What "shown to work" means is a defined gate
 State marks: **Done** means merged into the main branch. **In progress**
 means work exists on a branch or in another page under review. **Not
 started** means nothing exists yet.
-
-## In plain words
-
-The project wants to photograph the fine wiring of silicon chips with a
-bare camera sensor and a great deal of computing. Nobody knows yet which way
-of doing that works best, so the plan is in this order:
-
-1. **Read and collect first.** Study what radar, astronomy, microscopy and
-   other fields already know about getting sharp pictures from blurry,
-   moving measurements, look for ideas nobody has suggested yet, and gather
-   real data about sensors, materials and chips.
-2. **Simulate many approaches.** Build a simulator in which every part of
-   the instrument can be swapped, and compare the candidate approaches
-   fairly on the same test pictures.
-3. **Only then build hardware,** and only for approaches the simulation has
-   shown to work, judged against conditions written down in advance.
 
 ## Order of work
 
@@ -278,10 +276,11 @@ which pages do so far.
 
 Everything is explained in plain English that a non-expert can understand.
 
-- **Open with a plain-language summary.** Each page starts with a section
-  "In plain words" that says what the page is about and what it concludes,
-  with no equations and no unexplained terms. A reader who stops there
-  should still know the main result.
+- **Write the main text in plain words from the first line.** Tim's rule:
+  "Don't write 'In plain words' sections, just write the text in plain words
+  from the beginning." There is no separate plain-language summary. A page
+  opens by saying what it is about and what it concludes, in words a
+  non-expert can follow, and carries on the same way.
 - **Explain every technical term** where it first appears on the page, or
   link it to the shared [glossary](glossary.md). New terms are added to the
   glossary in the same pull request.
@@ -374,7 +373,7 @@ not started are planned files; each becomes a link when its item is done.
 | [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Yes: twenty figures from [`docs/diagrams/make_optics_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_optics_diagrams.py) and two flow charts, with units, labelled parts and stand-alone captions. Sections 3.3, 4.4, 4.5 and 11 to 13 remain text and tables. | Yes: data tables have one quantity per column with units in the header and right-aligned numbers, data in paragraphs was moved into tables, and comparisons in words are separate text tables |
 | [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Yes: 18 scripted figures and three flow charts, at least one per field and per derived result | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Calibration and test methods](calibration-and-test.md) | Yes: summary, terms explained or linked to the glossary, formulas followed by words, captions that stand alone | Yes: every claim cites a key or carries a label. Journal sources were checked to exist by DOI. Web sources are marked as read in summary. | Fifteen scripted figures and four flow charts | Yes: data tables with units in the headers and a source column, kept separate from the text tables |
-| [Simulation level 1](level1.md) | Yes: summary, glossary links, the formula followed by words, stand-alone captions | Yes: each step, method and table carries a key or a label | One flow chart and four scripted figures | Yes: data tables with units and right-aligned numbers, separate from the text tables |
+| [Simulation level 1](level1.md) | Yes: plain text from the first line, glossary links, the formula followed by words, stand-alone captions | Yes: each step, method and table carries a key or a label | One flow chart and four scripted figures | Yes: data tables with units and right-aligned numbers, separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 
 ## How the plan is kept
