@@ -147,7 +147,7 @@ published in the documentation.
 | 11 | Checks between levels 3 and 4 | Measured limit of scalar waves, kernels for nanometre gaps |
 
 The build also follows the staged path to a 100 nm picture in
-[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture): steps
+[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate): steps
 3 to 5 cover its stage 1, and stages 2 to 4 need levels 3 and 4.
 
 Because the 100 nm target is decided by levels 3 and 4, one option is to

@@ -16,6 +16,11 @@ approaches side by side on the same scenes and measures is a deliverable in
 its own right
 ([design, section 7.1](design.md#71-approaches-as-named-configurations)).
 
+All real hardware work comes at the very end, and only for approaches that
+the simulation has shown to work. Everything before the last phase is
+research and simulation. What "shown to work" means is a defined gate
+([design, section 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)).
+
 State marks: **Done** means merged into the main branch. **In progress**
 means work exists on a branch or in another page under review. **Not
 started** means nothing exists yet.
@@ -25,17 +30,21 @@ started** means nothing exists yet.
 ```mermaid
 flowchart LR
     A["A. Foundations<br/>design, calculator,<br/>explorer, surveys"]
-    B["B. Deep research<br/>four fields"]
+    B["B. Deep research<br/>fields and sensors"]
     C["C. Fold research<br/>into the design"]
     D["D. Simulation chain<br/>and approach comparisons"]
     E["E. Calibration and<br/>test methods"]
-    F["F. Instrument stages<br/>of the leading candidate"]
-    A --> B --> C --> D --> F
+    F["F. Leading candidate<br/>stages, simulated"]
+    G{"G. Gate:<br/>simulation shows<br/>it works"}
+    H["H. Hardware"]
+    A --> B --> C --> D --> F --> G
     C --> E --> F
     D -.->|"results correct<br/>the design"| C
+    G -->|"pass"| H
+    G -.->|"fail"| D
 ```
 
-Deep research comes before the build stages because each field below has
+Deep research comes before the simulation build because each field below has
 already solved a version of this problem, and their answers decide what the
 simulator has to represent and which reconstruction is built first.
 
@@ -55,7 +64,9 @@ simulator has to represent and which reconstruction is built first.
 ## B. Deep research
 
 Tim asked for deep research into the fields he named: reverse or inverse
-beamforming, radar, satellite image reconstruction and similar fields. The
+beamforming, radar, satellite image reconstruction and similar fields. He also
+asked for a deep dive into potential sensors and how to control them at
+pixel level (B5 to B7). The
 [reconstruction methods](reconstruction-methods.md) page is the overview.
 Each item below goes deeper into one field than that overview does, from the
 primary literature, and must answer stated questions for the design. Each
@@ -68,7 +79,9 @@ every claim marked as taken from a source, derived here, or assumed.
 | B2 | Beamforming and array processing, forwards and inverse, from acoustics, sonar and radio astronomy | What does treating 8 million pixels as an array of receivers give beyond averaging? Which inverse and adaptive methods (minimum variance, subspace methods, deconvolution of the array response, self-calibration) apply to an array that records brightness only? How do radio telescopes calibrate thousands of unknown receiver gains from the observation itself, and does that carry over to pixel gains and pixel response? | `docs/research/beamforming.md` | Not started |
 | B3 | Satellite and astronomical image reconstruction from many shifted frames | How do push-broom and time-delay-integration sensors handle motion smear, and what does that say about our readout schemes? How are many undersampled, shifted, noisy frames combined (drizzle, multi-frame super-resolution, lucky imaging), with what measured gain over the pixel size and at what noise cost? How is the registration between frames estimated and how accurate is it in practice? | `docs/research/multi-frame-reconstruction.md` | Not started |
 | B4 | Ptychography and lensless coherent imaging | What is the finest detail demonstrated without a lens, in transmission and in reflection, and what limited it? What do position correction, mixed-state models and pixel super-resolution need from the data? How do coarse detector pixels limit the result, and how have others got round it? What overlap, pulse timing and number of lighting directions does stage 2 need? | `docs/research/ptychography.md` | Not started |
-| B5 | Sensor control and pixel internals (proposed here, not yet requested by Tim) | Which control and timing signals of the IMX219 and similar sensors can be reached through registers, and which only by driving the chip directly? What is known about the response inside a pixel, its angular response and its layers? | `docs/research/sensor-control.md` | Not started |
+| B5 | Survey of candidate sensors: Raspberry Pi class CMOS sensors (IMX219, IMX477, IMX708), global-shutter sensors (IMX296 and similar), scientific CMOS, true CCDs including full-frame, frame-transfer and time-delay-integration types, and any sensor with documented or open pixel-level control | For each: pixel size and count, layers on the pixel face, noise, speed, price and availability. Which are plausible for this instrument, and what would each change in the resolution and sampling figures? | `docs/research/sensor-survey.md` | Not started |
+| B6 | Pixel-level control of each candidate | What does each sensor expose for addressing, reset, exposure and readout of individual pixels, rows or windows: through its registers, through undocumented modes, or by driving its control lines directly? For CCDs, what do custom clocking of the shift registers and charge shifting in step with the motion allow? What documentation, datasheets, open drivers and reverse-engineering work exists for each? | `docs/research/sensor-control.md` | Not started |
+| B7 | What each sensor choice allows in the simulator | Which implementations of the swappable readout model ([design, section 5.7](design.md#57-sensor-control-and-readout-as-a-replaceable-model)) each sensor makes real: random row order, per-row or per-pixel exposure, global shutter, repeated reads, charge shifting. What has been published about the response inside small pixels and their angular response, to set the uncertain range that stands in for a measurement until hardware exists? | `docs/research/sensor-control.md`, with one readout model per sensor in the simulator | Not started |
 
 Each item ends with a short list of changes it recommends to the design, the
 simulator parameters and the staged plan.
@@ -77,8 +90,8 @@ simulator parameters and the staged plan.
 
 | Item | What changes | State |
 |---|---|---|
-| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B5 | Not started |
-| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-to-the-picture) | Not started |
+| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 | Not started |
+| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) | Not started |
 | C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. |
 
 ## D. Simulation chain
@@ -111,23 +124,42 @@ explored as soon as it is modelled.
 | E3 | Honesty tests for results that use prior knowledge: reconstruction from a deliberately wrong starting layout, and each random process switched on and off | Planned in the design, sections 4.7 and 5.8. Not built. |
 | E4 | A page of its own for calibration and test methods | Not started |
 
-## F. Instrument stages of the leading candidate
+## F. Stages of the leading candidate, in simulation
 
 These stages belong to the approach that looks strongest so far, slanted
 coherent light with phase recovery. It is one candidate among those compared
 in D7, and this section is rewritten if the comparisons favour another. The
 stages are defined in
-[design, section 4.7](design.md#47-a-staged-path-to-the-picture) and use the
-same numbers in the [optical elements](optical-elements.md) study. Each is
-run in the simulator first and on hardware second.
+[design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)
+and use the same numbers in the [optical elements](optical-elements.md)
+study. All of them are carried out in the simulator only.
 
-| Stage | Result | Simulated | Hardware |
-|---|---|---|---|
-| 0 | Measured response of the pixels to fine light stripes and to angle | Not started | Not started |
-| 1 | Coarse picture at micrometre scale, with positions and gains from the data | Not started | Not started |
-| 2 | True picture to 150 to 200 nm lines, with slanted pulsed 405 nm light | Not started | Not started |
-| 3 | Detect, locate and fit: a partly inferred picture at about 100 nm | Not started | Not started |
-| 4 | True picture at about 100 nm, with near-ultraviolet light or water in the gap | Not started | Not started |
+| Stage | Result, in simulation | State |
+|---|---|---|
+| 0 | The pixel response to fine light stripes and to angle, as an uncertain range swept in every run and narrowed by the electromagnetic level on a model of the pixel's layers | Not started |
+| 1 | Coarse picture at micrometre scale, with positions and gains estimated from the data | Not started |
+| 2 | True picture to 150 to 200 nm lines, with slanted pulsed 405 nm light | Not started |
+| 3 | Detect, locate and fit: a partly inferred picture at about 100 nm | Not started |
+| 4 | True picture at about 100 nm, with near-ultraviolet light or water in the gap | Not started |
+
+## G. The gate before hardware
+
+| Item | Content | State |
+|---|---|---|
+| G1 | Fix the targets per stage and the uncertain ranges for pixel response, gap, vibration, source and noise, before the runs | Not started |
+| G2 | Run every candidate approach through the gate of [design, section 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware): agreed scenes and measures, robustness across the uncertain ranges, blind reconstruction, agreement between simulation levels, honesty about priors, repeatability, buildable on paper | Not started |
+| G3 | Gate report per approach: pass or fail on each condition, hardware list, tolerances, first measurements to make | Not started |
+| G4 | Tim's decision on which approaches go to hardware | Not started |
+
+## H. Hardware, last
+
+Nothing in this section starts before G4.
+
+| Item | Content | State |
+|---|---|---|
+| H1 | Measure the pixel response of the real sensor (stage 0 on hardware) and rerun the gate with the measured value | Not started |
+| H2 | Build and run stages 1 to 4 of the approaches that passed, each compared against its simulation | Not started |
+| H3 | Feed measured behaviour back into the simulator as the reference model of the instrument | Not started |
 
 ## How the plan is kept
 
