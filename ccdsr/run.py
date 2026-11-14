@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import inspect
 
 import numpy as np
 
@@ -28,7 +29,6 @@ def describe_settings():
     """Text listing every scene, reconstruction and setting with its default."""
     lines = ["Scenes: " + ", ".join(sorted(ap.SCENES)), "", "Reconstructions and their options:"]
     for name, recon in sorted(ap.RECONSTRUCTIONS.items()):
-        import inspect
         options = list(inspect.signature(recon.fn).parameters.values())[2:]
         shown = ", ".join(f"{o.name}={o.default}" for o in options) or "no options"
         needs = f" (needs: {', '.join(sorted(recon.needs))})" if recon.needs else ""
@@ -112,10 +112,13 @@ def main(argv=None):
     try:
         approach = ap.load_approach(args.approach, args.set)
         scene, frames, estimate, scores = run(approach, args.scene, args.seed)
-    except (ap.InvalidApproach, ValueError, TypeError) as reason:
+    except (ap.InvalidApproach, ValueError, TypeError, OSError) as reason:
         raise SystemExit(f"cannot run: {reason}")
     print(report(approach, scene, frames, scores))
-    picture(approach, scene, frames, estimate, args.out)
+    try:
+        picture(approach, scene, frames, estimate, args.out)
+    except OSError as reason:
+        raise SystemExit(f"cannot save the picture: {reason}")
     print(f"picture saved to {args.out}")
 
 

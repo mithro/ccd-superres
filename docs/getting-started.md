@@ -19,7 +19,7 @@ detail across the direction of travel.
 ![Side view of the sensor, the gap and the surface, with light from one point spreading across the gap](diagrams/cross-section.svg)
 
 *Figure 2. The sensor and the surface from the side. The gap decides how
-far light from one point spreads before it reaches the pixels. From
+wide an area of the surface each pixel collects light from (the cone drawn), which is the same as how far light from one point spreads. The letters in figures 1 and 2 are explained in the design section they come from. From
 [design, section 2](design.md#2-concept). Illustrative, not to scale.*
 
 ![Two side views to scale of a sensor 3.68 mm wide held 1 mm above the chip, lit by steep laser beams from the side](diagrams/ptycho-beat-path.svg)
@@ -33,17 +33,17 @@ Derived there from straight rays.*
 There are two configurations to keep apart: the one the simulator runs
 today, and the one the design is heading for.
 
-| Setting | What runs today (level 1) | Leading candidate in the design | Unit | Source of the design value |
-|---|---:|---:|---|---|
-| Sensor pixel width | 1,120 | 1,120 | nm | Raspberry Pi Camera Module 2, [design 5.1](design.md#51-sensor) |
-| Pixels | 64 in a line (16 by 16 in two dimensions) | 3,280 by 2,464 | | [Design 5.1](design.md#51-sensor) |
-| Gap between sensor and surface | 300 | about 1,000,000 (1 mm), at least 600,000 | nm | [Design, Table 4.10a](design.md#410-what-the-four-research-studies-changed) |
-| Light | Even, undirected glow from a matt surface | 405 nm laser beams at about 72° from several directions, each with partner beams | | [Design 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) |
-| Movement per frame | 0.37 | 0.25, made slightly irregular | pixel | [Design 5.2](design.md#52-scan) |
-| Sensor tilt | None in one dimension, 3.6° in two | About 3.6° (1 in 16) | | [Design 5.2](design.md#52-scan) |
-| Stage | One direction | Two directions (accepted by Tim) | | [Design, section 11](design.md#11-build-stages-and-open-questions) |
-| Finest detail aimed for | Bars repeating every 480 nm | Lines of 100 nm | nm | [Design 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips) |
-| Reconstruction | Least squares, position solving, known materials, elimination | Recovery of the light's phase with positions solved (ptychography) | | [Design 6](design.md#6-reconstruction) |
+| Setting | What runs today (level 1) | Leading candidate in the design | Source of the design value |
+|---|---|---|---|
+| Sensor pixel width | 1,120 nm | 1,120 nm | Raspberry Pi Camera Module 2, [design 5.1](design.md#51-sensor) |
+| Pixels | 64 in a line (16 by 16 in two dimensions) | 3,280 by 2,464 | [Design 5.1](design.md#51-sensor) |
+| Gap between sensor and surface | 300 nm | About 1 mm (1,000,000 nm), at least 0.6 mm | [Design, Table 4.10a](design.md#410-what-the-four-research-studies-changed) |
+| Light | Even, undirected glow from a matt surface | 405 nm laser beams at about 72° from several directions. Whether each has partner beams is one of two options to be compared | [Design 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) |
+| Movement per frame | 0.37 pixel | 0.25 pixel, made slightly irregular | [Design 5.2](design.md#52-scan) |
+| Sensor tilt | None in one dimension. In two dimensions 0° unless set; the [level 1 example](level1.md) uses 3.6° | About 3.6° (1 in 16) | [Design 5.2](design.md#52-scan) |
+| Stage | One direction | Two directions (accepted by Tim) | [Design, section 11](design.md#11-build-stages-and-open-questions) |
+| Finest detail | The test bars go down to a 320 nm period. The default run shows 800 nm, and the best approach so far shows 480 nm ([comparison](comparison.md)) | Aim: lines of 100 nm | [Design 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips) |
+| Reconstruction | Shift and add, Wiener filter, least squares, position solving and known materials, all through the commands below. Elimination only from Python ([its page](constrained-reconstruction.md#running-it)) | Recovery of the light's phase with positions solved (ptychography) | [Design 6](design.md#6-reconstruction) |
 
 *Table 1. The two configurations. The middle column is what the code does
 now. The right-hand columns are design values, each an Estimate or
@@ -100,7 +100,7 @@ python -m ccdsr.run approaches/least-squares.toml
 ```
 
 This simulates a scan of a test surface, reconstructs it, prints how well
-it did and saves a picture as `run.png`.
+it did and saves a picture as `run.png` in the folder you are in.
 
 ![Top: a true surface of bar groups with its reconstruction drawn over it. Bottom: the raw readings as a grey image of frame number against pixel](diagrams/getting-started-run.png)
 
@@ -131,7 +131,7 @@ The last line lists every scene, method and setting with its default.
 | `scan.wander_px` | Slow wandering of the path | 0 | pixel, rms |
 | `noise.full_e` | Light collected at full brightness | 2,500 | electrons |
 | `noise.read_e` | Read noise of the sensor | 2 | electrons, rms |
-| `positions` | `known`: the reconstruction is told where each frame was. `unknown`: it is told only the planned speed | `known` | |
+| `positions` | `known`: the reconstruction is told where each frame was. `unknown`: it is told only the planned speed | Set by the approach file (`known` if it does not say) | |
 | `reconstruction.method` | How the picture is recovered | Set by the approach file | |
 
 *Table 2. The settings most worth changing. Defaults are those of
@@ -163,7 +163,7 @@ dimensional version with sensor tilt.
 
 | Not yet runnable | Why | Where it is planned |
 |---|---|---|
-| Laser light, slanted beams and beam pairs | Level 1 has no waves | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
-| 100 nm features | The same reason; level 1 is valid down to about the wavelength of light | The same |
+| Laser light, slanted beams and beam pairs | Level 1 only blurs brightness. It has no interference between beams | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
+| 100 nm features | Level 1 with its built-in blur is trusted only for dimensions of several micrometres or more ([simulation chain, where each level is valid](simulation-chain.md#where-each-level-is-valid)); 100 nm needs the wave levels | The same |
 | The full sensor of 8 million pixels | The solver is not yet split into tiles | [Plan](plan.md#d-simulation-chain), phase D |
 | Surfaces longer than the sensor | The level 1 surface joins up end to end | [Comparison page, limits](comparison.md#what-this-does-not-cover-yet) |

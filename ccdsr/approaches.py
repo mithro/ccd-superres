@@ -168,6 +168,64 @@ class InvalidApproach(ValueError):
     """An approach file, or a combination of approach, scene and condition, that cannot be run."""
 
 
+# Allowed range of each numeric setting: (lowest, whether the lowest itself is allowed).
+_LIMITS = {
+    "gap_nm": (0.0, True), "pitch_nm": (0.0, False), "aperture_nm": (0.0, False), "edge_sigma_nm": (0.0, True),
+    "wavelength_nm": (0.0, False), "n_pixels": (1, True), "n_frames": (1, True), "exposure_fraction": (0.0, True),
+    "jitter_px": (0.0, True), "wander_px": (0.0, True), "wander_frames": (0.0, False), "full_e": (0.0, False),
+    "read_e": (0.0, True), "gain_sigma": (0.0, True),
+}
+_WHOLE = {"n_pixels", "n_frames"}
+_CHOICES = {"gap_model": ("diffuse", "collimated")}
+
+
+def _is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and np.isfinite(value)
+
+
+def check_settings(who, part, settings):
+    """Raise :class:`InvalidApproach` unless every setting of one part has a known name and a usable value."""
+    if not isinstance(settings, dict):
+        raise InvalidApproach(f"{who}: {part} must be a group of settings, such as {part}.name=value")
+    cls = _PARTS[part]
+    fields = {f.name: f for f in dataclasses.fields(cls)}
+    extra = set(settings) - set(fields)
+    if extra:
+        raise InvalidApproach(f"{who}: unknown {part} setting(s) {sorted(extra)}; known: {sorted(fields)}")
+    for name, value in settings.items():
+        label = f"{who}: {part}.{name}"
+        default = fields[name].default
+        if name == "code":
+            if value is None:
+                continue
+            ok = isinstance(value, (list, tuple)) and len(value) > 0 and all(v in (0, 1) for v in value) and any(value)
+            if not ok:
+                raise InvalidApproach(f"{label} must be a list of 0 and 1 with at least one 1, not {value!r}")
+        elif name in _CHOICES:
+            if value not in _CHOICES[name]:
+                raise InvalidApproach(f"{label} must be one of {list(_CHOICES[name])}, not {value!r}")
+        elif isinstance(default, bool):
+            if not isinstance(value, bool):
+                raise InvalidApproach(f"{label} must be true or false, not {value!r}")
+        else:
+            if not _is_number(value):
+                raise InvalidApproach(f"{label} must be a number, not {value!r}")
+            if name in _WHOLE and int(value) != value:
+                raise InvalidApproach(f"{label} must be a whole number, not {value!r}")
+            if name in _LIMITS:
+                low, allowed = _LIMITS[name]
+                if value < low or (value == low and not allowed):
+                    raise InvalidApproach(f"{label} must be {'at least' if allowed else 'more than'} {low:g}, "
+                                          f"not {value!r}")
+            if name == "exposure_fraction" and value > 1:
+                raise InvalidApproach(f"{label} is a share of a frame and cannot be more than 1, not {value!r}")
+            if name == "shift_px" and value == 0:
+                raise InvalidApproach(f"{label} must not be 0: the sensor has to move between frames")
+
+
+_WORDS = {"true": True, "yes": True, "on": True, "false": False, "no": False, "off": False}
+
+
 @dataclass(frozen=True)
 class Approach:
     """One named choice of implementation and settings for each part."""
@@ -206,12 +264,12 @@ class Approach:
         if "materials" in needs and scene is not None and scene.levels is None:
             raise InvalidApproach(f"{self.name}: reconstruction {self.method!r} needs a surface of two "
                                   f"materials, and scene {scene.name!r} is not one")
-        for part, cls in _PARTS.items():
-            known = {f.name for f in dataclasses.fields(cls)}
-            extra = set(getattr(self, part)) - known
-            if extra:
-                raise InvalidApproach(f"{self.name}: unknown {part} setting(s) {sorted(extra)}; "
-                                      f"known: {sorted(known)}")
+        for name, value in self.options.items():
+            if not _is_number(value) or value < 0:
+                raise InvalidApproach(f"{self.name}: reconstruction.{name} must be a number that is not negative, "
+                                      f"not {value!r}")
+        for part in _PARTS:
+            check_settings(self.name, part, getattr(self, part))
 
 
 def parse_approach(text, source_name="<text>", changes=()) -> Approach:
@@ -227,14 +285,27 @@ def parse_approach(text, source_name="<text>", changes=()) -> Approach:
         key, sep, value = change.partition("=")
         if not sep:
             raise InvalidApproach(f"{source_name}: a change is written section.setting=value, not {change!r}")
-        try:
-            parsed = tomllib.loads(f"v = {value}")["v"]
-        except tomllib.TOMLDecodeError:
-            parsed = value.strip()                    # a bare word, such as unknown
-        *sections, name = key.strip().split(".")
-        target = data
+        key, value = key.strip(), value.strip()
+        if not key or not value or not all(key.split(".")):
+            raise InvalidApproach(f"{source_name}: a change is written section.setting=value, not {change!r}")
+        if value.lower() in _WORDS:
+            parsed = _WORDS[value.lower()]            # true, False, yes, off and so on
+        else:
+            try:
+                parsed = tomllib.loads(f"v = {value}")["v"]
+            except tomllib.TOMLDecodeError:
+                parsed = value                        # a bare word, such as unknown
+        *sections, name = key.split(".")
+        target, path = data, []
         for section in sections:
+            path.append(section)
             target = target.setdefault(section, {})
+            if not isinstance(target, dict):
+                raise InvalidApproach(f"{source_name}: {'.'.join(path)} is a single setting, not a group, "
+                                      f"so {key!r} cannot be set")
+        if isinstance(target.get(name), dict):
+            raise InvalidApproach(f"{source_name}: {key} is a group of settings; name one, such as "
+                                  f"{key}.{next(iter(target[name]), 'setting')}=value")
         target[name] = parsed
     extra = set(data) - _TOP
     if extra:
@@ -242,6 +313,12 @@ def parse_approach(text, source_name="<text>", changes=()) -> Approach:
     for key in ("name", "description", "reconstruction"):
         if key not in data:
             raise InvalidApproach(f"{source_name}: missing {key!r}")
+    for group in ("reconstruction", "optics", "scan", "noise", "knowledge"):
+        if not isinstance(data.get(group, {}), dict):
+            raise InvalidApproach(f"{source_name}: {group} is a group of settings, written {group}.setting=value")
+    materials = data.get("knowledge", {}).get("materials", False)
+    if not isinstance(materials, bool):
+        raise InvalidApproach(f"{source_name}: knowledge.materials must be true or false, not {materials!r}")
     recon = dict(data["reconstruction"])
     if "method" not in recon:
         raise InvalidApproach(f"{source_name}: [reconstruction] needs a method")
@@ -288,10 +365,7 @@ def _build(approach: Approach, condition: Condition):
         if both:
             raise InvalidApproach(f"{approach.name} and condition {condition.name!r} both set {part} "
                                   f"{sorted(both)}; a condition may not override an approach's own choice")
-        known = {f.name for f in dataclasses.fields(cls)}
-        extra = set(theirs) - known
-        if extra:
-            raise InvalidApproach(f"condition {condition.name!r}: unknown {part} setting(s) {sorted(extra)}")
+        check_settings(f"condition {condition.name!r}", part, theirs)
         parts[part] = cls(**{**theirs, **mine})
     return parts["optics"], parts["scan"], parts["noise"]
 

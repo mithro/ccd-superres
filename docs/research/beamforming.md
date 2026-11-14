@@ -1386,6 +1386,13 @@ Each study ends with the changes it recommends. Text table.
 
 ## 11. Questions for Tim
 
+Tim answered questions 1, 2 and 4 on 14 November 2026: a two-axis stage is
+acceptable; a light monitor could be added, or some of the sensor's own
+pixels used; design rules "might be known but should not be assumed". His
+words and how they are taken up are in the
+[design, section 11, items 8 to 10](../design.md#11-build-stages-and-open-questions).
+Question 3 is still open.
+
 1. **Can the stage move the sensor in two directions, or only one?** The
    streak-free calibration of section 6.4 needs either a second direction
    or passes shifted sideways. The smallest sideways shift should be about

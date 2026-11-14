@@ -406,3 +406,40 @@ in the findings table matched the result tables.
 page, link targets and the internals of the reconstructions, which review 5
 covered. The corrections were checked by the tests and by rerunning the
 comparison, not by a further reviewer.*
+
+## Review 8: the getting started page, the one-command run and Tim's answers
+
+The [getting started page](getting-started.md), the command behind it
+([`ccdsr/run.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/run.py)),
+its tests, and the places where Tim's answers on the light monitor and on
+chip design rules were written into the [design](design.md) and the
+[plan](plan.md) were reviewed on 14 November 2026, before merging. The
+reviewer was given the commit and Tim's exact words and not the author's
+conclusions. It ran every command on the page, tried deliberately bad
+inputs, and compared each quotation with what Tim wrote.
+
+It confirmed that every command on the page runs, that the picture on the
+page is exactly the one the command saves, that the example changes of
+settings take effect, that the listed defaults match the code, that the
+design values in the first table match the design, and that all links
+resolve.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | `False`, `no` or `off` given for a yes-or-no setting was read as a word, which counts as yes. Photon noise stayed on when switched off this way. | The usual spellings of true and false are understood, and a value of the wrong kind is refused with the setting named. Tested. |
+| 2 | Error | The first table gave a sensor tilt of 3.6° as what the two-dimensional code does. It is 0° unless set; 3.6° is the worked example. | Corrected. |
+| 3 | Error | The elimination page said in one table that a minimum-width rule is used and in another that it is not. | The first table now says the tests use none. |
+| 4 | Gap | Our own reading was recorded as Tim's input in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. His question about using pixels was written as a decision. | Each is now labelled "Our reading", and the pixel idea is recorded as his question. |
+| 5 | Gap | The beamforming study's questions and three places that list layout rules as inputs did not show the answers. | A note on the study's questions, and "optional, also run without" added in the design and plan. |
+| 6 | Gap | One date in the plan was stretched to cover an earlier answer. | Reworded. |
+| 7 | Gap | Impossible values were accepted: a negative gap (which scored better than the default), no frames, no light. | Every setting has an allowed range and is refused outside it, in approach files, changes and conditions. Tested. |
+| 8 | Gap | A missing approach file or an unwritable picture path ended in a Python error trace; several mistyped changes gave messages that did not name the setting. | One-line messages that name the setting. Tested. |
+| 9 | Gap | Following the page left `run.png` and `results/mine/` as new files in the repository. | Both are ignored by git. |
+| 10 | Wording | First table: "finest detail aimed for" was neither the aim nor the default result; elimination was listed as runnable by the command; partner beams were stated as decided; a unit column repeated the units. The default of `positions` and the claim about where level 1 is valid were loose. | Table rewritten with units in the cells; the validity statement now cites the [simulation chain](simulation-chain.md#where-each-level-is-valid). |
+| 11 | Minor | A quotation dropped its opening words without a mark; a caption did not match its drawing; an import sat inside a loop. | Fixed. |
+
+*Table: findings of review 8. Not checked by the reviewer: installing from a
+fresh clone, the explorer's "100 nm on silicon" preset, the Python examples
+linked from step 6, and how the diagram of what runs today is drawn in a
+browser. The corrections were checked by the tests and by a strict build of
+the pages, not by a second review.*
