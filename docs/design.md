@@ -454,18 +454,24 @@ visible light the detail is always on the fading side of that rule.
 What the analytic model gives for a 200 nm period, with 13,000 samples per
 pixel area (the slow baseline scan of section 5.2 over a full sensor), a single-sample signal-to-noise of 50 and full feature contrast:
 
-| Case | Largest gap that still recovers a 200 nm period |
-|---|---|
-| Matt surface, ideal sharp-edged pixel | 140 nm |
-| Same, with only 50 samples per pixel area | 35 nm |
-| Same, with 13 million samples (a thousand times more data) | 260 nm |
-| Mirror-like, 405 nm light | 123 nm |
-| Mirror-like, 650 nm light | 113 nm |
-| Mirror-like, 266 nm light | 162 nm |
-| Mirror-like, 193 nm light | Any gap |
-| Matt surface, pixel edges soft over 30 nm | 125 nm |
-| Matt surface, pixel edges soft over 50 nm | 96 nm |
-| Matt surface, pixel edges soft over 100 nm | Not recoverable at any gap |
+**Table 4.6a: largest gap that still recovers a 200 nm period.** Estimates
+from the analytic model. Pixel edge softness is the full width at half
+height of the blur on the pixel's edges. A dash means not recoverable at any
+gap, and "any" means no limit.
+
+| Surface | Wavelength (nm) | Samples per pixel area | Edge softness (nm) | Largest gap (nm) |
+|---|--:|--:|--:|--:|
+| Matt | any | 13,000 | 0 | 140 |
+| Matt | any | 50 | 0 | 35 |
+| Matt | any | 13,000,000 | 0 | 260 |
+| Mirror-like | 650 | 13,000 | 0 | 113 |
+| Mirror-like | 405 | 13,000 | 0 | 123 |
+| Mirror-like | 266 | 13,000 | 0 | 162 |
+| Mirror-like | 193 | 13,000 | 0 | any |
+| Matt | any | 13,000 | 50 | 132 |
+| Matt | any | 13,000 | 100 | 109 |
+| Matt | any | 13,000 | 150 | 67 |
+| Matt | any | 13,000 | 200 | – |
 
 These are estimates from level 0 of the simulation chain. Where they sit
 below a wavelength, only level 4 can confirm them.
@@ -530,8 +536,8 @@ What this means for the target:
   pattern arrives at the detector as interference stripes as fine as the
   detail itself, 200 nm for the target, and a 1.12 µm pixel spans more than
   five of them. It sees them only through the sharpness of its edges: about
-  6% of the contrast for ideally sharp edges, and nothing useful once the
-  edges are soft over 100 nm. This is the same quantity the optical elements
+  6% of the contrast for ideally sharp edges, about 2% when the edges are
+  soft over 100 nm (table 4.6b), and nothing useful at 300 nm. This is the same quantity the optical elements
   study calls the collection angle, seen from the other side: a pixel that
   responds to light out to ±58 degrees is a pixel that responds to stripes
   down to about 240 nm at 405 nm. Neither figure is known for this sensor.
@@ -539,18 +545,48 @@ What this means for the target:
   In this model a mask with a 100 nm opening does not improve on an ideally
   sharp pixel, because the light it blocks costs as much signal as the
   sharper response gains, but it would help a pixel whose edges are soft.
+  **Table 4.6b: share of the contrast of 200 nm stripes that a 1.12 µm pixel
+  passes.** Derived here from the box envelope and a Gaussian edge blur, and
+  in agreement with the optical elements study (function
+  `pixel_fringe_response` in `docs/diagrams/make_optics_diagrams.py`). The
+  edge model is an assumption.
+
+  | Edge softness, full width at half height (nm) | Contrast passed (%) |
+  |--:|--:|
+  | 0 | 5.7 |
+  | 50 | 4.6 |
+  | 100 | 2.3 |
+  | 150 | 0.77 |
+  | 200 | 0.16 |
+  | 300 | 0.002 |
+
 - **Two ways round the pixel's edges.** The optical elements study (section
   9.3 there) lists two ways for fine detail to reach coarse pixels without
   relying on edge sharpness. Lighting the chip with two slanted beams from
   one laser at once lays light stripes of about 213 nm period on it (405 nm
   at 72 degrees). A 200 nm pattern beats against those stripes into a
-  pattern of about 3 µm period, which the pixels read at nearly full
+  pattern of about 3.3 µm period, which the pixels read at nearly full
   contrast. The other is to read the map of brightness of the scattered
   light, which at a gap of about a millimetre lands hundreds of micrometres
   from the mirror reflection. That one is unproven in this geometry and is a
   question for levels 3 and 4. The proposed first measurement on real
   hardware is pixel contrast against stripe period, using two laser beams
   crossing on the sensor.
+- **The laser's colour purity is a new constraint on beam pairs.** Two
+  beams crossing at 72 degrees lay about 17,300 stripes across the 3.67 mm
+  sensor (3.67 mm divided by 213 nm). Stripes stay clear only where the two
+  beams' paths differ by less than the distance over which the laser stays
+  in step with itself, and for an ordinary laser diode that leaves a strip
+  well under 0.1 mm wide. This finding and four ways round it are in
+  [calibration and test, section 3.3](calibration-and-test.md). The
+  arithmetic was rechecked here and holds: a diode with a spread of 1 to
+  2 nm in wavelength stays in step over about 0.08 to 0.16 mm, which gives a
+  strip of 0.04 to 0.09 mm at that slant. Every beam-pair approach in the
+  simulator therefore carries the source's colour purity as a parameter.
+- **Isolated features do better than dense ones.** In the best case, with
+  laser light from all directions, an isolated pair of 100 nm lines 100 nm
+  apart does begin to separate, while dense rows of the same lines stay at
+  the limit ([reconstruction methods](reconstruction-methods.md)).
 - **A wave model for everything.** The matt-surface blur used by levels 0 and
   1 is the wrong physics for polished silicon. The answer for this target
   comes from levels 3 and 4. The calculator does not yet model slanted light
@@ -693,13 +729,18 @@ Smallest recoverable period for the worked example with a 6.25% tilt, a
 100 nm gap and a matt surface, where the smear is the only thing that
 differs:
 
-| Exposure | Source bright enough to fill the pixel in any exposure | Light proportional to on-time, read noise 2 electrons |
-|---|---|---|
-| On throughout (73.5 µm smear) | 1.8 µm | 1.8 µm |
-| Pulse of 0.38 ms (quarter-pixel smear) | 0.39 µm | 0.85 µm |
-| Pulse of 24 µs (18 nm smear) | 0.39 µm | 2.1 µm |
-| Coded, 1024 slots | 1.1 µm | 1.1 µm |
-| Coded, 4096 slots | 1.5 µm | 1.5 µm |
+**Table 4.8: smallest recoverable period for each exposure pattern.**
+Estimates from the analytic model. "Bright" means the source fills the pixel
+in any exposure. "Limited" means light collected is proportional to on-time,
+with a read noise of 2 electrons (an assumption).
+
+| Exposure | On-time per frame (ms) | Smear (µm) | Smallest period, bright (µm) | Smallest period, limited (µm) |
+|---|--:|--:|--:|--:|
+| On throughout | 100 | 73.5 | 1.79 | 1.79 |
+| Pulse | 0.38 | 0.28 | 0.39 | 0.85 |
+| Pulse | 0.024 | 0.018 | 0.39 | 2.07 |
+| Coded, 1024 slots | 50 | 73.5 | 1.12 | 1.12 |
+| Coded, 4096 slots | 50 | 73.5 | 1.47 | 1.47 |
 
 ![Smallest recoverable repeat distance for each exposure pattern](diagrams/exposure-comparison.svg)
 
@@ -773,7 +814,7 @@ approaches that pass.
 
 | Condition | What it requires |
 |---|---|
-| Agreed scenes | It is run on the default patterned silicon scene and the standard test scenes of section 8, including scenes it was not tuned on and one with a layout that breaks its assumptions |
+| Agreed scenes | It is run on all ten benchmark scenes of [calibration and test, section 8](calibration-and-test.md), which include an empty scene, a rule-breaking scene and scenes it was not tuned on |
 | Agreed measures | Its resolution by Fourier ring correlation, bar contrast, defect detection and position error meet the target set for its stage in section 4.7, with the numbers fixed before the run |
 | Robust to the unknowns | It still meets the target across the whole uncertain range of pixel response, gap, vibration, source and noise, or the part of the range where it fails is stated and is one a first measurement could rule in or out |
 | Blind | The reconstruction is given only what a real instrument would record. Positions, gains and pixel response are estimated or taken from the uncertain range, never from the truth |
@@ -931,18 +972,24 @@ Inputs: sensor size and pixel pitch, speed (as a fraction of sensor length per
 second, or in micrometres per second), frame rate, exposure time, tilt,
 rolling-shutter readout time, and random position jitter per frame.
 
-| Output | Formula | Tim's example (IMX219, 20% per second, 10 frames per second) |
-|---|---|---|
-| Speed | fraction × sensor length | 735 µm/s |
-| Shift per frame | speed / frame rate / pitch | 65.6 pixels |
-| Time a point spends under the sensor | sensor length / speed | 5 s |
-| Samples per surface point | frame rate / fraction per second | 50 |
-| Motion blur | speed × exposure / pitch | 65.6 pixels with continuous exposure |
-| Exposure for a quarter-pixel blur | 0.25 × pitch / speed | 0.38 ms |
-| Distinct sub-pixel positions | counted from the sample positions | 5 |
-| Largest unsampled hole in a pixel | radius of the largest empty circle | 0.51 pixels (a perfect grid of 50 samples would give 0.10) |
-| Data rate | pixels × frame rate | 81 million samples per second |
-| Area rate | speed × sensor width | 2.0 mm² per second |
+**Table 5.4: the calculator's outputs for Tim's example** (IMX219, 20% of
+the sensor length per second, 10 frames per second, exposed for the whole
+frame, no tilt). Derived here from the geometry, computed by
+`ccdsr/sampling.py`.
+
+| Output | Formula | Value | Unit |
+|---|---|--:|---|
+| Speed | fraction × sensor length | 735 | µm/s |
+| Shift per frame | speed / frame rate / pitch | 65.6 | pixels |
+| Time a point spends under the sensor | sensor length / speed | 5.0 | s |
+| Samples per surface point | frame rate / fraction per second | 50 | |
+| Motion blur | speed × exposure / pitch | 65.6 | pixels |
+| Exposure for a quarter-pixel blur | 0.25 × pitch / speed | 0.38 | ms |
+| Distinct sub-pixel positions | counted from the sample positions | 5 | |
+| Largest unsampled hole in a pixel | radius of the largest empty circle | 0.51 | pixels |
+| The same hole for a perfect grid of 50 samples | | 0.10 | pixels |
+| Data rate | pixels × frame rate | 81 | million samples/s |
+| Area rate | speed × sensor width | 2.0 | mm²/s |
 
 Three things follow from the example.
 
@@ -1112,14 +1159,17 @@ checked against the datasheet register by register.
 How the schemes available today change the figures, at the same speed as the
 worked example (20% of the sensor length per second, 735 µm/s):
 
-| Scheme | Frame rate | Shift per frame | Samples per point | Motion smear | Width covered |
-|---|---|---|---|---|---|
-| Full array, exposed for the whole frame | 10 | 65.6 pixels | 50 | 73.5 µm | 2.76 mm |
-| Full array, exposure of one line | 21 | 31.2 pixels | 105 | 14 nm | 2.76 mm |
-| Full array, exposure of four lines | 21 | 31.2 pixels | 105 | 56 nm | 2.76 mm |
-| Strip of 100 rows, exposed for the whole frame | 401 | 1.64 pixels | 2,008 | 1.8 µm | 112 µm |
-| Strip of 100 rows, exposure of one line | 401 | 1.64 pixels | 2,008 | 14 nm | 112 µm |
-| Strip of 16 rows, exposure of one line | 1,102 | 0.60 pixels | 5,521 | 14 nm | 18 µm |
+**Table 5.7: sampling and smear for six readout schemes** at 735 µm/s.
+Derived here with `ccdsr/sampling.py`. Frame rates for strips are estimates.
+
+| Rows read | Exposure (lines) | Frame rate (per s) | Shift per frame (pixels) | Samples per point | Motion smear (nm) | Width covered (µm) |
+|--:|--:|--:|--:|--:|--:|--:|
+| 2464 | whole frame | 10 | 65.6 | 50 | 73,500 | 2,760 |
+| 2464 | 1 | 21 | 31.2 | 105 | 14 | 2,760 |
+| 2464 | 4 | 21 | 31.2 | 105 | 56 | 2,760 |
+| 100 | whole frame | 401 | 1.64 | 2,008 | 1,833 | 112 |
+| 100 | 1 | 401 | 1.64 | 2,008 | 14 | 112 |
+| 16 | 1 | 1,102 | 0.60 | 5,521 | 14 | 18 |
 
 Two things stand out. The sensor's own shortest exposure already freezes
 motion to 14 nm at this speed, so motion blur can be removed without a
@@ -1208,6 +1258,10 @@ far-field arrangement.*
 
 Consequences for the design:
 
+- **Three things can never be found from the scan itself:** the absolute
+  length scale, the absolute brightness and the absolute height. Each needs
+  one outside fact, such as a pattern of known pitch
+  ([calibration and test, section 3.2](calibration-and-test.md)).
 - **Tilt is a first-class scan parameter**, not a correction. Any small tilt
   gives nearly the same coverage, so its exact value need not be controlled.
   It only has to be estimated, which the redundancy allows.
@@ -1417,7 +1471,7 @@ named choice of one implementation and its settings for each part.
 
 | Component | It answers | Implementations planned (more can be added without touching the rest) |
 |---|---|---|
-| Scene | What is on the surface | Patterned silicon at 100 nm (default), scaled copy at 2 µm, bar groups, star, point pairs, edge, random texture, a layout file |
+| Scene | What is on the surface | The ten benchmark scenes B1 to B10 of [calibration and test, section 8](calibration-and-test.md), each at 100 nm and as a scaled copy at 2 µm. B6, patterned silicon with defects, is the default. |
 | Illumination | What light arrives, from where, when | Diffuse glow, collimated straight-on, slanted coherent beam, coherent beam pairs, speckle through a fixed diffuser, several wavelengths in turn, pulsed or coded in time |
 | Optical elements | What sits in the light path | None, per-pixel collimator tubes, pixel masks, coded mask or diffuser on the sensor, colour filter and microlenses, liquid in the gap |
 | Gap | Distance and tilt between sensor and surface, and their errors | Fixed, tilted, vibrating, several gaps in turn |
@@ -1437,6 +1491,11 @@ How this is used:
   the implementation and settings for every component. It has a name, a
   one-line description and a list of the hardware it assumes. The staged
   path of section 4.7 is five such files.
+- **Every comparison uses the common benchmark.** The ten scenes, the
+  instrument conditions, the rules for a fair comparison and the scorecard
+  are those of
+  [calibration and test, section 8](calibration-and-test.md), together with
+  its tests that catch a reconstruction inventing detail (its section 7).
 - **A comparison is a list of approaches and a list of scenes.** One command
   runs every approach on every scene, with the same seeds, and writes one
   table and one set of figures: the same metrics side by side, the
@@ -1492,6 +1551,11 @@ tests/                    unit and end-to-end tests
 ```
 
 ## 8. Validation plan
+
+The full treatment of calibration, test methods and the common benchmark is
+now on its own page, [calibration and test](calibration-and-test.md). The
+scenes below are superseded by its ten benchmark scenes B1 to B10; this
+section is kept as the summary.
 
 Test surfaces, each chosen to probe one thing:
 
@@ -1619,6 +1683,8 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes (`ccdsr/resolution.py`, `motion_transfer`). Not taken from a publication. |
 | 4.8 | Coded exposure does not beat a short pulse when noise comes from the light itself, and does when read noise dominates | **Derived here** from the model; agrees with the known result for multiplexed measurements [HarwitSloane] |
 | 4.8 | Read noise of 2 electrons | **Assumption** |
+| 4.6 | Share of 200 nm stripe contrast passed for soft pixel edges (table 4.6b) | **Derived here**; the Gaussian edge model is an **Assumption**. Agrees with the optical elements study. |
+| 4.6 | Beam pairs need a laser of pure colour | From calibration and test, section 3.3 (derived there); arithmetic rechecked here |
 | 4.9 | Uncertain ranges for pixel response (edges soft over up to 300 nm, acceptance ±20° to ±60°) | **Assumption**, placeholders until data items R2 and R3 of the plan |
 | 5.1 | Sensor pixel counts, pitch and modes | [R1] |
 | 5.3 | Order of layers on the pixel, and what removing each lens takes with it | [R2], [R3], [R4], [R5], as cited in the section |

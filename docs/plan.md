@@ -350,7 +350,7 @@ text in cells.
 | Page | Plain English | Sources | Diagrams | Tables |
 |---|---|---|---|---|
 | [Project plan](plan.md) | Yes | Not applicable: it states intentions, and quotes Tim's requirements | Phase flow chart and status chart | Item tables are text tables. No data tables. |
-| [Design](design.md) | Summary, equations and captions done. Sections 3.2, 5.3 and 6.3 still to be gone through term by term. | Main claims labelled in section 12. In-text keys still to be added claim by claim. | Audited. Figures added for the two arrangements, motion blur, exposure comparison, readout timing and the array's collecting angles. Still text only: the reconstruction pipeline's data sizes (6.3) and the approach components (7.1). | Not yet done: several data tables mix numbers, units and prose |
+| [Design](design.md) | Summary, equations and captions done. Sections 3.2, 5.3 and 6.3 still to be gone through term by term. | Main claims labelled in section 12. In-text keys still to be added claim by claim. | Audited. Figures added for the two arrangements, motion blur, exposure comparison, readout timing and the array's collecting angles. Still text only: the reconstruction pipeline's data sizes (6.3) and the approach components (7.1). | Data tables in 4.6, 4.8, 5.4 and 5.7 reformatted with units in headers and numbers in their own columns. Still to do: 4.2, 5.1, 6.3. |
 | [Simulation chain](simulation-chain.md) | Summary and caption done. Tables still to be gone through. | Not yet done | Chain flow chart and validity plot present | Not yet done |
 | [Glossary](glossary.md) | Yes | Not yet done | Not applicable | Text table |
 | [References](references.md) | Yes | Yes | Not applicable | Text tables |
