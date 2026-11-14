@@ -1655,8 +1655,8 @@ Its main results are in Table 6.7.
 | Reflectance kept between 0 and 1 | No gain in sharpness over a plain fit with the same smoothing | None |
 | Two known materials | Contrast of bars repeating every 0.48 µm rises from 0.39 to 0.67 (true value 0.85) | Offering a third material that is not present lowers it to 0.06 |
 | Listing all 4,096 layouts of a small region | Only the true layout is left in good light; in poor light a set that still contains it | A wrong material value or a lost position gives the answer "nothing fits", and never a wrong layout in these tests |
-| Smooth sensor path | Position error of 2.4 nm against 6.0 nm with each frame free | Worse than no rule when the real motion shakes from frame to frame |
-| All rules together, overall position unknown | 22 of 24 scans solved | The other 2 reported "nothing fits" |
+| Smooth sensor path | Position error of 2.4 nm against 6.0 nm with each frame free (medians of the scans in which the path was found: 37 and 35 of 40) | Worse than no rule when the real motion shakes from frame to frame |
+| All rules together, overall position unknown | 22 of 24 scans solved, and 22 of 24 again on scans not used to choose the settings | The others reported "nothing fits". The brightness of the light must be known to about 1 % |
 
 *Table 6.7. Results of the first version of reconstruction by elimination.
 Simulated: every figure is from the level 1 simulator, with the seeds and

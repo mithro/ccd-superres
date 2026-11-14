@@ -198,6 +198,7 @@ class Elimination:
     survivors: np.ndarray      # same shape, True where not eliminated; all False if nothing fits
     fits: bool                 # does the best candidate pass the absolute test?
     local_chi2_per_reading: float   # chi-squared of the best candidate over nearby readings, per reading
+    local_readings: int        # how many nearby readings the absolute test used
     margin: float              # misfit margin above the best within which candidates are kept
     shifts: tuple              # the grid shifts tried, in grid steps
     best: tuple                # (index into shifts, index into layouts) of the best candidate
@@ -242,10 +243,22 @@ class Elimination:
             shapes.add(row[filled[0]:filled[-1] + 1].tobytes() if filled.size else b"")
         return [np.frombuffer(b, dtype=np.int8) for b in sorted(shapes)]
 
-    def surviving_shifts_nm(self, dx_nm):
-        """Smallest and largest shift among the survivors, in nanometres."""
-        rows = np.nonzero(self.survivors.any(axis=1))[0]
-        return (self.shifts[rows.min()] * dx_nm, self.shifts[rows.max()] * dx_nm) if rows.size else None
+    def surviving_edges_nm(self, layouts, cell_cells, dx_nm):
+        """Where the surviving surfaces put their first raised cell.
+
+        Smallest and largest position, among the distinct surviving surfaces,
+        of the left edge of the first cell of the second material, in
+        nanometres from ``start_index``. This is a position on the surface
+        and does not depend on which (layout, shift) label described it.
+        Returns None when nothing survives or no survivor has a raised cell.
+        """
+        if not self.n_survivors:
+            return None
+        firsts = [int(np.nonzero(row)[0][0]) for row in self.surviving_patterns(layouts, cell_cells) if row.any()]
+        if not firsts:
+            return None
+        low = min(self.shifts)
+        return ((min(firsts) + low) * dx_nm, (max(firsts) + low) * dx_nm)
 
 
 def eliminate_candidates(frames: l1.Frames1D, base_surface, start_index, cell_cells, layouts, levels,
@@ -276,6 +289,12 @@ def eliminate_candidates(frames: l1.Frames1D, base_surface, start_index, cell_ce
     base surface or wrong blur model), nothing survives, and ``fits`` is
     False. Only nearby readings are used so that errors in the base surface
     far from the region do not condemn every candidate.
+
+    The method is told the noise model and the light level of ``frames``
+    (``noise.full_e``, ``noise.read_e``, photon noise on or off). The whole
+    stretch that the region can cover at any shift is taken to be the first
+    material before a layout is drawn on it, so the region must have that
+    material on both sides for at least the largest shift.
 
     Returns an :class:`Elimination`.
     """
@@ -318,5 +337,5 @@ def eliminate_candidates(frames: l1.Frames1D, base_surface, start_index, cell_ce
     count = int(near.sum())
     fits = chi2 <= count + fit_sigmas * np.sqrt(2 * count)
     survivors = (misfits <= misfits.min() + margin) if fits else np.zeros(misfits.shape, dtype=bool)
-    return Elimination(misfits, survivors, bool(fits), chi2 / count, float(margin), tuple(shifts),
+    return Elimination(misfits, survivors, bool(fits), chi2 / count, count, float(margin), tuple(shifts),
                        (int(best[0]), int(best[1])))

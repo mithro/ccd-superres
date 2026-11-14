@@ -34,22 +34,25 @@ The results, each explained below:
    lies between 0 and 1 does not sharpen the picture.
 2. Listing all 4,096 possible layouts of a small region and testing each
    against the readings leaves exactly one, the true one, in good light. In
-   poor light more are left, and the true one is always among them.
+   poor light more are left. The true one was among them in every test,
+   when the surroundings and the positions were the true ones.
 3. When an assumption is wrong (the materials, or where the frames were) the
    method reports that nothing fits. In these tests it never returned a
    wrong layout.
-4. Requiring the sensor's path to be smooth places each frame to 2.4 nm, when
-   a frame taken alone could be placed to 5.6 nm at best. The rule only
+4. Requiring the sensor's path to be smooth places each frame to 2.4 nm (the
+   median of the 37 scans of 40 in which the path was found), when a frame
+   taken alone could be placed to 5.6 nm at best. The rule only
    holds when the path really is smooth from one frame to the next: with
    even a little frame-to-frame shake it does harm.
 5. With all of this together, positions wrong by a pixel and the whole scan
    misplaced by an unknown amount, 22 scans of 24 ended with the true layout
-   and its position, and the other 2 with "nothing fits".
+   and its position, and the other 2 with "nothing fits". A second set of
+   24 scans, not used to choose any setting, gave the same counts.
 
 Terms in *italics* are explained in the [glossary](glossary.md). Every number
 on this page is printed by
 [`docs/diagrams/make_constrained_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_constrained_diagrams.py)
-and is labelled Derived here unless marked otherwise. An independent review
+and is Simulated with the level 1 simulator unless marked otherwise. An independent review
 of the first version of this page found that two of its headline results did
 not hold as stated; the [review record](review.md) lists what changed.
 
@@ -186,7 +189,9 @@ that stops a brighter candidate (which expects more noise) from being let
 off lightly. A candidate is eliminated when its misfit exceeds the best
 one's by more than a margin set from the number of candidates, here 25.8,
 chosen so that the true layout is eliminated by chance at most once in a
-hundred times. Derived here: the margin is `2 × ln(candidates ÷ 0.01)`, a
+hundred times. That guarantee holds when the true layout is among the
+candidates and the surroundings, the positions and the noise model are
+exact; otherwise the tables below are the evidence. Derived here: the margin is `2 × ln(candidates ÷ 0.01)`, a
 standard bound for comparing likelihoods, stated in the docstring of
 `eliminate_candidates` in
 [`ccdsr/constrained.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/constrained.py).
@@ -347,39 +352,47 @@ find the path with the smooth-path rule, rebuild the surface with the two
 known materials, then list the 4,096 layouts of the finest group at every
 position within ±160 nm in 20 nm steps (69,632 candidates) and eliminate.
 
-| Outcome | Scans, of 24 |
-|---|---:|
-| Only the true layout left, at the right position to within 20 nm | 22 |
-| True layout left together with others | 0 |
-| "Nothing fits" reported | 2 |
-| A wrong layout left | 0 |
-
-*Table 9. All constraints together, seeds 0 to 23. In the two scans that
-ended with "nothing fits" the path had not been found (position error over
-1,100 nm).*
-
-| Quantity | Plain fit at the assumed positions | With the constraints |
+| Outcome | Scans used to choose the settings (of 24) | Fresh scans (of 24) |
 |---|---:|---:|
-| Position error of the frames (nm, rms, median) | 1,120 | 2.4 |
-| Contrast of the 0.8 µm bars, median (true 0.85) | 0.14 | 0.84 |
-| Contrast of the 0.48 µm bars from the step-by-step search, median (true 0.85) | 0.06 | 0.56 |
-| Contrast of the 0.48 µm bars from the step-by-step search, lowest to highest | 0.01 to 0.13 | 0.12 to 0.81 |
+| Only the true layout left | 22 | 22 |
+| Of those, layout placed within 20 nm of where it is | 22 | 22 |
+| True layout left together with others | 0 | 0 |
+| "Nothing fits" reported | 2 | 2 |
+| A wrong layout left | 0 | 0 |
 
-*Table 10. The 22 solved scans of table 9. Reconstructions are moved onto
-the true surface before their contrast is measured; the method itself is
-not given that information.*
+*Table 9. All constraints together. Simulated. The first column is seeds 0
+to 23, which were also used when the path stiffness was chosen; the second
+is seeds 100 to 123, which were not. In the four scans that ended with
+"nothing fits" the path had not been found (position errors of 270 to
+1,230 nm).*
 
-The two ways of using the constraints differ on the finest group. The
+| Quantity | Plain fit, usual smoothing, assumed positions | Plain fit, light smoothing, found positions | Two materials, light smoothing, found positions |
+|---|---:|---:|---:|
+| Position error of the frames (nm, rms, median) | 1,120 | 2.4 | 2.4 |
+| Contrast of the 0.8 µm bars, median (true 0.85) | 0.13 | 0.84 | 0.84 |
+| Contrast of the 0.48 µm bars, median (true 0.85) | 0.05 | 0.32 | 0.57 |
+| Contrast of the 0.48 µm bars, lowest to highest | 0.01 to 0.13 | 0.13 to 0.53 | 0.12 to 0.81 |
+| The same medians on the fresh scans (0.8 µm, 0.48 µm) | 0.13, 0.05 | 0.84, 0.36 | 0.84, 0.63 |
+
+*Table 10. The 22 solved scans of the first column of table 9, with the
+fresh scans in the last row. Simulated. The middle column separates the two
+gains: finding the positions brings back the 0.8 µm bars and part of the
+0.48 µm bars, and knowing the materials adds the rest. Reconstructions are
+moved onto the true surface before their contrast is measured; the method
+itself is not given that information.*
+
+The two ways of using the materials differ on the finest group. The
 step-by-step search gives anything from 0.12 to 0.81 of contrast, because it
 often settles on a wrong arrangement. Listing every layout and eliminating
-ended with the true one in all 22 scans whose path was found, and declined to
-answer in the other 2. Where the candidates can be listed, listing is the
-more reliable.
+ended with the true one in all 44 scans whose path was found, and declined
+to answer in the other 4. Where the candidates can be listed, listing is
+the more reliable.
 
 What the method was told in this test, and a real instrument would have to
 supply: the two reflectances exactly, the cell size of the layout, which
-region to examine, the blur of the instrument, and a starting path good to
-about a pixel.
+region to examine, the blur of the instrument, a starting path good to
+about a pixel, the brightness of the light, and the size of the sensor's
+noise. The region examined also had plain dark material on both sides.
 
 ## What this does not show yet
 
@@ -388,6 +401,8 @@ about a pixel.
 | Coarse test bars, matt surface | The target is 100 nm lines under coherent light | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
 | One dimension | Real layouts are two-dimensional, with far more candidates per region | [Plan](plan.md#d-simulation-chain) item D2b |
 | The simulator that tests candidates is the one that made the data | Real pixels will differ from the model. Table 6 shows a 10% error in the gap is mostly tolerated; larger or different errors are untested. | Uncertain pixel response as a swept setting ([design 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)) |
+| Brightness of the light known exactly | Simulated, 6 scans: a brightness assumed 1 % too high still gave the true layout in all 6, and 2 % too high gave "nothing fits" in all 6. A read noise assumed to be 15 electrons when it was 2 still gave the true layout in all 6 | Make the brightness an unknown that is solved for; a light monitor is an open question in the [design](design.md#11-build-stages-and-open-questions) |
+| The region stands alone | It has 3 µm of plain dark material on each side, and the code assumes that. Structure right next to the region is untested | Later steps of item D2b |
 | Materials known exactly | An error of 0.05 in reflectance makes the method return nothing | Add the reflectances to the candidates; [plan](plan.md#data-collection) item R6 |
 | Only two materials, sharp boundaries | Real surfaces have more materials, slopes and films, and an extra material that is offered wrongly destroys the gain | Later steps of item D2b |
 | Smooth wander only, and the rule fails with shake | Real motion has both | A path model with a smooth part and a free part; [plan](plan.md#data-collection) item R11 |
@@ -418,7 +433,8 @@ result = constrained.eliminate_candidates(frames, snapped, start, 12, layouts, (
                                           positions_nm=positions, shifts=tuple(range(-8, 9)))
 print("fits:", result.fits)
 print("arrangements left:", len(result.surviving_shapes(layouts, 12)))
-print("position found (nm):", result.surviving_shifts_nm(dx))
+print("first raised cell, nm from the start of the region (lowest, highest):",
+      result.surviving_edges_nm(layouts, 12, dx))
 ```
 
 The code is [`ccdsr/constrained.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/constrained.py), with the

@@ -330,11 +330,29 @@ the tests would notice.
 | 5 | Gap | The smooth-path rule was shown only for motion that suits it. | Sweeps over stiffness and kind of motion added; the page says it fails for frame-to-frame shake. |
 | 6 | Gap | Several deliberate code changes survived the tests; some quoted numbers were typed by hand; figures changed from run to run. | Tests added; the script prints every number on the page; figure files are now the same on every run. |
 
+### Second review of the reworked elimination approach
+
+A second reviewer, again given the code and pages and not the author's
+conclusions, checked the rework. It confirmed the statistics, found no
+information about the truth leaking into the method, and reproduced tables
+3 to 6, 9 and 10 and one row of table 8 of the page.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | Table 10 compared a plain fit at usual smoothing and wrong positions with the constrained fit at light smoothing and found positions, so it mixed three gains. | Column added for a plain fit with the same smoothing and positions: 0.32 against 0.57. |
+| 2 | Error | The position read out for the surviving layout could be wrong by a whole cell, because the same surface has two labels. | Replaced by a readout of the place on the surface (`surviving_edges_nm`), with a test. |
+| 3 | Gap | "Placed within 20 nm" and the medians of table 10 were not printed by the script. | Both are now printed. |
+| 4 | Gap | Two deliberate code changes survived the tests (the fit threshold and the window of readings used). | Three tests added. |
+| 5 | Gap | The method is told the brightness of the light and the noise sizes, which the page did not say. | Said, and tested: brightness wrong by 2 % gives "nothing fits". |
+| 6 | Gap | The path stiffness was chosen on the same scans the result was reported on. | The combined test was repeated on 24 fresh scans, with the same counts. |
+| 7 | Wording | Medians quoted without saying they cover solved scans only; a guarantee stated without its conditions; the region tested stands alone. | Reworded, and added to the table of limits. |
+
 ### Not checked
 
 Level 1 in two dimensions has no position estimation yet, so none was
-reviewed. The reworked elimination code was checked by its tests and by
-rerunning the experiments, not by a third reviewer.
+reviewed. The second reviewer did not rerun table 7, the other rows of
+table 8, or the full test suite. The fixes made after the second review
+were checked by the tests and by rerunning the experiments.
 
 ## Review 6: the research studies folded into the design
 

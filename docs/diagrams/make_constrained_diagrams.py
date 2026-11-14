@@ -11,7 +11,6 @@ quoted on docs/constrained-reconstruction.md. All results come from the level
 
 import dataclasses
 import sys
-import warnings
 from pathlib import Path
 
 import numpy as np
@@ -263,33 +262,74 @@ def temporal():
     save(fig, "constrained-temporal")
 
 
-def together():
+def together(seeds=range(24)):
     """All constraints at once: positions unknown, and the whole scan misplaced by an unknown amount."""
     shifts = tuple(range(-8, 9))
     tally = {"true": 0, "set": 0, "none": 0, "wrong": 0}
-    print("Together, wander 1 pixel rms, overall offset unknown within 150 nm, seeds 0-23: offset nm; position "
-          "error nm; contrast of 0.8 and 0.48 µm bars with assumed positions and a plain fit; the same with the "
-          "constraints; outcome of elimination; shift found nm; local chi2 per reading")
-    for seed in range(24):
+    first_raised = int(np.nonzero(TRUTH)[0][0]) * 12 * DX
+    rows, placed = [], 0
+    print(f"Together, wander 1 pixel rms, overall offset unknown within 150 nm, seeds {seeds[0]}-{seeds[-1]}: "
+          "offset nm; position error nm; contrast of 0.8 and 0.48 µm bars for a plain fit (0.01) at the assumed "
+          "positions; a plain fit (0.001) at the estimated positions; two materials (0.001) at the estimated "
+          "positions; outcome; local chi2 per reading; error of the place found for the layout, nm (min, max)")
+    for seed in seeds:
         f = frames_for(seed, wander_px=1.0, wander_frames=20.0)
         offset = float(np.random.default_rng(1000 + seed).uniform(-150, 150))
         start = l1.nominal_positions(f) + offset
         fitted, snapped, pos = c.solve_surface_and_positions(f, LEVELS, start_positions_nm=start)
         r = c.eliminate_candidates(f, snapped, START, 12, LAYOUTS, LEVELS, positions_nm=pos, shifts=shifts)
-        tally[_outcome(r)] += 1
+        outcome = _outcome(r)
+        tally[outcome] += 1
         aligned = l1.align_positions(f, pos)                       # for scoring the contrast only
-        scored = c.material_reconstruction(f, LEVELS, positions_nm=aligned)[0]
-        plain = l1.least_squares(f, positions_nm=l1.align_positions(f, start))[0]
-        print("  ", seed, round(offset), round(l1.position_error(f, pos), 1), np.round(contrasts(plain)[3:], 2),
-              np.round(contrasts(scored)[3:], 2), _outcome(r), shifts[r.best[0]] * DX,
-              round(r.local_chi2_per_reading, 2), "shifts left nm:", r.surviving_shifts_nm(DX))
+        scored = contrasts(c.material_reconstruction(f, LEVELS, positions_nm=aligned)[0])[3:]
+        same = contrasts(l1.least_squares(f, smoothness=1e-3, positions_nm=aligned)[0])[3:]
+        plain = contrasts(l1.least_squares(f, positions_nm=l1.align_positions(f, start))[0])[3:]
+        err = l1.position_error(f, pos)
+        # the surface belongs to the estimated positions, so it is displaced by their mean error
+        expected = first_raised + float(np.mean(pos - f.positions_nm))
+        edges = r.surviving_edges_nm(LAYOUTS, 12, DX)
+        place = None if edges is None else (round(edges[0] - expected, 1), round(edges[1] - expected, 1))
+        if outcome == "true":
+            rows.append([err] + plain + same + scored)
+            placed += max(abs(place[0]), abs(place[1])) <= DX
+        print("  ", seed, round(offset), round(err, 1), np.round(plain, 2), np.round(same, 2), np.round(scored, 2),
+              outcome, round(r.local_chi2_per_reading, 2), place)
     print("  totals: only the true layout", tally["true"], "| true among several", tally["set"],
-          "| nothing fits", tally["none"], "| wrong layout", tally["wrong"])
+          "| nothing fits", tally["none"], "| wrong layout", tally["wrong"],
+          "| of the solved, layout placed within 20 nm:", placed)
+    if rows:
+        med = np.median(np.array(rows), axis=0)
+        print("  medians over the solved scans: position error nm", round(med[0], 1),
+              "| plain 0.01 assumed positions (0.8, 0.48 µm)", np.round(med[1:3], 2),
+              "| plain 0.001 estimated positions", np.round(med[3:5], 2),
+              "| two materials 0.001 estimated positions", np.round(med[5:7], 2))
+
+
+def wrong_noise_model():
+    """What happens when the light level or the read noise given to the method is wrong."""
+    print("Wrong noise model, seeds 0-5, full light, true surroundings and positions "
+          "(outcomes true / set / none / wrong of 6; range of local chi2 per reading):")
+    cases = [("light level assumed 1 % too high", dict(full_e=2500 * 1.01)),
+             ("light level assumed 2 % too high", dict(full_e=2500 * 1.02)),
+             ("light level assumed 5 % too high", dict(full_e=2500 * 1.05)),
+             ("read noise assumed 15 electrons (true 2)", dict(read_e=15.0))]
+    for name, change in cases:
+        tally = {"true": 0, "set": 0, "none": 0, "wrong": 0}
+        chi = []
+        for seed in range(6):
+            f = frames_for(seed)
+            g = dataclasses.replace(f, noise=dataclasses.replace(f.noise, **change))
+            r = c.eliminate_candidates(g, SURFACE, START, 12, LAYOUTS, LEVELS)
+            tally[_outcome(r)] += 1
+            chi.append(r.local_chi2_per_reading)
+        print(f"   {name}: {tally['true']} / {tally['set']} / {tally['none']} / {tally['wrong']}; "
+              f"{min(chi):.2f} to {max(chi):.2f}")
 
 
 if __name__ == "__main__":
-    warnings.simplefilter("ignore", RuntimeWarning)
-    materials()
-    elimination()
-    temporal()
-    together()
+    only = sys.argv[1:]
+    for step in (materials, elimination, wrong_noise_model, temporal, together):
+        if not only or step.__name__ in only:
+            step()
+    if not only or "together_fresh" in only:
+        together(range(100, 124))     # scans not used when the settings were chosen

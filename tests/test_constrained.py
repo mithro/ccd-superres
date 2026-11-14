@@ -58,12 +58,13 @@ def test_the_same_surface_described_two_ways_counts_once():
     layouts = np.array([[0.0, 1.0, 0.0, 1.0], [1.0, 0.0, 1.0, 0.0], [1.0, 1.0, 0.0, 0.0]])
     survivors = np.zeros((2, 3), dtype=bool)
     survivors[0, 0] = survivors[1, 1] = True      # 0101 at shift 0 and 1010 at shift 3: the same bars
-    result = c.Elimination(np.zeros((2, 3)), survivors, True, 1.0, 20.0, (0, 3), (0, 0))
+    result = c.Elimination(np.zeros((2, 3)), survivors, True, 1.0, 10, 20.0, (0, 3), (0, 0))
     assert len(result.surviving_patterns(layouts, 3)) == 1
     survivors[1, 0] = True                        # 0101 at shift 3: same bars, another place
     assert len(result.surviving_patterns(layouts, 3)) == 2
     assert len(result.surviving_shapes(layouts, 3)) == 1
-    assert result.surviving_shifts_nm(20.0) == (0.0, 60.0)
+    # the first raised cell: 0101 at shift 0 starts at step 3, at shift 3 at step 6
+    assert result.surviving_edges_nm(layouts, 3, 20.0) == (60.0, 120.0)
     survivors[0, 2] = True
     assert len(result.surviving_shapes(layouts, 3)) == 2
 
@@ -182,6 +183,52 @@ def test_an_unknown_overall_offset_is_found_by_searching_shifts(scene):
     _, base0 = c.material_reconstruction(frames, LEVELS)
     again = c.eliminate_candidates(frames, base0, start, 12, layouts, LEVELS, shifts=shifts)
     assert shifts[again.best[0]] == 0
+    # the position read out is a place on the surface, whichever label described it
+    first_raised = int(np.nonzero(layouts[true_index])[0][0]) * 12 * DX
+    low, high = result.surviving_edges_nm(layouts, 12, DX)
+    assert abs(low - first_raised - 100.0) <= DX and abs(high - first_raised - 100.0) <= DX
+    # the absolute test looks at the readings around the region where the best candidate puts it
+    best = np.array(base, dtype=float)
+    cover = np.arange(start + min(shifts), start + max(shifts) + 144)
+    best[cover] = LEVELS[0]
+    at = start + shifts[result.best[0]]
+    best[at:at + 144] = np.where(np.repeat(layouts[result.best[1]], 12) > 0.5, LEVELS[1], LEVELS[0])
+    predicted = c._predict(frames, best, off)
+    length = surface.size * DX
+    centre = (at + 72) * DX
+    distance = np.abs((off.ravel() - centre + length / 2) % length - length / 2)
+    near = distance <= 72 * DX + 1.5 * frames.optics.pitch_nm
+    direct = np.sum((frames.readings.ravel()[near] - predicted[near]) ** 2 / c._variance(frames, predicted[near]))
+    assert result.local_readings == near.sum()
+    assert result.local_chi2_per_reading == pytest.approx(direct / near.sum(), rel=1e-9)
+    assert shifts[result.best[0]] != 0
+
+
+def test_the_fit_threshold_is_five_standard_deviations(scene):
+    """A light level assumed 2 % too high is caught; 1 % is within the noise of the test."""
+    surface, groups = scene
+    layouts = c.allowed_layouts(12, 1)
+    start, true_index = _true_index(surface, groups, layouts)
+    frames = _frames(surface, 0)
+
+    def assumed(scale):
+        noise = dataclasses.replace(frames.noise, full_e=frames.noise.full_e * scale)
+        return c.eliminate_candidates(dataclasses.replace(frames, noise=noise), surface, start, 12, layouts, LEVELS)
+
+    slightly, more = assumed(1.01), assumed(1.02)
+    limit = 1 + 5 * np.sqrt(2 / more.local_readings)
+    assert slightly.fits and slightly.local_chi2_per_reading < limit
+    assert not more.fits and limit < more.local_chi2_per_reading < 1.6
+    assert more.n_survivors == 0
+
+
+def test_noise_model_switch_is_used(scene):
+    surface, _ = scene
+    frames = _frames(surface, 0)
+    no_photon = dataclasses.replace(frames, noise=dataclasses.replace(frames.noise, photon=False))
+    predicted = np.array([100.0, 400.0])
+    assert np.allclose(c._variance(frames, predicted), predicted + frames.noise.read_e ** 2)
+    assert np.allclose(c._variance(no_photon, predicted), frames.noise.read_e ** 2)
 
 
 def test_candidate_misfits_match_the_direct_calculation(scene):
