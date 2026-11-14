@@ -355,7 +355,7 @@ text in cells.
 | [Glossary](glossary.md) | Yes | Not yet done | Not applicable | Text table |
 | [References](references.md) | Yes | Yes | Not applicable | Text tables |
 | [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Nine scripted figures. Audit for text-only sections in progress. | Yes: data tables have one quantity per column with units in the header and right-aligned numbers, data in paragraphs was moved into tables, and comparisons in words are separate text tables |
-| [Reconstruction methods](reconstruction-methods.md) | To be checked by its author | Own reference list | To be checked by its author | To be checked by its author |
+| [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Five figures and three flow charts. Figures for each field's mapping are being added. | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 
 ## How the plan is kept

@@ -50,6 +50,7 @@ plt.rcParams.update(
         "axes.facecolor": SURFACE,
         "savefig.facecolor": SURFACE,
         "svg.fonttype": "path",
+        "svg.hashsalt": "recon",
     }
 )
 
@@ -359,6 +360,36 @@ def ladder():
 # --------------------------------------------------------------------------
 # 6. Numbers quoted in the text
 # --------------------------------------------------------------------------
+def evanescent_table(wavelength_nm=405.0):
+    """Heights at which a sub-wavelength pattern's light has faded.
+
+    Scalar plane-wave decay exp(-2 pi z sqrt(1/P^2 - 1/wavelength^2)).
+    """
+    print("Evanescent decay heights (nm) for %.0f nm light:" % wavelength_nm)
+    print("  period | 10 %% left | 1 %% left | 0.1 %% left | left at 1 um")
+    for period in (150.0, 200.0, 300.0, 400.0):
+        kappa = 2 * np.pi * np.sqrt(1 / period**2 - 1 / wavelength_nm**2)
+        heights = [np.log(x) / kappa for x in (10, 100, 1000)]
+        print("  %6.0f | %9.0f | %8.0f | %10.0f | %.1e"
+              % (period, *heights, np.exp(-kappa * 1000)))
+
+
+def ladder_table():
+    """Finest period and line width for each lighting, formula of section 2.1."""
+    print("Ladder: wavelength, index, largest light angle -> period, line (nm)")
+    for lam, n, deg in ((405, 1.0, 90), (405, 1.0, 70), (375, 1.0, 90),
+                        (266, 1.0, 90), (405, 1.5, 90)):
+        period = lam / n / (1 + np.sin(np.radians(deg)))
+        print("  %d nm, n=%.1f, %d deg: period %.1f, line %.1f"
+              % (lam, n, deg, period, period / 2))
+    print("Light frequency at 405 nm: %.1e Hz" % (2.998e8 / 405e-9))
+    print("Time for light to cross a 0.67 mm gap: %.1f ps" % (0.67e-3 / 2.998e8 * 1e12))
+    print("Dither: 10-bit step %.1f e, photon noise at half well %.0f e"
+          % (4500 / 1024, np.sqrt(2250)))
+    print("Cells of a 50 nm grid per 1.12 um pixel: %.0f" % (1.12**2 / 0.05**2))
+    print("Sensor: %.2f mm x %.2f mm" % (3280 * 1.12e-3, 2464 * 1.12e-3))
+
+
 def numbers():
     print("Evanescent loss of a 200 nm period, 405 nm light:")
     f, k = 1 / 0.200, 1 / 0.405
@@ -369,8 +400,9 @@ def numbers():
     a = 1.12
     print("  sharp-edged pixel: %.3f" % abs(np.sinc(a * f)))
     for sig in (0.05, 0.1, 0.3):
-        print("  edge softness %.2f um: x %.1e"
-              % (sig, np.exp(-2 * np.pi**2 * sig**2 * f**2)))
+        print("  edge softness %.2f um: x %.1e, passes %.1e %%"
+              % (sig, np.exp(-2 * np.pi**2 * sig**2 * f**2),
+                 100 * abs(np.sinc(a * f)) * np.exp(-2 * np.pi**2 * sig**2 * f**2)))
     print("Two-beam fringe period, 405 nm at 70 deg: %.0f nm"
           % (405 / (2 * np.sin(np.radians(70)))))
     print("Gap needed to let a 70 deg beam under a 3.68 mm sensor: %.2f mm"
@@ -383,4 +415,6 @@ if __name__ == "__main__":
     passband_demo()
     sparsity_conditioning()
     ladder()
+    evanescent_table()
+    ladder_table()
     numbers()
