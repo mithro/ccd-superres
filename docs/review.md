@@ -176,7 +176,72 @@ wavelength with elastic waves.
 | Sources with no DOI | O35, O67, M18, M26, M76, M101, M121, T2, T42, T46 to T52 | Textbooks, reports and web pages. The pages already mark the web sources as read in summary. |
 | Full texts | All | Only abstracts were read, so a claim taken from the body of a paper is supported only as far as the abstract goes. |
 
-## Review of research study B2: beamforming and array processing
+
+## Review 3: the multi-frame reconstruction study
+
+The [multi-frame reconstruction study](research/multi-frame-reconstruction.md),
+its script
+[`make_multiframe_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_multiframe_diagrams.py)
+and its figures were reviewed on 14 November 2026, before merging, in
+[pull request 25](https://github.com/mithro/ccd-superres/pull/25). The
+reviewer was given the commit and the texts of 27 of the cited papers, and
+not the author's reasoning.
+
+### What was checked
+
+| Check | Coverage | Result |
+|---|---|---|
+| Page read in full | All | 19 findings, the main ones below |
+| Claims compared with the full text of the source | About 60 claims from 25 papers | 5 wrong or overstated, the rest correct |
+| DOIs resolved to the stated title, authors and venue | 50 of 50 with a DOI | All correct. One entry without a confirmed DOI (MF11) stays marked. |
+| Derived numbers compared with the script's output | Every derived table | All matched. Two assumptions and one rounding bug found in the script. |
+| Figures opened and compared with captions | 9 of 9 | 5 with defects |
+| Links and anchors | All 147 | All resolve |
+| Documentation standard | All parts | Plain wording and links met. Seven data tables mixed words and numbers. |
+
+### Main findings and what was done
+
+| Finding | Where | What was done |
+|---|---|---|
+| "A thousandth of a pixel has been reached" rested on Gaia's photon-noise floor. The scatter Gaia actually finds is about five times larger, and its authors blame calibration. | Section 5.1, opening | Both figures are now given, and the conclusion is reversed: knowledge of the pixel response is the limit |
+| "A hundredth of a pixel is routine" was not what the table showed. Routine is a fiftieth. | Section 5.1, opening | Restated: the requirement is at the edge of published practice |
+| The best-case shift error assumed 5000 electrons per pixel, above the 4500 electron full well of the design | Table 5.2, figure 9 | Recomputed at half full well. Faint scenes now need about 150 rows per estimate, not 100. |
+| "The pixel is not what stops the instrument" held only for patterns along a pixel axis | Section 3.3 | Diagonal case added to table 3.5, and the statement limited |
+| Published systems stop at 2 to 3 times finer mainly because of their optics, not their frame count | Opening, table 3.2 | Reworded |
+| A rounding bug put one point of figure 5 at the wrong frame count, and too few trials made the worst-case figures noisy | Script, table 3.4 | Fixed, 5000 trials, checked against the exact answer for the simplest case |
+| One figure was drawn differently on every run | Script | Fixed |
+| Data tables held words in number columns | Tables 2.1, 3.2, 3.4, 3.5, 4.1, 5.1, 6.1 | Split into data tables and text tables |
+
+### Not checked
+
+- Sources marked "abstract" or "existence only" on the page were not read
+  further. Section 9 of the page lists them.
+- Full texts of the sources that section 5.3 of the page marks "existence
+  only" or "unverified" were not read.
+
+### Second pass: section 5.3 and the fixes
+
+Section 5.3 of the page, on recovery without measured positions, was
+written after the first pass. A second reviewer checked it, its toy
+calculation, the five redrawn figures and the changed tables on the same
+day, before merging.
+
+| Check | Coverage | Result |
+|---|---|---|
+| Toy calculation re-implemented independently | All of table 5.3 | Every number reproduced. The count of 322 patterns that obey the layout rule was confirmed by a separate method. |
+| Changed tables recomputed | Samples from tables 3.4, 3.5, 5.1 and 5.2 | All correct |
+| Claims of section 5.3 compared with sources | All with a text or abstract available | 13 findings, the main ones below |
+| Reference entries MF60 to MF73 against Crossref | 13 of 14 | All correct. MF59 has no DOI and stays marked unverified. |
+
+| Finding | What was done |
+|---|---|
+| The page said Gaia's smooth pointing model rules out jerks. The source says the spacecraft does make sudden small jumps, and the smooth model works only after they are measured and subtracted. | Row rewritten, and the same caution added to the point about the stage |
+| The "steady speed" case of the toy is exactly steady and in whole cells, so its near-perfect result is a best case | Assumptions stated beside the calculation and in the caption, and the conclusion limited |
+| "Struck off" was not what the script does, and the true pattern fell below the cut in 1 of 20 trials at 20 frames | Wording corrected, the case reported on the page, and the script now prints such cases |
+| Several rows stated things from titles or memory without saying so | Marked unverified |
+| One table row mixed two different methods | Split into two rows |
+
+## Review 4: the beamforming and array processing study
 
 The [beamforming and array processing](research/beamforming.md) study was
 reviewed on 14 November 2026, before it was merged, in
