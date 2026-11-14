@@ -7,6 +7,11 @@
  * Clicking a picture (or pressing Enter on it) opens it in a viewer that
  * fills the window. Inside the viewer: scroll or pinch to zoom, drag to
  * move, click to switch between whole-picture and close-up, Escape to close.
+ *
+ * Covered: every <img> in the page body and every flow chart drawn by the
+ * mermaid extension. Not covered: a drawing written into a page as raw
+ * <svg> or <object> markup. The site has none; if one is added, extend the
+ * CHART selector below.
  */
 (function () {
   "use strict";
@@ -24,12 +29,18 @@
   var view = { zoom: 1, x: 0, y: 0 }; // x, y: top left corner inside the stage
   var pointers = new Map();
   var gesture = null;
+  var lastTap = null; // what the last press on the stage was: a click or a drag
+  var bar;
+  var pad = { top: 0, bottom: 0 }; // space kept clear for buttons and caption
   var savedOverflow = "";
 
   /* ---- Finding the pictures on the page ---------------------------- */
 
   function zoomTarget(node) {
     if (!(node instanceof Element)) return null;
+    // Pressing Enter on the link Sphinx puts around a resized image arrives
+    // here as a click on the link, not on the image inside it.
+    if (node.matches("a.image-reference")) node = node.querySelector(IMG) || node;
     var el = node.closest(IMG) || node.closest(CHART);
     if (!el || !el.closest(CONTENT) || el.closest(".image-zoom-overlay")) return null;
     // Not pictures: the small open/close arrows Sphinx puts in its index
@@ -44,10 +55,11 @@
   }
 
   function describe(el) {
-    if (el.tagName.toLowerCase() === "img") return el.getAttribute("alt") || "";
     var fig = el.closest("figure");
-    var cap = fig && fig.querySelector("figcaption");
-    return cap ? cap.textContent.trim() : "Flow chart";
+    var cap = fig && fig.querySelector("figcaption .caption-text, figcaption");
+    if (cap && cap.textContent.trim()) return cap.textContent.trim();
+    if (el.tagName.toLowerCase() === "img") return el.getAttribute("alt") || "";
+    return "Flow chart";
   }
 
   function mark(root) {
@@ -88,7 +100,7 @@
     overlay.setAttribute("aria-label", "Enlarged picture");
     overlay.hidden = true;
 
-    var bar = document.createElement("div");
+    bar = document.createElement("div");
     bar.className = "image-zoom-bar";
     level = document.createElement("span");
     level.className = "image-zoom-level";
@@ -117,7 +129,10 @@
     stage.addEventListener("pointermove", onPointerMove);
     stage.addEventListener("pointerup", onPointerUp);
     stage.addEventListener("pointercancel", onPointerUp);
-    overlay.addEventListener("keydown", onKey);
+    stage.addEventListener("click", onStageClick);
+    stage.addEventListener("contextmenu", function () { pointers.clear(); gesture = null; });
+    // On the whole document, so the keys keep working wherever focus is.
+    document.addEventListener("keydown", onKey, true);
     window.addEventListener("resize", function () {
       if (item) { measure(); fit(); }
     });
@@ -147,7 +162,13 @@
 
   function measure() {
     var n = naturalSize(opener);
-    var s = Math.min(stage.clientWidth * 0.96 / n.w, stage.clientHeight * 0.96 / n.h);
+    // Leave room for the buttons above and the caption below, so that the
+    // fitted view shows the whole picture with nothing lying over it.
+    var box = overlay.getBoundingClientRect();
+    pad.top = bar.getBoundingClientRect().bottom - box.top + 8;
+    pad.bottom = caption.hidden ? 8 : box.bottom - caption.getBoundingClientRect().top + 8;
+    var room = Math.max(50, stage.clientHeight - pad.top - pad.bottom);
+    var s = Math.min(stage.clientWidth * 0.98 / n.w, room / n.h);
     // Drawings stay sharp at any size. Photographs and other pixel images
     // are not blown up past twice their own size to fill the window.
     if (!isVector(opener)) s = Math.min(s, 2);
@@ -161,7 +182,9 @@
     // Keep the picture centred while it is smaller than the window, and keep
     // its edges from being dragged past the middle when it is larger.
     view.x = w <= sw ? (sw - w) / 2 : Math.min(sw / 2, Math.max(sw / 2 - w, view.x));
-    view.y = h <= sh ? (sh - h) / 2 : Math.min(sh / 2, Math.max(sh / 2 - h, view.y));
+    var room = sh - pad.top - pad.bottom;
+    view.y = h <= room + 0.5 ? pad.top + (room - h) / 2
+                             : Math.min(sh / 2, Math.max(sh / 2 - h, view.y));
     item.style.width = w + "px";
     item.style.height = h + "px";
     item.style.transform = "translate(" + view.x + "px," + view.y + "px)";
@@ -229,6 +252,8 @@
     item = null;
     pointers.clear();
     gesture = null;
+    lastTap = null;
+    stage.classList.remove("image-zoom-dragging", "image-zoom-zoomed");
     document.documentElement.style.overflow = savedOverflow;
     var back = opener.closest("a[href]") || opener;
     opener = null;
@@ -257,7 +282,8 @@
     } else if (pts.length >= 2) {
       gesture = { kind: "pinch", moved: true,
                   dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
-                  zoom: view.zoom };
+                  zoom: view.zoom,
+                  mx: (pts[0].x + pts[1].x) / 2, my: (pts[0].y + pts[1].y) / 2 };
     } else {
       gesture = null;
     }
@@ -292,8 +318,13 @@
       apply();
     } else if (pts.length >= 2) {
       var dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
-      zoomTo(gesture.zoom * dist / gesture.dist,
-             (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2);
+      var mx = (pts[0].x + pts[1].x) / 2, my = (pts[0].y + pts[1].y) / 2;
+      // Moving both fingers together moves the picture; spreading them zooms.
+      view.x += mx - gesture.mx;
+      view.y += my - gesture.my;
+      gesture.mx = mx;
+      gesture.my = my;
+      zoomTo(gesture.zoom * dist / gesture.dist, mx, my);
     }
   }
 
@@ -309,15 +340,30 @@
       return;
     }
     gesture = null;
-    if (!g || g.moved || e.type === "pointercancel") return;
+    // The browser sends a click next. Whether it counts as one is decided
+    // here; acting on it waits for that click, so that it cannot fall
+    // through to the page underneath once the viewer has closed.
+    lastTap = { click: !!g && !g.moved && e.type !== "pointercancel",
+                onItem: !!g && g.onItem, x: p.x, y: p.y };
+  }
+
+  function onStageClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var t = lastTap;
+    lastTap = null;
+    if (!t || !t.click || !item) return;
     // A plain click: on the picture it switches between the whole picture
     // and a close-up of the clicked spot; beside the picture it closes.
-    if (!g.onItem) close();
+    if (!t.onItem) close();
     else if (view.zoom > 1.001) fit();
-    else zoomTo(CLICK_ZOOM, p.x, p.y);
+    else zoomTo(CLICK_ZOOM, t.x, t.y);
   }
 
   function onKey(e) {
+    if (!item) return;
+    // Leave browser shortcuts such as Ctrl and + (page zoom) alone.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     var step = 80;
     switch (e.key) {
       case "Escape": close(); break;
@@ -332,7 +378,8 @@
         // Keep keyboard focus inside the viewer while it is open.
         var buttons = overlay.querySelectorAll("button");
         var first = buttons[0], last = buttons[buttons.length - 1];
-        if (e.shiftKey && document.activeElement === first) last.focus();
+        if (!overlay.contains(document.activeElement)) first.focus();
+        else if (e.shiftKey && document.activeElement === first) last.focus();
         else if (!e.shiftKey && document.activeElement === last) first.focus();
         else return;
         break;
@@ -356,9 +403,12 @@
 
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" && e.key !== " ") return;
+    if (item) return;
     var el = e.target;
     if (!(el instanceof Element) || !el.classList.contains("image-zoom-target")) return;
-    if (el.getAttribute("role") !== "button") return;
+    // Checked again here because other scripts copy charts, marks and all,
+    // to places outside the page body.
+    if (el.getAttribute("role") !== "button" || zoomTarget(el) !== el) return;
     e.preventDefault();
     open(el);
   });

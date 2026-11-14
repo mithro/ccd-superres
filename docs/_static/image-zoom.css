@@ -1,6 +1,7 @@
 /* Click-to-zoom viewer for images and flow charts. See image-zoom.js. */
 
-.image-zoom-target {
+[role="main"] .image-zoom-target,
+article .image-zoom-target {
   cursor: zoom-in;
 }
 
@@ -97,10 +98,14 @@
 
 .image-zoom-caption {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0.5rem;
-  transform: translateX(-50%);
-  max-width: min(90vw, 60rem);
+  width: fit-content;
+  max-width: min(92vw, 60rem);
+  max-height: 20vh;
+  overflow: hidden;
+  margin: 0 auto;
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--color-background-border, #ccc);
   border-radius: 0.5rem;
