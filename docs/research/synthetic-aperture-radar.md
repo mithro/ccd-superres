@@ -46,8 +46,8 @@ What this study found:
   recording, by both methods.
 - **How well the path must be known depends on where the light source is
   mounted and how fine a pattern is rebuilt.** If the light is fixed to
-  the chip's stage, the sensor's position must be known to between 6 and
-  36 nm. If fine stripes of light are made by a pair of beams, the
+  the chip's stage, the sensor's position must be known to between 3 and
+  36 nm, depending on how fine a pattern is read at the sensor. If fine stripes of light are made by a pair of beams, the
   position of those stripes on the chip must be known to about 3 nm,
   wherever the light is mounted, but that is a single unknown number per
   frame and is exactly the kind of unknown radar autofocus was built to
@@ -372,31 +372,36 @@ has not fixed.
 |---|---|---:|---:|---:|---:|
 | Light fixed to the chip stage, stripes on the sensor read directly | Where the pixels sample a pattern that is fixed in space | 2 240 | 36 | 113 | 6.2 |
 | Light fixed to the stage, light straight down, full detail wanted | The same, with the pattern rebuilt to the finest detail the light carries | 405 | 6.4 | 20 | 1.1 |
+| Light fixed to the stage, one slanted beam at 70°, full detail wanted | The same; the pattern at the sensor then carries detail down to the finest the slanted beam reaches | 209 | 3.3 | 11 | 0.6 |
 | Beam pair, any mounting: the position of the light's own stripes on the chip (not a sensor position) | Where the light's own stripes sit on the chip | 203 to 215 | 3.2 | 10 | 0.6 |
 
-*Table: how well positions must be known, for three cases. The first two
-rows are tolerances on the sensor's position. The third is a tolerance on
+*Table: how well positions must be known, for four cases. The first three
+rows are tolerances on the sensor's position. The last is a tolerance on
 the position of the stripes of light, which is set by the two beam paths
 and not by where the sensor is. The 2 240 nm
 period is the finest stripe two pixels of 1 120 nm can sample. 405 nm and
 203 nm are the finest surface periods for light straight down and from all
 directions ([overview, section 1](../reconstruction-methods.md#1-summary)).
-A beam pair at 70° makes stripes of period 215 nm. Derived here (function
+A beam pair at 70° makes stripes of period 215 nm, for which the 3.2 nm
+of the last row becomes 3.4 nm. Derived here (function
 `fig_phase_tolerance`); the last column converts the radar rule of
 [[SA5](#sa5)] by the formula above.*
 
 Three conclusions, all derived here and all to be tested in the simulator:
 
 1. **With the light on the chip stage, the sensor's position matters
-   only as finely as the pattern being rebuilt at the sensor.** That is 36
-   nm if only the stripes the pixels sample directly are used, and 6.4 nm
-   if the pattern is rebuilt to the finest detail that light straight
-   down carries: between 2 and 11 times looser than the 3.2 nm of the
-   finest stripes. In radar terms the light is the transmitter, and a
-   transmitter that does not move adds no path error of its own. If
-   instead a light source making a fine pattern rides with the sensor,
-   every sensor position error moves that pattern on the chip, and the
-   3.2 nm applies to the sensor position itself.
+   only as finely as the pattern that is read at the sensor.** That is
+   36 nm if only the stripes the pixels sample directly are used, 6.4 nm
+   if the pattern under light straight down is rebuilt to its finest
+   detail, and 3.3 nm if the pattern under a single slanted beam is
+   rebuilt to its finest detail. So the mounting does not relax the
+   tolerance by itself. What relaxes it is reading a coarse pattern at the
+   sensor, which is what a beam pair allows, because it turns fine surface
+   detail into coarse stripes before the light reaches the pixels. In
+   radar terms the light is the transmitter, and a transmitter that does
+   not move adds no path error of its own. If instead a light source
+   making a fine pattern rides with the sensor, every sensor position
+   error also moves that pattern on the chip.
 2. **A beam pair adds one unknown per frame, and it is radar's kind of
    unknown.** The stripes a beam pair lays on the chip shift by a full
    period when the two beam paths change by one wavelength relative to
@@ -410,7 +415,8 @@ Three conclusions, all derived here and all to be tested in the simulator:
    experience of [section 2.2](#22-why-the-path-matters-so-much), a wrong
    scan speed, a slow drift and a tilt are recoverable. Vibration at
    frequencies comparable to the frame rate is the fast, random kind. The
-   data item on vibration spectra in the plan (R11) decides whether it is
+   data item on vibration spectra in the [plan](../plan.md#data-collection)
+   (R11) decides whether it is
    within the table's limits, and the simulator should sweep it.
 
 Whether the data can deliver these accuracies is a separate question from
@@ -543,7 +549,7 @@ between them is plotted against the gap assumed. It crosses zero about
 1 µm from the true gap, and its sign says which way to correct. Derived here, a
 one-dimensional wave calculation.*
 
-| Method | Mean gap found over 20 noise trials (µm) | Error of the mean (µm) | Scatter over the trials (µm) |
+| Method | Mean gap found over 20 noise trials (µm) | Bias (µm) | Scatter over the trials (µm) |
 |---|---:|---:|---:|
 | True value | 300.00 | | |
 | Sharpness maximisation, search over gaps | 301.58 | +1.58 | 0.24 |
@@ -570,13 +576,14 @@ it the twin image) that shifts the best apparent focus:
 
 *Table: bias of the two gap estimates against the width of the lines, with
 no noise. Derived here. Features narrower than about two pixels give a
-bias of a micrometre or two. Wider features give a bias up to the depth of
+bias of up to 2.5 µm. Wider features give a bias up to the depth of
 focus.*
 
 What the rehearsal shows and does not show:
 
 - Both of radar's brightness-only autofocus methods work on this geometry
-  without any phase being recorded, and they agree with each other.
+  without any phase being recorded, and they agree with each other to
+  within 1 µm.
 - Map drift needs no search: two refocusings give a line whose zero
   crossing is the answer. That makes it the natural first step, per tile,
   giving a map of the gap and therefore the tilt.
@@ -616,13 +623,13 @@ flowchart TD
 
 | How radar and its relatives do it | What is proposed | What eliminates candidates | Result reported | Source |
 |---|---|---|---|---|
-| Geometry autofocus | Candidate flight paths | The picture each path gives is scored for focus | A 50 m error in a 2 000 m aperture length recovered to 5 cm, with no navigation data of that accuracy | [[SA6](#sa6), full text] |
+| Geometry autofocus | Candidate flight paths | The picture each path gives is scored for focus | A 50 m error in a 2 000 m aperture length recovered to 5 cm, on simulated data with one path parameter free | [[SA6](#sa6), full text] |
 | Sharpness search from many starting points | Candidate error curves | Sharpness; several starting guesses guard against a wrong best answer | Second, third and fourth order errors "successfully sensed" | [[SA37](#sa37)] |
-| Multichannel autofocus | Every possible set of phase errors at once | A rule about the scene: part of the picture is known to be empty. Only one set of errors leaves it empty | "A unique solution", found directly with no iteration | [[SA21](#sa21)] |
-| Constant-modulus formulation | The same | A rule about the instrument: the error changes only the timing of each pulse, never its strength | Phase gradient and multichannel autofocus shown to be the same constrained problem, solved better by a more costly method | [[SA90](#sa90)] |
+| Multichannel autofocus | Every possible set of phase errors at once | A rule that comes from the instrument, not from an assumption about the scene: the part of the picture outside the antenna's beam is known to be empty. Only one set of errors leaves it empty | "A unique solution", found directly with no iteration | [[SA21](#sa21)] |
+| Constant-modulus formulation | The same | A rule about the instrument: the error changes only the timing of each pulse, never its strength | Phase gradient and multichannel autofocus shown to be the same kind of constrained problem; a more costly method improved the multichannel ones | [[SA90](#sa90)] |
 | Sparse joint estimation | Picture and errors in turn | A rule about the scene: it is made of few features | Sharper pictures and corrected errors together | [[SA22](#sa22)] |
 | Intensity-only array imaging | All scenes consistent with the brightness data | The scene is sparse | Sparse scenes recovered "exactly" | [[SA91](#sa91)] |
-| Fusion with navigation | Candidate paths | The laws of motion: a platform cannot jump, so the path must be smooth | The along-path position error falls as focus improves | [[SA25](#sa25)] |
+| Fusion with navigation | Candidate paths near the one the navigation system reports | The focus measure, combined with the navigation system's own estimate of the motion | The along-path position error falls as focus improves | [[SA25](#sa25)] |
 
 *Table: radar's forms of "propose candidates and eliminate the
 impossible". A text table. Results are from abstracts unless marked.*
@@ -632,7 +639,10 @@ What this says for the instrument (derived here):
 - **The idea is sound and is how the field already works.** Every method
   in the table recovers a path that was not measured, by keeping only the
   candidates that are consistent with the data and with a rule. None needs
-  exact position information to begin with.
+  exact position information. All of them need a rough starting path,
+  within the capture range described in
+  [section 2.2](#22-why-the-path-matters-so-much): the radar examples
+  start from a navigation estimate or from a path a few per cent wrong.
 - **The rules do the eliminating, so they should be written down.** The
   physical rules available here are stronger than most of radar's:
 
@@ -640,10 +650,9 @@ What this says for the instrument (derived here):
   |---|---|
   | A passive surface reflects no more light than falls on it | Candidates with reflectance above 1 |
   | A chip is made of a few known materials with sharp edges | Smooth in-between values |
-  | Detail finer than half a wavelength does not cross the gap | Candidates whose predicted frames contain it |
   | The sensor is rigid: every pixel shares one position, tilt and gap per frame | Position errors that differ from pixel to pixel |
   | The sensor has mass and moves at a nearly constant rate | Paths that jump between frames |
-  | Bare silicon scatters nothing | Phase errors that put light into known-empty regions |
+  | Bare silicon scatters nothing | Phase errors that put light into regions known to be bare. Unlike radar's empty region, which the antenna defines, these regions must first be found. |
   | Light and electrons are counted in whole numbers with known statistics | Candidates whose mismatch with the data is larger, or smaller, than the noise allows |
 
   *Table: physical rules that can eliminate candidates. A text table.
@@ -657,17 +666,24 @@ What this says for the instrument (derived here):
   coarse candidates first (a handful of global numbers such as speed,
   heading, tilt and gap, where enumeration is affordable), then refinement
   by gradient from the survivors, from several starting points.
-- **Elimination cannot remove what the data cannot see.** A proof for the
-  closely related problem of ptychography with an unknown light pattern
-  shows that, even with ideal data, the solution is fixed only up to "a
+- **Elimination cannot remove what the data cannot see.** Two surfaces
+  that differ only in detail too fine to cross the gap (finer than half a
+  wavelength with light from all directions, finer than one wavelength
+  with light straight down) predict the same frames, so no comparison with
+  the data separates them. Beyond that, a proof for the closely related
+  problem of ptychography with an unknown light pattern shows that, for
+  scans that meet its conditions, the solution is fixed only up to "a
   constant scaling factor and an affine phase factor" [[SA92](#sa92)]: an
-  overall brightness scale, and a uniform shift and tilt of phase. No rule
-  about the data removes these. They are the anchors the calibration page
-  already lists, and they need the physical rules above (reflectance at
-  most 1 fixes the scale) or one outside measurement.
+  overall brightness scale, and a uniform offset and tilt of phase. A
+  perfectly regular scan does not meet those conditions and can leave
+  more undetermined. No comparison with the data removes these. The
+  brightness scale is one of the anchors of the
+  [calibration page](../calibration-and-test.md), and is fixed by a region
+  of known reflectance such as bare silicon; the rule that reflectance is
+  at most 1 only bounds it.
 - **Wrong survivors are possible when the rules are weak.** Recovering
-  phase from brightness with no reference is "prone to get trapped in
-  local minima" [[SA46](#sa46)]. The safeguard used in radar and optics is
+  phase from brightness with no reference is, in one such method used on
+  antenna ranges, "prone to get trapped in local minima" [[SA46](#sa46)]. The safeguard used in radar and optics is
   to keep several survivors and report how much they differ, which is also
   an honest measure of how well the surface is known. The simulator should
   report that spread and not a single answer.
@@ -681,11 +697,11 @@ sequence in time before it is anything else.
 
 | What radar assumes about time | How it is used to eliminate candidates | Source |
 |---|---|---|
-| The platform's path is smooth, because the platform has mass | The focus measure is combined with the laws of motion, so only smooth paths are candidates | [[SA25](#sa25)] |
+| The path is close to what the navigation system reports | The focus measure is combined with the navigation estimate, so only paths near it are candidates | [[SA25](#sa25)] |
 | Path errors are slow compared with a part of the aperture | Map drift assumes this; it is blind "to error fluctuation faster than subaperture duration", so anything it finds is slow by construction | [[SA10](#sa10)] |
 | Slow and fast errors have different causes and different cures | They are budgeted and corrected separately ([section 2.2](#22-why-the-path-matters-so-much)) | [[SA5](#sa5), full text] |
 | A steady vibration has a signature | A ripple in the error at one frequency gives "symmetric paired echoes" beside every bright point, at a spacing set by the frequency, so a vibration can be recognised and named from the picture | [[SA65](#sa65), full text] |
-| The same ground point is seen at different times from different directions, and it has not changed | The pictures from early and late views must agree; their disagreement gives the rate of change of the path error | [[SA93](#sa93), [SA94](#sa94)] |
+| The same ground point is seen at different times from different directions, and it has not changed | The pictures from early and late views must agree; their disagreement is used to estimate how the error between two flight tracks varies along the path (this page's summary of the method) | [[SA93](#sa93), [SA94](#sa94)] |
 | Errors of step-by-step tracking accumulate in a known way with the number of steps | Sets how long an aperture can be before the path must be tied down by other means | [[SA29](#sa29)] |
 | The scene is static between two passes | Whatever fails to match between passes is change or noise, not scene | [[SA80](#sa80), [SA95](#sa95)] |
 | Some points stay stable for years | Only points whose signal is steady over time are trusted, and they are measured to millimetres | [[SA76](#sa76)] |
@@ -698,10 +714,10 @@ The temporal rules available to this instrument (derived here):
 | Fact about time | What it eliminates |
 |---|---|
 | The chip does not change during the scan | Any candidate in which the surface differs from frame to frame. Every frame must be explained by one surface. |
-| A feature on the chip crosses the sensor at the scan speed; a speck on the sensor does not move across it at all | Features that stay on the same pixels in every frame belong to the sensor, and are removed from the surface. Features that move at any other rate are stray light or reflections. |
-| The sensor has mass, so its position changes smoothly | Paths with jumps. With a bound on acceleration, the position in one frame limits the next. |
-| A rolling-shutter sensor reads its rows one after another at a known rate | Each row has its own time stamp, so motion faster than the frame rate is sampled thousands of times per frame and cannot hide between frames |
-| Vibration sits at a few fixed frequencies; thermal drift is slow; photon and read noise are independent from one reading to the next | A wobble in the estimated path is accepted only if it has the signature of one of these. Noise cannot explain anything that persists across frames, and drift cannot explain anything fast. |
+| Each lighting arrangement predicts how fast a pattern crosses the sensor. With one beam fixed to the chip stage, chip features cross at the scan speed. A speck on the sensor does not move across it at all. | Patterns that stay on the same pixels in every frame belong to the sensor (or to a light source riding with it). Patterns that move at a rate no arrangement predicts are stray light or reflections. With a beam pair not fixed to the chip, the wanted stripes move at their own predicted rate and must not be rejected. |
+| The sensor has mass, so its position changes smoothly | Paths with jumps. The rule is strong from row to row within a frame and weak from frame to frame: holding the next frame's position to 3 nm over 5 ms would need accelerations below a few hundred-thousandths of gravity (estimate). |
+| A rolling-shutter sensor reads its rows one after another at a known rate | Under continuous light each row has its own time stamp, so motion faster than the frame rate is sampled hundreds to thousands of times per frame. Under a single short light pulse all lit rows share one instant and this rule gives nothing. |
+| Vibration sits at a few fixed frequencies (assumption, pending the vibration data of plan item R11); thermal drift is slow; photon and read noise are independent from one reading to the next | A wobble in the estimated path is accepted only if it has the signature of one of these. Noise cannot explain anything that persists across frames, and drift cannot explain anything fast. |
 | Light pulses are fired at known instants | Candidates for when each reading collected its light |
 | Two passes over the same chip see the same chip | Whatever differs between passes is instrument, not surface |
 
@@ -709,9 +725,12 @@ The temporal rules available to this instrument (derived here):
 
 Two of these rows are stronger than their radar counterparts. A radar
 scene is only roughly static, with trees and water that move, whereas a
-chip on a stage is static to the accuracy that matters. And a radar
-antenna gives one sample of the path error per pulse, whereas a
-rolling-shutter sensor gives one per row. The separation of sensor-fixed
+chip on a stage is static apart from a uniform change of size with
+temperature (silicon grows by about 8 nm over 3 mm for each degree,
+estimate from its expansion of 2.6 parts per million per degree,
+unverified), which is one more slow unknown. And a radar antenna gives one
+sample of the path error per pulse, whereas a rolling-shutter sensor under
+continuous light gives one per row. The separation of sensor-fixed
 from chip-fixed features by their rate of motion has no direct radar
 source and is this page's own suggestion.
 
@@ -813,15 +832,20 @@ and close to coincidence the noise in the picture rises
 example quotes about 0.2 dB of added noise [[SA59](#sa59), full text].
 
 The instrument is the extreme case of this arrangement: thousands of
-receivers in a row along the scan, moving a fraction of their own spacing
-between frames. So it inherits the hazard of coinciding samples. If the
+receivers in a row along the scan, moving anything from a fraction of
+their own spacing to many spacings between frames. So it inherits the hazard of coinciding samples. If the
 sensor moves exactly one pixel between frames, every frame samples the
 same places inside the pixel grid, and no detail finer than a pixel can be
 rebuilt however many frames are taken. The design already notes this
 ([section 5.4](../design.md#54-scan-sampling-calculator) and
 [section 5.5](../design.md#55-natural-misalignment-as-a-resource)): regular
-motion can put all readings on a few repeated positions. What the radar
-work adds is the size of the effect and a tested cure. This page calls
+motion can put all readings on a few repeated positions. By the
+calculation below, both of the design's example scans are of this kind for
+8 fine samples per pixel: a quarter of a pixel per frame gives only 4
+sample positions, and 65.6 pixels per frame, which is 328 fifths, gives
+only 5. The design's sensor tilt adds positions across the scan and is not
+in this one-dimensional calculation. What the radar work adds is a tested
+cure; the size of the effect is worked out here. This page calls
 such a speed a **blind speed**; the label is borrowed, and in radar it
 normally means something else.
 
@@ -856,8 +880,8 @@ frames and 2.6 % with 256.*
 The jitter has to be large enough, and it has to be known. At exactly one
 pixel per frame the noise growth is 1.5 with a jitter of 0.2 pixel, about
 140 with 0.1 pixel, and over 20 000 with 0.05 pixel (derived here, the
-same function). The jitter must be comparable to the spacing of the fine
-samples, here one eighth of a pixel, or larger. And each frame's actual
+same function). The jitter must be clearly larger than the spacing of the
+fine samples, which is one eighth of a pixel here: about 0.2 pixel. And each frame's actual
 position must still be found to the tolerances of
 [section 4.2](#42-what-this-instrument-needs), from the data.
 
@@ -872,7 +896,8 @@ appear "as a noise-like disturbance rather than localized artifacts"
 [[SA61](#sa61)].
 
 For the design (derived here): the scan calculator should flag blind
-speeds; the frame timing or the scan speed should be made deliberately
+speeds, testing the effective step including the row timing of the
+readout; the frame timing or the scan speed should be made deliberately
 irregular, which costs nothing in hardware; and the existing sensor tilt
 of the design already breaks the coincidence across the scan direction.
 This is a concrete case of Tim's point that randomness and misalignment
@@ -912,7 +937,7 @@ the reflection is known at every colour against a common reference.*
 
 *Table: depth resolution from stepping the colour across the visible
 range. Derived here (function `fig_depth_from_colour`), taking the
-refractive index of oxide as 1.46 (assumption; data item R6 of the plan
+refractive index of oxide as 1.46 (assumption; data item R6 of the [plan](../plan.md#data-collection)
 will supply measured values).*
 
 The result is clear (derived here): the visible span gives a depth
@@ -929,14 +954,14 @@ Two cautions apply. The calculation assumes the phase of the reflection
 is known at each colour. A brightness-only sensor gets that only by
 letting the reflection from the top surface act as the reference, which
 measures depth differences but cannot tell above from below without a
-further measurement, and separate lasers do not keep a fixed phase
-relation to each other. And light does not pass through metal, so only
+further measurement, and reflections from different layers also
+interfere with each other and add false peaks. And light does not pass through metal, so only
 what lies under the transparent oxide between the wires is reached.
 
 This is the radar view of what optics calls white-light or swept-source
 interferometry, and an optical synthetic aperture microscope has been built
-on the principle [[SA64](#sa64)]. It belongs with the plan's depth
-candidate (X15), and it is recorded here as support for testing that
+on the principle [[SA64](#sa64)]. It belongs with the depth candidate (X15)
+of the [plan](../plan.md#scouting-finding-what-nobody-has-named-yet), and it is recorded here as support for testing that
 candidate with a tunable or broadband source and not with a few fixed
 lasers.
 
@@ -1080,7 +1105,7 @@ promoted, a row in the [plan](../plan.md).
 | Map drift on brightness pictures as the first, cheap estimate of gap and tilt per tile | Sub-aperture autofocus [[SA11](#sa11)]; rehearsed in [section 5.3](#53-a-rehearsal-the-gap-from-one-brightness-only-recording) | Computation only | Promote: calibration stage |
 | Blind speeds quantified, and irregular frame timing or speed as the cure | Multichannel and randomly timed radar [[SA58](#sa58), [SA62](#sa62)] | Computation, and a timing setting | Promote: calculator, explorer and readout models |
 | Geometry autofocus by gradient: a few global path numbers first, then per-frame terms | Factorized geometrical autofocus [[SA6](#sa6)]; navigation fusion [[SA25](#sa25)] | Computation only | Promote: structure of the joint solver |
-| Mount the light on the chip stage, so that sensor position errors do not move the light pattern on the chip (2 to 11 times looser tolerance) | Stationary-transmitter radar [[SA53](#sa53)]; [section 4.2](#42-what-this-instrument-needs) | A design choice, no added parts | Promote: a comparison between two named approaches |
+| Mount the light on the chip stage and read a coarse, mixed-down pattern at the sensor, so that sensor position errors matter only at the scale of that pattern (36 nm against about 3 nm) | Stationary-transmitter radar [[SA53](#sa53)]; [section 4.2](#42-what-this-instrument-needs) | A design choice, no added parts | Promote: a comparison between two named approaches |
 | Align four beams with the wiring directions, or turn the chip under one beam | Inverse and circular synthetic aperture [[SA56](#sa56), [SA1](#sa1)] | Alignment, or a rotation stage | Test in simulation; feeds candidate X14 |
 | Step the colour over 16 or more values, or use white light, to separate layers by depth | Stepped-frequency radar; sparse-band fusion [[SA63](#sa63)] | A tunable or broadband source | Test in simulation; feeds candidate X15 |
 | Compare against a known-good chip or the simulated layout to detect sub-resolution differences | Coherent change detection [[SA80](#sa80)] | A reference chip or layout | Promote as a new candidate (X-B1-1) |
