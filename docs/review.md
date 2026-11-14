@@ -335,3 +335,23 @@ the tests would notice.
 Level 1 in two dimensions has no position estimation yet, so none was
 reviewed. The reworked elimination code was checked by its tests and by
 rerunning the experiments, not by a third reviewer.
+
+## Review 6: the research studies folded into the design
+
+[Design, section 4.10](design.md#410-what-the-four-research-studies-changed)
+and the smaller edits that go with it were reviewed on 14 November 2026,
+before merging. The reviewer was given the change and the four study pages,
+and checked every table row and edited sentence against the study section
+it cites.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The gap range of section 5.2 (20 nm to 0.5 mm) contradicted the new minimum gap of 0.6 mm. | Range widened to 2 mm, and the minimum is stated as applying to steep laser beams only. |
+| 2 | Error | The cure for streaks in pixel gains was given as one pass shifted by a pixel. The study showed that only on a toy sensor of 12 columns and advises shifts at several scales. | Row, section 6.4 and the wording corrected. |
+| 3 | Error | "Every reading falls on one of 4 places inside a pixel" left out that this is along the scan only and matters when 8 fine samples are wanted. The 0.2 pixel jitter was worked out for a different step. | Reworded; the size of the variation is left to the simulator. |
+| 4 | Gap | Six rows dropped a condition the study attaches (beam spread, laser purity, beam count, lighting states, read-noise price, the gain from weighing candidates). | Conditions added to each row. |
+| 5 | Gap | Fourteen recommended settings and components were missing from Table 4.10c. | Added. |
+| 6 | Wording | Table captions claimed a single status for values of mixed status; two links pointed at the wrong section. | Captions and links corrected. |
+
+*Table: findings of review 6. Not checked: the studies' own derivations,
+scripts and references.*

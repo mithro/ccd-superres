@@ -653,9 +653,11 @@ flowchart LR
 
 The ptychography study corrected the lighting of stage 2 after this plan was
 first written. A pair of beams at the same steep slant reads only a narrow
-band of detail, so each steep beam now has about four partner beams, 11 to
-18 lighting states are cycled through, the beams spread slightly, and the
-gap cannot be smaller than about 0.6 mm. The numbers and their sources are
+band of detail, so two options are to be compared: about four partner beams for each steep
+beam, or relying on the pixel to read stripes of 0.3 to 0.7 µm. At least 11
+to 18 lighting states are cycled through (a lower bound, to which partner
+beams add), the beams spread slightly, and with
+beams at 72° the gap cannot be smaller than about 0.6 mm. The numbers and their sources are
 in Table 4.10a.
 
 This is the single staged plan for the leading candidate. The optical elements study
@@ -665,7 +667,7 @@ This is the single staged plan for the leading candidate. The optical elements s
 |---|---|---|---|---|---|
 | 0. Measure the pixels | How strongly a pixel responds to fine light stripes and to light from each angle. This is the shared unknown of section 4.6 and decides how far every later stage gets. Until the gate of section 4.9 is passed it is replaced by an uncertain range and a level 4 estimate. | The sensor, one laser diode and a mirror, to cross two beams on the sensor | Small | 4, to estimate it beforehand and to compare with the measurement afterwards | The pixel response, used as a kernel by every level |
 | 1. Coarse picture | A picture of the chip at micrometre scale: blocks, wide wiring, pads | A scan and simple lighting | The linear solve of section 6, with frame positions estimated from the data | 0 and 1 | Position of every frame, speed, tilt, pixel gains, and a map of the chip to register everything else against |
-| 2. True picture to 150 to 200 nm lines | A picture of the layout, with height, not restricted to any assumed kind of structure. Lines of 150 to 200 nm are expected, and 110 to 145 nm is the limit of the formula in section 4.6. | Pulsed 405 nm laser beams at a steep slant from several directions, each switched on together with one of several partner beams at shallower slants, slightly spreading or speckled, and several colours (corrected in section 4.10) | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
+| 2. True picture to 150 to 200 nm lines | A picture of the layout, with height, not restricted to any assumed kind of structure. Lines of 150 to 200 nm are expected, and 110 to 145 nm is the limit of the formula in section 4.6. | Pulsed 405 nm laser beams at a steep slant from several directions, each switched on together with one of several partner beams at the same or shallower slants, slightly spreading or speckled, and several colours (corrected in section 4.10) | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
 | 3. Detect, locate and fit | From the same data, with no new hardware: edges, isolated lines and defects located to tens of nanometres, the repeat distance and direction of each regular region, and line widths and heights fitted with an electromagnetic model. Together these give a picture at about 100 nm that is partly inferred, and is labelled as such. | None | Very large: the electromagnetic solver inside a fitting loop, thousands of runs, one independent job per region | 4 | A layout estimate: the best description of the chip that straight edges and a few materials allow |
 | 4. True picture at 100 nm | The stated goal | Near-ultraviolet light (365 nm) or water in the gap, and possibly a sensor with its top layers removed | As stage 2, started from the stage 3 layout | 3 and 4 | The result |
 
@@ -899,45 +901,49 @@ detail sizes.
 | Detail a matched pair at 72° turns into stripes a pixel can read | All detail down to the limit | Only surface periods in a narrow band | 213 to 235 | nm | [Ptychography, section 7, table 7b](research/ptychography.md#7-has-beam-pair-mixing-been-done-before) | Stage 2 lighting in section 4.7 reworded: each steep beam has several partner beams |
 | Partner beams needed per steep beam to read 213 to 636 nm periods as coarse stripes | 1 | About 4, at slants near 72°, 36°, 13° and 8° | 4 | | [Ptychography, table 7c](research/ptychography.md#7-has-beam-pair-mixing-been-done-before) | Section 4.7; an approach with one partner and one with four are both to be compared |
 | What stripes on the chip do for the limit | Raise it | Nothing by themselves; the second beam is useful as a reference close in angle to the light being read | | | [Ptychography, section 7](research/ptychography.md#7-has-beam-pair-mixing-been-done-before). The study marks its source for this as Unverified | Section 4.7 |
-| Lighting states for stage 2 (directions and pairs cycled through) | "Several directions" | At least 11 to 18, with an inner ring of directions slanted at about 28° | 11 to 18 | | [Ptychography, section 8.4](research/ptychography.md#84-summary-for-stage-2) | Section 4.7 |
-| Number of beam directions by the no-repeated-spacing rule | Not stated | First estimate 6 to 10 | 6 to 10 | | [Beamforming, section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) | Simulator setting, Table 4.10c. The two estimates count different things and are both kept until simulated |
-| Shape of each beam | Parallel | Slightly spreading or speckled, because parallel beams fail on regularly repeating patterns, which chips are full of. Half-angle of spread at least | 12 | ° | [Ptychography, section 5.7](research/ptychography.md#57-regular-patterns-a-known-weakness-that-chips-will-trigger) | Section 4.7; scouting candidate X18 in the [plan](plan.md#b-research-and-data-collection) |
-| Smallest gap at which light at 72° reaches under the sensor from both sides | Not considered | A lower bound for a sensor body as wide as its 3.68 mm sensitive area. 1.3 mm for a body 8 mm wide | 0.6 | mm | [Ptychography, table 7a](research/ptychography.md#7-has-beam-pair-mixing-been-done-before) | Section 4.7. The baseline gap of about 1 mm is above the bound only for a narrow body |
-| Spread of wavelengths allowed in the laser at a 1 mm gap | Not stated | At most | 0.1 | nm | [Ptychography, section 6](research/ptychography.md#6-coherence-and-the-narrow-strip) | Simulator setting, Table 4.10c |
-| Longest light pulse at the baseline speed of 8.4 µm/s | Not stated | At most | 6 | ms | [Ptychography, section 8.4](research/ptychography.md#84-summary-for-stage-2) | Consistent with section 4.8 |
-| The unknown pixel response | One number | Two different questions: how the pixel responds to the angle light arrives at (out to 75°), and how it responds to position inside the pixel, plus leakage to neighbours | | | [Ptychography, sections 4.3 and 7](research/ptychography.md#43-what-is-known-about-how-pixels-respond) | Section 4.9 and stage 0 of section 4.7 |
+| Lighting states for stage 2 (directions and pairs cycled through) | "Several directions" | At least 11 to 18, with an inner ring of directions slanted at about 28°. A lower bound that assumes the pixel accepts a wide cone of light; partner beams add to it | 11 to 18 | | [Ptychography, section 8.4](research/ptychography.md#84-summary-for-stage-2) | Section 4.7 |
+| Number of beam directions by the no-repeated-spacing rule | Not stated | At least 6 for one direction of detail and at least 10 for two, and a real layout somewhat more. One or two repeated spacings are worth keeping for calibration | 6 to 10 | | [Beamforming, section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) | Simulator setting, Table 4.10c. The two estimates count different things and are both kept until simulated |
+| Shape of each beam | Parallel | Slightly spreading or speckled, because parallel beams fail on regularly repeating patterns, which chips are full of. Half-angle of spread at least 12° for a pattern repeating every 1 µm, and more for finer repeats | 12 | ° | [Ptychography, section 5.7](research/ptychography.md#57-regular-patterns-a-known-weakness-that-chips-will-trigger) | Section 4.7; scouting candidate X18 in the [plan](plan.md#b-research-and-data-collection) |
+| Smallest gap at which light at 72° reaches under the sensor from both sides | Not considered | A lower bound for a sensor body as wide as its 3.68 mm sensitive area. 1.3 mm for a body 8 mm wide | 0.6 | mm | [Ptychography, table 7a](research/ptychography.md#7-has-beam-pair-mixing-been-done-before) | Sections 4.7 and 5.2. The gap of about 1 mm used by the laser approaches of section 7.1 is above the bound only for a narrow body |
+| Spread of wavelengths allowed in the laser at a 1 mm gap | Not stated | At most 0.1 nm when the reference beam is at 72°. A partner beam matched in angle eases this, so that an ordinary laser diode may do | 0.1 | nm | [Ptychography, section 6](research/ptychography.md#6-coherence-and-the-narrow-strip) | Simulator setting, Table 4.10c |
+| Longest light pulse at the baseline speed of 8.4 µm/s | Not stated | At most | 6 | ms | [Ptychography, section 8.4](research/ptychography.md#84-summary-for-stage-2) | Pulse length is a setting of the motion model of section 4.8 |
+| The unknown pixel response | One number | Two different questions: how the pixel responds to the angle light arrives at (out to 75°), and how it responds to position inside the pixel, plus leakage to neighbours | | | [Ptychography, sections 4.3 and 11](research/ptychography.md#11-recommended-changes) | Section 4.9 and stage 0 of section 4.7 |
 | Finest lensless reflection imaging shown with 405 nm light | "Below about 2 µm undemonstrated" | Confirmed: about 2 µm line width on wafers | 2 | µm | [Ptychography, section 3.2](research/ptychography.md#32-without-a-lens-light-reflected-from-the-sample) | None needed |
 
-*Table 4.10a. Corrections to the lighting of the leading candidate. Every
-value is an Estimate or Derived in the study named, from straight-ray
-geometry and published results, and is to be repeated at simulation level 3.*
+*Table 4.10a. Corrections to the lighting of the leading candidate. The
+values are Derived or Estimates in the study named, from straight-ray
+geometry, except three: the stripes row rests on a source the study marks
+Unverified, the count of lighting states rests on an Assumption about the
+pixel, and the 2 µm figure is a published measurement. All are to be
+repeated at simulation level 3.*
 
 The scan, the handling of motion, the readout and the calibration change as
 follows.
 
 | Topic | Finding | Value | Unit | Evidence | Change made here |
 |---|---|--:|---|---|---|
-| Blind speeds | If the sensor moves a simple fraction of a pixel per frame, the readings fall on a few repeated places and finer detail cannot be rebuilt. The baseline step of a quarter pixel gives only 4 places along the scan | 4 | places | [Radar, section 6.3](research/synthetic-aperture-radar.md#63-sampling-many-receivers-and-blind-speeds) | Section 5.2: the step is no longer a simple fraction, and frame timing can be made irregular |
-| Cure for blind speeds | Random jitter in position or timing, which must then be found from the data | 0.2 | pixel | [Radar, section 6.3](research/synthetic-aperture-radar.md#63-sampling-many-receivers-and-blind-speeds) | Section 5.2 and readout option in section 5.7 |
+| Blind speeds | If the sensor moves a simple fraction of a pixel per frame, the readings fall on a few repeated places and finer detail cannot be rebuilt. The baseline step of a quarter pixel gives only 4 places along the scan, too few when 8 fine samples per pixel are wanted. One-dimensional calculation that leaves out the sensor tilt | 4 | places | [Radar, section 6.3](research/synthetic-aperture-radar.md#63-sampling-many-receivers-and-blind-speeds) | Section 5.2: the step is no longer a simple fraction, and frame timing can be made irregular |
+| Cure for blind speeds | Random jitter in position or timing, which must then be found from the data. The 0.2 pixel was worked out for a step of one pixel, and the size needed at a quarter-pixel step has not been checked | 0.2 | pixel | [Radar, section 6.3](research/synthetic-aperture-radar.md#63-sampling-many-receivers-and-blind-speeds) | Section 5.2 and readout option in section 5.7 |
 | Position accuracy needed, light fixed to the stage, coarse stripes read at the sensor | Random error for 1 % of signal lost | 36 | nm rms | [Radar, section 4.2](research/synthetic-aperture-radar.md#42-what-this-instrument-needs) | Section 6.4 |
-| Position accuracy needed, full detail from one slanted beam | Random error for 1 % of signal lost | 3.3 | nm rms | [Radar, section 4.2](research/synthetic-aperture-radar.md#42-what-this-instrument-needs) | Section 6.4 |
-| Registration accuracy needed, stated in pixels | At the edge of published practice (0.005 to 0.01 pixel at best) | 0.009 | pixel | [Multi-frame, section 5](research/multi-frame-reconstruction.md#5-registration-how-well-shifts-are-measured) | Section 6.4 |
+| Position accuracy needed, full detail from one beam slanted at 70° | Random error for 1 % of signal lost | 3.3 | nm rms | [Radar, section 4.2](research/synthetic-aperture-radar.md#42-what-this-instrument-needs) | Section 6.4 |
+| Registration accuracy needed, stated in pixels | An Estimate: 10 nm, a tenth of a 100 nm feature. In that study's judgement it is at the edge of published practice (0.005 to 0.01 pixel at best) | 0.009 | pixel | [Multi-frame, section 5](research/multi-frame-reconstruction.md#5-registration-how-well-shifts-are-measured) | Section 6.4 |
 | Position of the light's own stripes on the chip | A new unknown for every frame and beam pair, because the two beam paths drift against each other | 3 | nm | [Radar, section 4.2](research/synthetic-aperture-radar.md#42-what-this-instrument-needs) | Added to the error table of section 3.2 |
 | Slow and fast motion errors | Slow errors (wrong speed, drift, tilt) are found from the data almost completely. Fast errors near the frame rate are not and must be kept small or modelled | | | [Radar, section 2.2](research/synthetic-aperture-radar.md#22-why-the-path-matters-so-much) | Section 3.2 now marks each motion error as slow or fast |
 | Where the light is mounted | On the chip stage or on the sensor carriage: it changes which errors matter | | | [Radar, section 4.2](research/synthetic-aperture-radar.md#42-what-this-instrument-needs) | New design variable, Table 4.10c, and open question 7 |
-| Order of the position search | Coarse to fine: drift per tile, then sharpness of the whole picture, then everything solved together | | | [Radar, section 3](research/synthetic-aperture-radar.md#3-autofocus-the-families-and-what-each-needs) | Section 6.4 |
-| Adding rows together | Do it in the computer, keeping every row separate and each exposure short. Shifting charge on the chip needs the speed matched to a fraction of a percent and hides wobble | | | [Multi-frame, section 2.2](research/multi-frame-reconstruction.md#22-what-this-says-about-our-readout-schemes) | Section 5.7 |
+| Order of the position search | Coarse to fine: drift per tile, then sharpness of the whole picture, then everything solved together | | | [Radar, sections 5.1 and 9](research/synthetic-aperture-radar.md#51-what-carries-over) | Section 6.4 |
+| Adding rows together | Do it in the computer, keeping every row separate and each exposure short. Shifting charge on the chip needs the speed matched to a fraction of a percent and hides wobble. The price is read noise on every row, so each one-row exposure needs well over 9 electrons (for an assumed read noise of 3 electrons). A judgement of the study, to be tested | | | [Multi-frame, section 2.2](research/multi-frame-reconstruction.md#22-what-this-says-about-our-readout-schemes) | Section 5.7 |
 | Weighting readings | Weight every reading by how well it was taken; do not pick the best and drop the rest | | | [Multi-frame, section 4](research/multi-frame-reconstruction.md#4-lucky-imaging-choosing-or-weighting-frames) | Section 6.4 |
 | Doing without measured positions | Possible. In a toy calculation it cost about 8 times more frames, and exactly steady motion removed the cost. Nearly steady motion was not tested | 8 | times | [Multi-frame, section 5.3](research/multi-frame-reconstruction.md#53-doing-without-measured-positions-ruling-out-what-cannot-be) | Section 6.6; to be tested in the simulator under [plan item D2b](plan.md#d-simulation-chain) |
-| Weighing every candidate position | Halves the error of picking the single best candidate; ruling out jumps in time halves it again (toy calculation) | 2 | times | [Beamforming, section 8](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time) | Section 6.6 |
-| Pixel gains from the scan itself | One straight pass leaves one unknown per track across the scan, seen as streaks. A second pass shifted sideways by about a pixel, or a second scan direction, removes them | 1 | pixel | [Beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap) | Section 6.4 and open question 8 |
+| Weighing every candidate position | Halves the error of picking the single best candidate when the noise is 2 to 3 times the scene contrast, and makes no difference when they are equal. Ruling out jumps in time gains a further 1.6 to 2 times. Toy calculation in which the method was told the true noise and average step | 2 | times | [Beamforming, section 8](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time) | Section 6.6 |
+| Pixel gains from the scan itself | One straight pass leaves one unknown per track across the scan, seen as streaks. The sensor tilt already separates differences between neighbouring pixels; what remains is smooth trends fixed to the sensor, above all an uneven laser beam. A second pass shifted sideways by one pixel removed the streaks on a toy sensor of 12 columns. On the real sensor shifts at several scales, small and large, or a second scan direction are advised (Estimate). If frame brightness is unknown, three more numbers stay unfixed | 1 | pixel | [Beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap) | Section 6.4 and open question 8 |
 | Pixel response from the scan itself | Differences between pixels can be found. The shape common to all pixels needs a known scene, several gaps or sharp edges | | | [Beamforming, section 6.5](research/beamforming.md#65-the-pixels-response) | Section 6.4 |
-| Enough readings | Useful readings per pixel area must exceed a floor: 96, or 192 when height is also wanted | 96 | readings | [Beamforming, section 2.3](research/beamforming.md#23-counting-what-is-wanted-against-what-is-recorded) | To be added to the scan calculator of section 5.4 |
+| Enough readings | Useful readings per pixel area must exceed a floor: 96, or 192 when height is also wanted | 96 | readings | [Beamforming, section 2.3](research/beamforming.md#23-counting-what-is-wanted-against-what-is-recorded) | To be added to the scan calculator of section 5.4, together with a warning for blind speeds, under [plan item C1a](plan.md#c-fold-the-research-into-the-design) |
 | Sidelobes | False copies of bright features beside the true ones limit a picture after resolution does | | | [Radar, section 7.1](research/synthetic-aperture-radar.md#71-resolution-sidelobes-and-what-processing-adds) | Sidelobe level added to the measures of section 8 |
 | Regular patterns | The known failure case of ptychography | | | [Ptychography, section 5.7](research/ptychography.md#57-regular-patterns-a-known-weakness-that-chips-will-trigger) | Section 8: the gate must include a regularly repeating scene |
 
 *Table 4.10b. Changes to scan, motion, readout and calibration. The values
-are Derived or toy calculations in the study named. "Toy calculation" means
+are Derived, Estimates or toy calculations in the study named, as each row
+says. "Rms" is the [root-mean-square](glossary.md) size of a random error. "Toy calculation" means
 a small stand-alone run in the study's own script, not the project's
 simulator.*
 
@@ -954,27 +960,43 @@ findings enter it as settings and components that any approach can use.
 | `reference_angles` | Slants of the partner beams of each steep beam | 0 | 72 | ° | Ptychography |
 | `spectral_modes` | Wavelengths modelled within the laser's spread | 1 | 7 | | Ptychography |
 | `beam_angle_error` | Error in each beam's slant, to be solved for | 0 | 0.5 | ° | Ptychography |
+| `inner_ring_angle` | Slant of the inner ring of lighting directions | 20 | 40 | ° | Ptychography |
+| `flyscan_modes` | Patterns added up per recording to model movement during a flash | 1 | 10 | | Ptychography |
+| `splitter`, `sensor_shadow` | How the beams are split (mirrors or grating); shadow of the sensor body on or off | | | choice | Ptychography |
 | `sensor_body_width` | Width of the part of the sensor that blocks light | 3.7 | 10 | mm | Ptychography |
 | `beam_pair_phase` | Position of each pair's stripes, one value per frame, with a drift and a random part | 0 | 1 | period | Radar |
 | `light_mount` | Light fixed to the chip stage, or riding on the sensor carriage | | | choice | Radar |
 | `motion_error` | Slow terms (smooth in time) and a fast random term, set separately | | | | Radar |
 | `frame_timing` | Regular, staggered or random, with a jitter size | 0 | 0.5 | pixel | Radar |
+| `chip_rotation` | A list of angles the chip is turned to | | | ° | Radar |
+| `wavelengths_nm` | A list of 16 or more wavelengths, or a spectrum | | | nm | Radar |
+| Position search components | Drift per tile, sharpness, and joint geometry solve, each replaceable and comparable | | | | Radar |
 | `beam_layout` | Rule that places the beam directions, including the no-repeated-spacing rule | 6 | 10 | beams | Beamforming |
 | `reference_on_sensor` | Whether the mirror reflection reaches the sensor and acts as a reference beam | | | choice | Beamforming |
 | `frame_brightness` | Known (a light monitor) or unknown (solved for) | | | choice | Beamforming |
 | `position_knowledge` | Exact, rough or none | | | choice | Beamforming |
+| `position_handling` | One best guess, all candidates weighed, or weighed with a rule on motion | | | choice | Beamforming |
+| Scene rules | Number of materials and minimum feature width | | | | Beamforming |
+| Read noise per reading | In the sensor model, so readout schemes are compared at the same light level | | | electrons | Multi-frame |
+| Path model | One position estimate per 6 to 150 rows, depending on scene contrast | 6 | 150 | rows | Multi-frame |
+| Scan patterns | With tilt, with a cross pass, with irregular spacing | | | | Multi-frame |
+| Tile-wise correlation tool | Sharper methods for isolated features, optional in stage 3 | | | | Beamforming |
+| Solve one step, hold the rest | The forward model kept as an ordered chain with separate unknowns per step | | | | Beamforming |
 | Readout: rows summed in the computer | A readout model, next to true charge shifting with a speed error, for comparison | | | | Multi-frame |
 | Reconstruction: weighted quick-look picture | Readings placed on a fine grid with weights (the astronomers' "drizzle"), as a fast first picture and a cross-check | | | | Multi-frame |
-| Constraints | A named list that can be switched: reflectance at most 1, few materials, smooth path, rigid sensor, one unchanging surface | | | | Radar, beamforming. First version exists: section 6.6 |
-| Diagnostics | Sidelobe level; a map of where sampling is weak; agreement between pictures from different parts of the sensor; resolution along and across the pixel axes separately | | | | Radar, multi-frame, beamforming |
+| Constraints | A named list that can be switched: reflectance at most 1, few materials, smooth path, rigid sensor, one unchanging surface | | | | Radar, beamforming. First version exists: section 6.6. Radar also lists a limit on fineness, known empty regions, and features that must move at the scan rate |
+| Diagnostics | Sidelobe level; a map of where sampling is weak; agreement between pictures from different parts of the sensor; resolution along and across the pixel axes separately; share of scattered to mirror-reflected light per tile; photon noise against the step of the digitiser | | | | Radar, multi-frame, beamforming |
 
 *Table 4.10c. Settings and components the simulator gains from the studies.
-The ranges are Assumptions for sweeping, taken from the studies'
-recommendation sections
-([ptychography](research/ptychography.md#11-recommended-changes),
+The ranges are Assumptions for sweeping. Most are taken from the studies'
+recommendation sections; those of `frame_timing`, `beam_pair_phase` and
+`beam_layout` were chosen here. One recommendation is to the measurement
+model of section 3 and is not a setting: with laser light the mirror
+reflection acts as a reference beam. The recommendation sections are
+[ptychography](research/ptychography.md#11-recommended-changes),
 [radar](research/synthetic-aperture-radar.md#9-recommended-changes),
 [multi-frame](research/multi-frame-reconstruction.md#7-what-this-means-for-the-design-and-the-simulator),
-[beamforming](research/beamforming.md#10-recommended-changes)). The names are proposals. None of
+[beamforming](research/beamforming.md#10-recommended-changes). The names are proposals. None of
 these exists in the code yet except the constraints; they are built with the
 approach files of [plan item D1a](plan.md#d-simulation-chain) and the wave
 levels.*
@@ -1016,10 +1038,10 @@ gain variation 1 percent, edge softness 0.3 µm full width at half height
 | Parameter | Starting value | Reason |
 |---|---|---|
 | Frame rate `f` | 30 frames per second | Conservative full-resolution rate; faster binned modes are listed in 5.1 |
-| Step `d` | 0.28 µm (a quarter pixel), with a random variation of about 0.2 pixel from frame to frame | Fine along-scan sampling with modest motion smear. An exact quarter pixel is a blind speed: every reading falls on one of 4 places inside a pixel, so the step is made irregular (section 4.10, Table 4.10b) |
+| Step `d` | 0.28 µm (a quarter pixel), with a deliberate random variation from frame to frame | Fine along-scan sampling with modest motion smear. An exact quarter pixel puts every reading on one of 4 places along the scan, which is too few for 8 fine samples per pixel, so the step is made irregular. The size of the variation is to be set in the simulator (section 4.10, Table 4.10b). The sensor tilt already spreads the readings across the scan |
 | Velocity `v = d·f` | 8.4 µm/s | Follows from the two above |
 | Tilt `θ` | tan θ = 1/16 | Track spacing of 70 nm from a 1.12 µm pitch |
-| Gap `z₀` | Swept from 20 nm to 0.5 mm | The main unknown of the instrument |
+| Gap `z₀` | Swept from 20 nm to 2 mm | The main unknown of the instrument. Approaches that bring steep laser beams in under the sensor cannot use gaps below about 0.6 mm (Table 4.10a); the others can |
 
 ### 5.3 The sensor stack, and what removing the lenses leaves
 
@@ -1331,14 +1353,14 @@ wide one.
 The frame rates for strips assume 32 lines of overhead per frame and are to
 be confirmed on hardware.
 
-Two readout choices come from the research studies (Table 4.10b). Rows are
+Two readout choices come from the research studies (Table 4.10b). Rows can be
 added together in the computer and not on the chip, so every row keeps its
-own time and position
+own time and position, at the price of read noise on every row
 ([multi-frame study](research/multi-frame-reconstruction.md#22-what-this-says-about-our-readout-schemes)). And
 the time between frames can be made irregular on purpose, which avoids
 blind speeds at no cost in hardware
 ([radar study](research/synthetic-aperture-radar.md#63-sampling-many-receivers-and-blind-speeds)). Both are
-readout models like the others in this section.
+readout models to compare with the others in this section.
 
 How far Tim's control goes decides which rows of the second table are in
 play: the registers only, or direct drive of the row, reset and column
@@ -1549,8 +1571,12 @@ The research studies add four points to this plan (Table 4.10b).
   ([radar study](research/synthetic-aperture-radar.md#42-what-this-instrument-needs)). The
   [multi-frame study](research/multi-frame-reconstruction.md#5-registration-how-well-shifts-are-measured) puts
   the need at 0.009 pixel, which is at the edge of what other fields have
-  published. Level 1 reaches about 6 nm per frame in one dimension, at the
-  limit set by the noise ([level 1, position errors](level1.md)). Simulated.
+  published. The two figures use different measures: the first is the
+  error that loses 1 % of the signal, the second is a tenth of a 100 nm
+  feature. Level 1 reaches about 6 nm per frame in one dimension on a scene
+  of high contrast, at the limit set by the noise
+  ([level 1](level1.md)). That is Simulated, and it does not yet meet the
+  3 nm case.
 - **In what order.** Coarse to fine, as radar does: drift per tile first,
   then the sharpness of the whole picture, then positions, pixel response
   and gains solved together.
@@ -1558,7 +1584,8 @@ The research studies add four points to this plan (Table 4.10b).
   taken. Readings are not picked and dropped.
 - **What the scan cannot fix.** One straight pass leaves one unknown gain
   per track across the scan, seen as streaks. A second pass shifted
-  sideways by about a pixel, or a second scan direction, removes them
+  sideways, by a pixel and by larger steps, or a second scan direction,
+  removes them in a toy calculation
   ([beamforming study](research/beamforming.md#64-a-toy-calculation-and-a-trap)). The response
   shape that all pixels share cannot be found from the scan alone and needs
   a known scene, several gaps or sharp edges.
@@ -1643,8 +1670,9 @@ The work is [plan item D2b](plan.md#d-simulation-chain).
 
 Three of the research studies looked at the same idea in their own fields
 and suggest the next steps. Weighing every candidate position, and not
-keeping only the best one, halved the error in a toy calculation, and
-ruling out jumps in time halved it again
+keeping only the best one, halved the error in a toy calculation when the
+noise was 2 to 3 times the scene contrast, and ruling out jumps in time
+gained up to as much again
 ([beamforming study](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time)).
 Doing without measured positions cost about 8 times more frames in another
 toy calculation, and exactly steady motion removed that cost
@@ -1897,7 +1925,8 @@ Open questions for Tim:
    streaks needs one of the two
    ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim)).
 9. Is a small monitor of the laser's brightness acceptable in the final
-   hardware, and may the lighting change from frame to frame?
+   hardware, and may the lighting change from frame to frame
+   ([beamforming study, questions for Tim](research/beamforming.md#11-questions-for-tim))?
 10. Which rules may the reconstruction assume about the chip: how many
     materials in the layer to be imaged, the minimum feature width, and
     whether the layout or its design rules are known? Reconstruction by
