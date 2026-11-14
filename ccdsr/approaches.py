@@ -214,9 +214,28 @@ class Approach:
                                       f"known: {sorted(known)}")
 
 
-def parse_approach(text, source_name="<text>") -> Approach:
-    """Read an approach from TOML text."""
+def parse_approach(text, source_name="<text>", changes=()) -> Approach:
+    """Read an approach from TOML text.
+
+    ``changes`` is a list of ``"section.setting=value"`` strings applied on
+    top of the file, for trying a setting without editing it:
+    ``"optics.gap_nm=500"``, ``"reconstruction.smoothness=1e-3"``,
+    ``"positions=unknown"``.
+    """
     data = tomllib.loads(text)
+    for change in changes:
+        key, sep, value = change.partition("=")
+        if not sep:
+            raise InvalidApproach(f"{source_name}: a change is written section.setting=value, not {change!r}")
+        try:
+            parsed = tomllib.loads(f"v = {value}")["v"]
+        except tomllib.TOMLDecodeError:
+            parsed = value.strip()                    # a bare word, such as unknown
+        *sections, name = key.strip().split(".")
+        target = data
+        for section in sections:
+            target = target.setdefault(section, {})
+        target[name] = parsed
     extra = set(data) - _TOP
     if extra:
         raise InvalidApproach(f"{source_name}: unknown entries {sorted(extra)}")
@@ -239,9 +258,9 @@ def parse_approach(text, source_name="<text>") -> Approach:
     return approach
 
 
-def load_approach(path) -> Approach:
+def load_approach(path, changes=()) -> Approach:
     path = Path(path)
-    return parse_approach(path.read_text(), path.name)
+    return parse_approach(path.read_text(), path.name, changes)
 
 
 # ----------------------------------------------------------------- running

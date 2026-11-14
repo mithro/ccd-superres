@@ -227,3 +227,33 @@ def test_options_and_seed_reach_the_run():
     assert cp.run_one(light, "bars", ideal, 0)["rms_error"] != pytest.approx(first["rms_error"], rel=1e-3)
     assert cp.run_one(usual, "bars", ideal, 1)["rms_error"] != pytest.approx(first["rms_error"], rel=1e-6)
     assert not np.allclose(ap.simulate(usual, scene, ideal, 0).readings, ap.simulate(usual, scene, ideal, 1).readings)
+
+
+def test_one_command_run_with_changed_settings(tmp_path, capsys):
+    from ccdsr import run
+
+    path = ROOT / "approaches" / "least-squares.toml"
+    usual = ap.load_approach(path)
+    changed = ap.load_approach(path, ["optics.gap_nm=1000", "noise.full_e=100", "positions=unknown",
+                                      "reconstruction.smoothness=1e-3", "scan.code=[1, 0, 1]"])
+    assert (changed.optics, changed.noise, changed.positions) == ({"gap_nm": 1000}, {"full_e": 100}, "unknown")
+    assert changed.options == {"smoothness": 1e-3} and changed.scan["code"] == (1, 0, 1)
+    assert usual.optics == {} and usual.positions == "known"
+    with pytest.raises(ap.InvalidApproach, match="unknown optics setting"):
+        ap.load_approach(path, ["optics.gap=3"])
+    with pytest.raises(ap.InvalidApproach, match="section.setting=value"):
+        ap.load_approach(path, ["optics.gap_nm"])
+    scene, frames, estimate, scores = run.run(usual)
+    wide = run.run(ap.load_approach(path, ["optics.gap_nm=1000"]))[3]
+    assert frames.optics.gap_nm == 300 and wide["rms_error"] > scores["rms_error"] + 0.03
+    same = cp.run_one(usual, "bars", ap.Condition("as set"), 0)                 # same as the runner
+    assert all(same[k] == v for k, v in scores.items())
+    out = tmp_path / "try.png"
+    run.main([str(path), "--set", "optics.gap_nm=1000", "--out", str(out)])
+    text = capsys.readouterr().out
+    assert "gap 1000 nm" in text and f"{wide['rms_error']:.3f}" in text and out.stat().st_size > 10000
+    run.main(["--list"])
+    listed = capsys.readouterr().out
+    assert "optics.gap_nm=300.0" in listed and "reconstruction.method=two_materials (needs: materials)" in listed
+    with pytest.raises(SystemExit, match="cannot run"):
+        run.main([str(path), "--scene", "nowhere"])
