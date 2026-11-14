@@ -34,6 +34,7 @@ The simulator has two jobs:
 | Effort | Significantly more computation is preferred over more hardware. |
 | Randomness | Deliberately adding random noise, and modelling the randomness already present, to improve the reconstruction is in scope (section 5.8). |
 | Sensor control | The sensor's control functions are expected to be pulled apart and driven differently from the stock camera, so the readout scheme is a replaceable model (section 5.7). |
+| Two dimensions | The two-dimensional nature of the sensor is to be used to get more detail (section 5.9). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
 | Noise | Present in the motion rate, the pixel data and similar quantities. |
@@ -382,8 +383,7 @@ visible light the detail is always on the fading side of that rule.
 ![Contrast of 100 nm lines and spaces against gap, for matt and mirror-like surfaces](diagrams/target-100nm.svg)
 
 What the analytic model gives for a 200 nm period, with 13,000 samples per
-pixel area (the 20% per second, 10 frames per second example over a full
-sensor), a single-sample signal-to-noise of 50 and full feature contrast:
+pixel area (the slow baseline scan of section 5.2 over a full sensor), a single-sample signal-to-noise of 50 and full feature contrast:
 
 | Case | Largest gap that still recovers a 200 nm period |
 |---|---|
@@ -941,7 +941,7 @@ worked example (20% of the sensor length per second, 735 µm/s):
 
 | Scheme | Frame rate | Shift per frame | Samples per point | Motion smear | Width covered |
 |---|---|---|---|---|---|
-| Full array, exposed for the whole frame | 10 | 65.6 pixels | 50 per pixel column, 13,000 with tilt | 73.5 µm | 2.76 mm |
+| Full array, exposed for the whole frame | 10 | 65.6 pixels | 50 | 73.5 µm | 2.76 mm |
 | Full array, exposure of one line | 21 | 31.2 pixels | 105 | 14 nm | 2.76 mm |
 | Full array, exposure of four lines | 21 | 31.2 pixels | 105 | 56 nm | 2.76 mm |
 | Strip of 100 rows, exposed for the whole frame | 401 | 1.64 pixels | 2,008 | 1.8 µm | 112 µm |
@@ -996,10 +996,56 @@ Randomness that is already there, modelled and estimated:
 | Read noise and its pixel-to-pixel differences | Each reading is weighted by its own reliability. Noisy and flickering pixels count for less. | Dark frames, and residuals of the solve | `read_noise_e`, `read_noise_map` |
 | Light level per pulse | Removed as a per-frame factor | The frames | `pulse_energy_sigma` |
 
+The optical side of this, including speckle lighting, a scattering layer on
+the sensor and models for imperfect coherence, is worked through in section
+9.7 of the optical elements study (`docs/optical-elements.md`, pull request
+2), with its own proposed parameters. It advises against a light pattern
+that changes at random every frame, and for one that stays fixed and is
+solved together with the picture.
+
 Every entry is a parameter with a seed, so a run can be repeated exactly,
 and each can be switched off. The validation plan (section 8) includes, for
 each one, the same scene reconstructed with and without it, so the gain is a
 measured number and not a claim.
+
+### 5.9 Using the two-dimensional array
+
+A single line of pixels dragged over the surface would already give a
+picture. The full array of 3280 × 2464 pixels gives much more than a wider
+strip, and the design uses it in six ways. The figures are for the IMX219 and
+the worked example unless stated.
+
+| Use of the second dimension | What it gives | How much |
+|---|---|---|
+| **Scan direction tilted against the pixel grid.** Each pixel further along the scan crosses a surface point slightly to one side of the last. | Sub-pixel sampling across the scan, where straight motion gives none | Without tilt a point is sampled at 5 distinct positions inside a pixel and the largest unsampled hole is 0.51 pixels. With any tilt from 1 in 3280 to 1 in 10 it is sampled at 50 distinct positions and the hole is 0.11 to 0.13 pixels. |
+| **Many looks at every point.** Every point passes under all 3280 pixels of a track, not one. | Noise averaged down, and fine sampling along the scan | 3280 divided by the shift per frame in pixels: 50 readings in the worked example, 13,000 in the slow baseline. Noise falls by 7 and 115 times. |
+| **Rows read at different times.** The rolling shutter reads each row 18.9 µs after the one before, and with tilt a point crosses many rows. | A second, much finer set of sub-pixel positions along the scan, which stays varied even when the shift per frame repeats exactly | 14 nm of extra shift per row. At a tilt of 1 in 16 a point crosses 205 rows, so its samples spread over 2.8 µm in 14 nm steps. |
+| **Each pixel sees a point from a different angle.** This matters in the far-field scheme of section 4.6, where the gap is about a millimetre. | Each pixel records light the surface sent in a different direction. The whole array is a synthetic aperture in both directions at once, where a single line would give fine detail in one direction only. | At a 1 mm gap the array spans about ±61° along the scan and ±54° across it, in steps of 1.1 thousandths of a radian. That is the wide collection angle the limit in section 4.6 assumes, in both directions. |
+| **Scans in more than one direction.** A second pass at right angles, or at a different tilt. | The motion smear and the rolling shutter act along the scan only, so each direction of detail gets one pass in which it is untouched. Position estimates from the two passes check each other. Slanted light meets the pattern from another side. | Removes the smear loss of section 4.8 for one direction per pass. Doubles the scan time. |
+| **Redundancy.** Successive frames show almost the same surface, and every point is read by thousands of different pixels. | Frame positions, pixel gains, row and column noise patterns and bad pixels are all estimated from the data, with no calibration target | Frames overlap by 98% in the worked example. A shift is estimated from about 8 million pixels at once, so its error is a small fraction of a pixel (to be measured at level 1). Each pixel's gain is fixed by comparing it with the thousands of other pixels that read the same points. With tilt a point crosses both rows and columns, so row noise and column noise can be told apart. |
+
+Consequences for the design:
+
+- **Tilt is a first-class scan parameter**, not a correction. Any small tilt
+  gives nearly the same coverage, so its exact value need not be controlled.
+  It only has to be estimated, which the redundancy allows.
+- **The forward model keeps every pixel's own position, time and viewing
+  angle.** Nothing is averaged along rows or columns before reconstruction,
+  because the differences between pixels are the information.
+- **The scan path is a list of passes**, each with its own direction, tilt
+  and speed, reconstructed together as one problem. A single straight pass
+  is the simplest case.
+- **Different parts of the array can do different jobs** once the sensor is
+  driven directly (section 5.7): a fast narrow strip for tracking position
+  while the rest integrates, or strips with different exposures.
+- **At the far-field stage the array's size sets the resolution**, through
+  the angle it covers, as well as the swath. A larger sensor at the same gap
+  collects wider angles. This is one more reason not to window the array
+  down in stages 2 and 4.
+
+The explorer's tilt control is the scan direction relative to the pixel
+grid, and it reports how many pixel rows a point crosses and the timing
+step between them.
 
 ## 6. Reconstruction
 
