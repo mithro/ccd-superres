@@ -29,32 +29,39 @@ What it found:
 - **Nobody has done this without a lens.** With light passing *through* a
   thin sample, the best lensless results are lines 225 to 310 nm wide. With
   light *reflected* from a surface, which is the only option for a chip, the
-  best lensless result with visible light is 1,700 nm. The project is aiming
-  seventeen times finer than the nearest published instrument of its
-  kind. That is the size of the step, and the simulator has to show it can
-  be made before anything is built.
+  best lensless results with visible light show lines about 2,000 nm wide.
+  The project is aiming about twenty times finer than the nearest published
+  instrument of its kind. That is the size of the step, and the simulator
+  has to show it can be made before anything is built.
 - **The physics allows it, and it has been done with a lens.** A microscope
-  using two slanted laser beams, the same trick as the project's beam pair,
-  reached lines 170 nm wide with red light, which is 0.27 of its wavelength.
-  The same fraction of violet light is 109 nm. So the limit the project is
-  working towards is real. What is new is doing it with a bare sensor.
-- **The pixel is the main obstacle, and the beam pair changes what is asked
-  of it.** Published lensless instruments resolve lines up to six times
-  narrower than their pixels. The project needs eleven times. The study
-  found that a beam pair does not ask the pixel to see stripes finer than
-  itself. It asks the pixel to accept light arriving at a very steep slant,
-  about 72 degrees off straight-on. Nobody has published how a pixel of this
-  size responds at such a slant, so it stays the largest unknown.
+  using slanted laser beams and a reference beam, a close relative of the
+  project's beam pair, reached lines 170 nm wide with red light, which is
+  0.27 of its wavelength. The same fraction of violet light is 109 nm. So
+  the limit the project is working towards is real. What is new is doing it
+  with a bare sensor.
+- **The pixel is the main obstacle, and a beam pair helps with it only for
+  the very finest detail.** Published lensless instruments resolve lines up
+  to six times narrower than their pixels. The project needs eleven times.
+  The study found that a pair of beams at the same steep slant turns
+  detail into stripes coarse enough for the pixels only when the detail is
+  within about a tenth of the finest the light can carry (lines of 106 to
+  118 nm). For that detail the pixel has to accept light arriving at 60 to
+  72 degrees off straight-on. Coarser detail needs a second beam at a
+  different, matched slant, or the pixel has to read stripes finer than
+  itself. Nobody has published how a pixel of this size behaves in either
+  respect, so it stays the largest unknown.
 - **The computing side is in good shape.** Solving for the scan positions,
   for the blur from moving during a flash, and for a laser that is not one
   pure colour are all standard, published techniques. The project's scan
   gives far more overlap between recordings than they need.
-- **A grating can replace the need for a pure-colour laser.** An earlier
-  page found that an ordinary laser diode gives clear stripes only in a
-  strip a fraction of a millimetre wide. Chip-making research solved the
-  same problem thirty years ago by splitting the beam with a fine grating,
-  which makes stripes whose spacing does not depend on the colour. This is
-  a new candidate for the plan.
+- **A grating removes half of the need for a pure-colour laser.** An
+  earlier page found that an ordinary laser diode gives clear stripes on
+  the chip only in a strip a fraction of a millimetre wide. Chip-making
+  research solved that problem thirty years ago by splitting the beam with
+  a fine grating, which makes stripes whose spacing does not depend on the
+  colour. A second limit remains, set by the gap between chip and sensor:
+  at a gap of 1 mm the laser's spread of wavelengths still has to be under
+  about 0.1 to 0.3 nm. The grating is a new candidate for the plan.
 - **Chips are a hard case for this method, in a way that matters.** Regular
   repeating patterns, which chips are full of, confuse it. The published
   cures are to give the light some structure of its own, such as a random
@@ -78,6 +85,11 @@ specific to this page:
 | Reference | A plain beam that reaches the sensor together with the light from the object, so that the two interfere and the object's light can be read. |
 | Achromatic | Not depending on colour (wavelength). |
 | Extreme ultraviolet | Light with a wavelength of about 10 to 60 nm, made by special sources. Far shorter than anything a laser diode gives. |
+| Reconstruction cell | One square of the grid on which the computer builds the picture. It is chosen finer than the detail wanted, for example 50 nm for 100 nm lines. |
+| Near field, far field | Near field: the sensor is close enough that each point's light lands near where it left. Far field: the sensor is far enough that light is sorted by the direction it left in. |
+| Fourier ptychography | The variant in which nothing moves and the direction of the lighting is changed between recordings. |
+| Collimated, uncollimated | A collimated beam has been made parallel by a lens. An uncollimated one is left spreading as it comes from the source. |
+| Excimer laser | A gas laser giving deep-ultraviolet light, used in chip making. Its colour is much less pure than that of a good laser diode. |
 
 ## How claims are marked
 
@@ -101,10 +113,10 @@ prints them.
 
 | Question from the plan | Short answer | Section |
 |---|---|---|
-| What is the finest detail demonstrated without a lens, in transmission and in reflection, and what limited it? | Transmission, visible and ultraviolet light: line widths of 225 to 310 nm, 0.36 to 0.76 of the wavelength. Reflection, visible light: 1,700 nm, 4.2 wavelengths. Reflection at any wavelength: 1.3 wavelengths at best. Limits named by the authors: the angles the pixel accepts, the pixel's size and shape, signal at steep angles, the purity of the light, and in reflection the room needed to get light in. | 3 |
+| What is the finest detail demonstrated without a lens, in transmission and in reflection, and what limited it? | Transmission, visible and ultraviolet light: line widths of 225 to 310 nm, 0.36 to 0.76 of the wavelength. Reflection, visible light: about 2,000 nm, five wavelengths. Reflection at any wavelength: 1.3 wavelengths at best. Limits named by the authors: the angles the pixel accepts, the pixel's size and shape, signal at steep angles, the purity of the light, and in reflection the room needed to get light in. | 3 |
 | What do position correction, mixed-state models and pixel super-resolution need from the data? | Overlap of 60 % or more between neighbouring recordings; positions that are not perfectly regular; starting positions good to about one reconstruction cell, or a model of the motion; one extra pattern per few cells of movement during a flash; many more readings than unknowns. The project's scan supplies all of these with a wide margin. | 5 |
-| How do coarse detector pixels limit the result, and how have others got round it? | The record is a line width one sixth of the pixel. Three ways round: many shifted recordings plus a measured pixel shape; slanted or speckled lighting that turns fine detail into coarse; a known scattering layer just above the pixels. All three end at the same wall, the steepest angle of light the pixel will accept. | 4 |
-| What overlap, pulse timing and number of lighting directions does stage 2 need? | Overlap: 60 % of the lit strip, against 99.99 % available. Pulse: under 6 ms at the baseline speed, or under 70 µs at 0.74 mm/s, and ten times longer if the movement is modelled. Directions: 11 to 18 lighting states to cover all detail down to the limit, more if the pixel accepts only a narrow cone. | 8 |
+| How do coarse detector pixels limit the result, and how have others got round it? | The record is a line width one sixth of the pixel. Three ways round: many shifted recordings plus a measured pixel shape; slanted or speckled lighting that turns fine detail into coarse; a known scattering layer just above the pixels. The last two end at the same wall, the steepest angle of light the pixel will accept. | 4 |
+| What overlap, pulse timing and number of lighting directions does stage 2 need? | Overlap: 60 % of the lit strip, against 99.99 % available. Pulse: under 6 ms at the baseline speed, or under 70 µs at 0.74 mm/s, and perhaps twelve times longer if the movement is modelled. Directions: at least 11 to 18 lighting states to cover all detail down to the limit, more if the pixel accepts only a narrow cone or reads only coarse stripes. | 8 |
 
 Status of the table: the first three rows summarise published work cited in
 the sections named. The last row is **Derived here** and is an
@@ -159,19 +171,24 @@ the half-pitch. The last column is the line width divided by the wavelength:
 
 | Source | Method | Wavelength (nm) | Pixel (µm) | Gap to sensor (mm) | Line width (nm) | Line width / wavelength |
 |---|---|--:|--:|--:|--:|--:|
-| [[P3](#p3)] | Shifted and tilted light, oil-filled gap | 700 | 1.12 | 0.1 | 250 | 0.36 |
-| [[P4](#p4)] | Wavelength scan and tilted light | 500 | 1.12 | 0.1 to 0.5 | 250 | 0.50 |
-| [[P2](#p2)] | Shifted light, measured pixel shape | 372 | 1.12 | 0.05 to 0.15 | 225 | 0.60 |
-| [[P8](#p8)] | Coded sensor | 532 | 1.85 | 0.3 | 345 | 0.65 |
-| [[P8](#p8)] | Coded sensor | 405 | 1.85 | 0.3 | 308 | 0.76 |
-| [[P11](#p11)] | Coded sensor, laser | 405 | 1.85 | 0.8 | 308 | 0.76 |
-| [[P7](#p7)] | Diffuser between sample and sensor | 415 | 1.85 | not stated | 550 | 1.33 |
-| [[P6](#p6)] | Diffuser between sample and sensor | 532 | 1.67 | 1 | 780 | 1.47 |
-| [[P11](#p11)] | Coded sensor, deep-ultraviolet LED | 266 | 1.85 | 0.8 | 435 | 1.64 |
-| [[P22](#p22)] | Far field, extreme ultraviolet | 13.5 | not applicable | 22.6 | 12.6 | 0.93 |
-| [[P23](#p23)] | Far field, extreme ultraviolet | 13.5 | not applicable | not stated | 16 | 1.19 |
+| [[P3](#p3)] | Shifted and tilted light, oil-filled gap | 700 | 1.12 | 0.10 | 250 | 0.36 |
+| [[P4](#p4)] | Wavelength scan and tilted light | 500 | 1.12 | 0.10 | 250 | 0.50 |
+| [[P2](#p2)] | Shifted light, measured pixel shape, oil-filled gap | 372 | 1.12 | 0.05 | 225 | 0.60 |
+| [[P8](#p8)] | Coded sensor | 532 | 1.85 | 0.32 | 345 | 0.65 |
+| [[P8](#p8)] | Coded sensor | 405 | 1.85 | 0.32 | 308 | 0.76 |
+| [[P11](#p11)] | Coded sensor, laser | 405 | 1.85 | 0.84 | 308 | 0.76 |
+| [[P7](#p7)] | Diffuser between sample and sensor | 415 | 1.85 | – | 550 | 1.33 |
+| [[P6](#p6)] | Diffuser between sample and sensor | 532 | 1.67 | 1.00 | 780 | 1.47 |
+| [[P11](#p11)] | Coded sensor, deep-ultraviolet LED | 266 | 1.85 | 0.84 | 435 | 1.64 |
+| [[P22](#p22)] | Far field, extreme ultraviolet | 13.5 | – | 22.6 | 12.6 | 0.93 |
+| [[P23](#p23)] | Far field, extreme ultraviolet | 13.5 | – | – | 16 | 1.19 |
 
-Notes on the table. The wavelength for [[P4](#p4)] is the middle of a scanned range
+A dash means not stated in what was read, or not applicable. The gap is the
+smallest the paper reports: [[P4](#p4)] used 0.1 to 0.5 mm and
+[[P2](#p2)] 0.05 to 0.15 mm. The 12.6 nm of [[P22](#p22)] is the width of
+a reconstructed edge, equal to one reconstruction cell, not a measured line
+width.
+The wavelength for [[P4](#p4)] is the middle of a scanned range
 of 480 to 531 nm. For [[P8](#p8)] and [[P11](#p11)] the gap is from the coded layer to the
 pixels; the sample sits 0.2 to 2 mm beyond that in [[P11](#p11)]. The 250 nm of [[P3](#p3)]
 and the 225 nm of [[P2](#p2)] are read as half-pitch because the papers' own
@@ -181,7 +198,8 @@ What the table shows:
 
 - **The best ratio, 0.36, needed three things at once** [[P3](#p3)]: light tilted
   to ±51°, oil filling the gap, and a gap of 0.1 mm. Oil shortens the
-  wavelength by its refractive index of 1.52. In air, with the sample a
+  wavelength by its refractive index of 1.52. The 225 nm result of
+  [[P2](#p2)] also had oil in the gap. In air, with the sample a
   millimetre away, nothing published is better than 0.76.
 - **A shorter wavelength did not help by itself.** With a 266 nm LED the
   coded sensor resolved 435 nm, worse than the 308 nm it reached with a
@@ -202,7 +220,8 @@ z < \frac{2\lambda^2}{\Delta\lambda}
 $$
 
 where $z$ is the gap [[P5](#p5)]. In words: the less pure the colour, the closer
-the sensor must be. A 2 nm spread at 405 nm allows 0.16 mm, and a 0.5 nm
+the sensor must be. The rule was worked out for light arriving straight
+down and leaving at small angles. A 2 nm spread at 405 nm allows 0.16 mm, and a 0.5 nm
 spread allows 0.66 mm (**Derived here** from the formula). This is the same
 effect as the narrow strip of section 6, met from another direction, and it
 applies to straight-down light as well as to beam pairs.
@@ -213,25 +232,29 @@ A chip is opaque to violet light, so this is the case that matters.
 
 **Table 3.2a: published lensless results in reflection.**
 
-| Source | Method | Wavelength (nm) | Angle from straight-on (°) | Line width or resolution (nm) | Divided by wavelength |
-|---|---|--:|--:|--:|--:|
-| [[P17](#p17)] | Speckle-lit ptychography of wafers, beam splitter | 405 | 0 | 1,700 | 4.2 |
-| [[P15](#p15)] | Holography with a tilted reference, beam splitter | not stated | 0 | 2,000 | not known |
-| [[P18](#p18)] | Single-shot phase recovery through silicon | 1,064 | 0 | 2,190 | 2.1 |
-| [[P19](#p19)] | Ptychography, extreme ultraviolet | 30 | not stated | 40 by 80 | 1.3 by 2.7 |
-| [[P20](#p20)] | Ptychography, extreme ultraviolet | 18 | 70 | 50 by 100 | 2.8 by 5.6 |
-| [[P21](#p21)] | Ptychography, soft X-ray | 1.63 | 45 | 22 | 14 |
+| Source | Method | Wavelength (nm) | Angle from straight-on (°) | Line width, best direction (nm) | Line width, worst direction (nm) | Best, divided by wavelength |
+|---|---|--:|--:|--:|--:|--:|
+| [[P17](#p17)] | Speckle-lit ptychography of wafers, beam splitter | 405 | 0 | 1,950 | 2,400 | 4.8 |
+| [[P15](#p15)] | Holography with a tilted reference, beam splitter | – | 0 | 2,000 | 2,000 | – |
+| [[P18](#p18)] | Single-shot phase recovery through silicon | 1,064 | 0 | 2,190 | 2,190 | 2.1 |
+| [[P19](#p19)] | Ptychography, extreme ultraviolet | 30 | – | 40 | 80 | 1.3 |
+| [[P20](#p20)] | Ptychography, extreme ultraviolet | 18 | 70 | 50 | 100 | 2.8 |
+| [[P21](#p21)] | Ptychography, soft X-ray | 1.63 | 45 | 22 | 22 | 14 |
 
-Notes. [[P17](#p17)] and [[P15](#p15)] give "resolution" by their own definitions, not a
-measured line width; a second reading of [[P17](#p17)] found its smallest resolved
-bars to be about 2,400 nm wide. [[P21](#p21)] reports a full period of 45 nm, halved
-here. The wavelength of [[P21](#p21)] is converted here from its photon energy.
+A dash means not stated in the abstract. For [[P17](#p17)] the two figures
+are the two test patterns it shows resolved, not two directions: bars
+1,950 nm wide on a standard target and 2,400 nm on its own target, where
+those were the finest bars present. Its authors also quote a calculated
+limit of 1,700 nm for the repeat distance, which is not a demonstrated
+line width. [[P15](#p15)] gives "resolution" by its own definition.
+[[P21](#p21)] reports a full period of 45 nm, halved here, and its
+wavelength is converted here from its photon energy.
 
 What the table shows:
 
-- **With visible light, lensless reflection imaging is at 1.7 to 2 µm.**
+- **With visible light, lensless reflection imaging is at about 2 µm.**
   The statement in the design that it is undemonstrated below about 2 µm
-  holds, narrowly. Every such instrument whose layout could be confirmed
+  holds. Every such instrument whose layout could be confirmed
   sends the light in through a beam splitter, straight down. That pushes
   the sensor millimetres to centimetres away and limits the angles it
   collects: [[P17](#p17)] works at a combined numerical aperture of about 0.24
@@ -249,9 +272,10 @@ What the table shows:
   patch is stretched along the direction of tilt, which halves the
   resolution that way [[P20](#p20)]. The project plans several directions of light,
   which evens this out.
-- **The slant itself must be known very well.** Reflection ptychography at
-  70° needed the angle to ±0.05° [[P29](#p29)], and two groups now solve for it
-  inside the reconstruction [[P29](#p29), [P30](#p30)]. The simulator should treat beam
+- **The slant itself must be known very well, and can be solved for.**
+  Two groups now treat the angle as an unknown inside the reconstruction
+  [[P29](#p29), [P30](#p30)], and one reports that this settles to within
+  ±0.05° at a 70° slant [[P29](#p29)]. The simulator should treat beam
   angles as unknowns to be solved, not as settings.
 
 ### 3.3 With a lens, and on real chips, for comparison
@@ -275,8 +299,11 @@ ultraviolet light passing through a thinned sample.
 | [[P32](#p32)] | Hard X-ray | 14.6 | Pillar 11 µm wide cut from the chip | Secondary |
 | [[P33](#p33)] | Hard X-ray | 18.9 | Chip thinned, region 40 µm wide | Secondary |
 | [[P34](#p34)] | Hard X-ray | 4 | Cut sample, about 40 hours | Abstract; time is secondary |
-| [[P35](#p35)] | Hard X-ray | under 20 | Wafer polished to 240 µm | Abstract |
+| [[P35](#p35)] | Hard X-ray | 20 | Wafer polished to 240 µm | Abstract |
 | [[P23](#p23)] | Extreme ultraviolet, 13.5 nm | 16 | Thin slice of a chip | Abstract |
+
+The figure for [[P35](#p35)] is an upper bound: the paper says finer than
+20 nm.
 
 ![Bar chart of the finest line width in each published result divided by the wavelength used](../diagrams/ptycho-benchmark.svg)
 
@@ -284,17 +311,17 @@ ultraviolet light passing through a thinned sample.
 light it used. Shorter bars are better. The green line at 0.25 is both the
 limit for light in air and the project's target of 100 nm lines with 405 nm
 light. Blue: no lens, light through the sample. Orange: no lens, reflected
-light. Grey: with a lens. No lensless result reaches the line. Two results
-with a lens come close to it, and one passes it by sending the light in
-through glass. Values and sources are in tables 3.1a, 3.2a and 3.3a.*
+light. Grey: with a lens. No lensless result reaches the line. With a lens, one result comes close
+to it and one passes it by sending the light in through glass. Two table
+entries without a usable ratio are not drawn. Values and sources are in tables 3.1a, 3.2a and 3.3a.*
 
 What this means for the project:
 
 - The target ratio of 0.25 has been approached to within a tenth, with a
-  lens, by a method built on slanted beam pairs (section 7). The light
+  lens, by a method built on slanted beams and a reference (section 7). The light
   permits it.
-- The best lensless reflection result with visible light is seventeen times
-  short of it. Between the two lies everything this project has to show in
+- The best lensless reflection result with visible light is about twenty
+  times short of it. Between the two lies everything this project has to show in
   simulation.
 - Real chips have been imaged at 4 to 20 nm, but only with X-rays, from a
   large facility, on samples cut from the chip. That is the comparison plan
@@ -322,12 +349,13 @@ The 100 nm goal asks for nearly twice the record. Values are from table
 |---|---|--:|--:|--:|
 | [[P8](#p8)] | Coded layer on the sensor, 405 nm | 1,850 | 308 | 6.0 |
 | [[P8](#p8)] | Coded layer on the sensor, 532 nm | 1,850 | 345 | 5.4 |
-| [[P2](#p2)] | Shifted light and measured pixel shape | 1,120 | 225 | 5.0 |
-| [[P3](#p3)] | Tilted light | 1,120 | 250 | 4.5 |
+| [[P2](#p2)] | Shifted light and measured pixel shape, oil-filled gap | 1,120 | 225 | 5.0 |
+| [[P3](#p3)] | Tilted light, oil-filled gap | 1,120 | 250 | 4.5 |
 | [[P9](#p9)] | Film of blood cells on the sensor | 1,850 | 435 | 4.3 |
 | [[P7](#p7)] | Diffuser | 1,850 | 550 | 3.4 |
 | [[P6](#p6)] | Diffuser | 1,670 | 780 | 2.1 |
-| This project, stage 2 | | 1,120 | 150 to 200 | 5.6 to 7.5 |
+| This project, stage 2, coarse end | | 1,120 | 200 | 5.6 |
+| This project, stage 2, fine end | | 1,120 | 150 | 7.5 |
 | This project, goal | | 1,120 | 100 | 11.2 |
 
 ### 4.2 Three ways round, and the wall behind all of them
@@ -361,9 +389,14 @@ The other rows all move the problem from the pixel's *shape* to the pixel's
 *angles*. Two of the coded-sensor papers say so directly: resolution is
 "limited by the maximum scattering angle that can be detected by the imager,
 not the pixel size" [[P7](#p7)], and is set by the largest detectable angle [[P10](#p10)].
-An earlier instrument found that pixel acceptance angles capped it at a
-numerical aperture of 0.8 to 0.9, about 53° to 64°, under straight-down
-light [[P3](#p3)].
+The authors of an earlier instrument state that lensless microscopes on a
+sensor had been held to a numerical aperture below about 0.8 to 0.9 by the
+narrow range of angles the pixels accept and by weak signal at steep angles
+[[P3](#p3)]. Those instruments had oil in the gap, where a numerical
+aperture of 0.83 corresponds to light only about 33° off straight-on
+(**Derived here**: the angle whose sine is 0.83 divided by 1.52). So the
+steepest light a 1.12 µm pixel has been shown to use is far short of the
+60° to 72° this project's finest detail needs.
 
 ### 4.3 What is known about how pixels respond
 
@@ -408,12 +441,14 @@ does better than a grid for the same number of recordings [[P57](#p57)].
 
 *Figure: a small ptychography calculation run for this page. Left: how
 wrong the recovered object is (0 is perfect) against the overlap between
-neighbouring light patches, with the light patch itself also unknown. Below
-about 50 % the solve fails. Above 60 % it works. Dots are three different
+neighbouring light patches, with the light patch itself also unknown. Below about 50 % the solve fails. At 70 % and above it works for all three
+objects; at 60 % one of the three failed. Dots are three different
 test objects and the line is their median. Right: the same, against errors
 in the positions given to the solver, measured in cells of the
 reconstruction grid. Orange: positions trusted as given. Green: each
-position also searched one cell each way. Errors of up to one cell are repaired. At two cells and beyond this simple search fails. Status: **Derived
+position also searched one cell each way. Errors of up to one cell are repaired. At two cells and beyond this simple
+search fails. Errors are whole numbers of cells, so the point at 0.5 is a
+mixture of none and one. Status: **Derived
 here** (function `fig_toy`). A toy on a 128 by 128 grid with photon noise,
 not the project's geometry.*
 
@@ -421,7 +456,7 @@ not the project's geometry.*
 
 | Overlap (%) | 80 | 70 | 60 | 50 | 40 | 30 |
 |---|--:|--:|--:|--:|--:|--:|
-| Error of the recovered object | 0.06 | 0.04 | 0.13 | 0.29 | 0.63 | 0.66 |
+| Error of the recovered object (0 to 1) | 0.06 | 0.04 | 0.13 | 0.29 | 0.63 | 0.66 |
 
 For Fourier ptychography, where the direction of light changes, the rule is
 that the regions of detail seen under neighbouring directions must share at
@@ -452,7 +487,7 @@ trade against the gap and the wavelength (**Judgement**, consistent with
 | Treat positions as unknowns in the fit | Corrects "large errors"; the size of error that can be recovered shrinks as noise rises and overlap falls | [[P38](#p38)] |
 | Use the slope of the recorded patterns | Accuracy finer than one cell | [[P40](#p40)] |
 | Fit positions with a model of the whole stage (scale, rotation, skew) | Faster and more robust than freeing every position | [[P39](#p39)] |
-| The same idea for lighting angles | Angles recovered across ±2 grid steps, ±45° of rotation and a scale error of 0.5 to 1.75, but only because a rigid model was imposed. Searching each angle freely was 26 times slower and less robust. | [[P41](#p41)] |
+| The same idea for lighting angles | Angles recovered across ±2 grid steps, ±45° of rotation and a scale error of 0.5 to 1.75, but only because a rigid model was imposed. Searching each angle freely took about twelve times as long as their method and was less robust. | [[P41](#p41)] |
 
 No paper's abstract gave the largest position error that can be corrected,
 and the full texts that hold those figures could not be reached. The toy
@@ -469,7 +504,9 @@ Published fly scans model the blur by letting each recording be the sum of
 several patterns. One study with a visible laser gives numbers [[P50](#p50)]:
 
 **Table 5.4a: movement during one recording against patterns needed**
-[[P50](#p50)]. The last two columns are **Derived here** from its figures.
+[[P50](#p50)]. The movement columns are **Derived here** from its speeds and
+exposure times. The last two columns were read from its full text by one
+reader and could not be found by a second, so they are **Unverified**.
 
 | Speed (µm/s) | Movement in one recording (µm) | In reconstruction cells | Patterns needed | One pattern only |
 |--:|--:|--:|--:|---|
@@ -530,7 +567,7 @@ rows and via grids are exactly this kind of sample.
 | Cure | Result reported | Source |
 |---|---|---|
 | Record the bare light once and hold the solver to it | Resolution improved from 60 nm to 12.6 nm | [[P22](#p22)] |
-| Light with a wide enough cone that neighbouring directions overlap. The cone's numerical aperture must exceed the wavelength divided by twice the repeat distance. A ring-shaped beam does this efficiently. | A 300 nm defect found in a 9 µm grid; signal over 135 times that of a plain beam | [[P24](#p24)] |
+| Light with a wide enough cone that neighbouring directions overlap. The cone's numerical aperture must exceed the wavelength divided by twice the repeat distance. A ring-shaped beam does this efficiently. | A 300 nm defect found in a 9 µm grid; the defect stood out from the noise over 135 times better than with a plain beam at equal exposure time | [[P24](#p24)] |
 | Speckled or otherwise structured light | Simulation: fit improved up to a hundredfold for a plain spot, less with structured light | [[P17](#p17), [P36](#p36)] |
 
 For the project, the rule in the second row has a direct consequence. A
@@ -563,47 +600,63 @@ ranking is a **Judgement**.
 
 | Rank | Way | Hardware added | What it costs | Sources |
 |--:|---|---|---|---|
-| 1 | Split the beam with a grating, so that the stripe spacing does not depend on colour | One fine grating | The grating must be made and aligned | [[P65](#p65), [P66](#p66), [P67](#p67)] |
+| 1 | Split the beam with a grating, so that the stripe spacing on the chip does not depend on colour | A fine grating, and two mirrors or a second grating to bring the two beams back together | The parts must be made and aligned. Cures the strip on the chip, not the limit set by the gap (below). | [[P65](#p65), [P66](#p66), [P67](#p67)] |
 | 2 | Accept the strip and scan through it | None | Fewer useful readings of each point. The strip's fade-out is a known shape that acts as the probe. | Calibration page |
 | 3 | Model the spread of colours in the reconstruction | None | More unknowns, more computing. Recovers part of the contrast. | [[P47](#p47), [P44](#p44)] |
-| 4 | A single-frequency laser | A dearer source | Money | Calibration page |
+| 4 | A single-frequency laser | A dearer source | Money. Cures both limits. | Calibration page |
 | 5 | Give up interference between the two beams and treat them as separate lights | None | Loses the reference, and with it the coarse stripes of section 7 | [[P49](#p49), [P72](#p72)] |
 
 **The grating is the new finding.** Chip-making research needed stripes of
 100 nm period over centimetres from excimer lasers, whose colour is far
 less pure than a diode's. Two matched gratings did it: the spacing of the
 stripes is set by the grating and not by the wavelength, and the depth over
-which they stay clear depends only on how point-like the source is [[P65](#p65)].
-Areas of about 10 cm² at 100 nm period were exposed this way [[P66](#p66)]. A
-related method gives a stationary fine pattern from a broad-band source at
-any distance behind a single grating [[P67](#p67)].
+which they stay clear depends only on how point-like the source is
+[[P65](#p65)]. Areas of about 10 cm² at 100 nm period were exposed this way
+[[P66](#p66)]. A related method gives a stationary fine pattern from a
+broad-band source at any distance behind a single grating [[P67](#p67)].
 
-For this project (**Derived here**, to be confirmed in the simulator):
+**Table 6b: the grating for this project.** **Derived here**, to be
+confirmed in the simulator.
 
 | Quantity | Value | Unit |
 |---|--:|---|
 | Grating period that sends 405 nm light out at ±72° | 426 | nm |
-| Stripe period this gives, at any wavelength | 213 | nm |
+| Stripe period this gives on the chip, at any wavelength | 213 | nm |
 | Stripe period from a stock grating of 2,400 lines per millimetre | 208 | nm |
 | Angle of the beams from that stock grating at 405 nm | 76.4 | ° |
 
-There is a second benefit, also **Derived here**. Light from one beam that
-has been turned back by fine lines on the chip, and the mirror reflection
-of the other beam, then differ in direction by an amount that does not
-depend on wavelength either. The coarse stripes they form on the sensor
-(section 7) line up for every colour in the source. With beams split by
-mirrors that is not so, and each colour's stripes sit at a different
-spacing.
+**The grating does not cure everything, and an earlier draft of this page
+said it did.** It makes the stripes *on the chip* line up for every colour.
+But the light then has to cross the gap to the sensor, and the two waves
+that must interfere there (section 7) cross it at different slants, so one
+travels further than the other by an amount that grows with the gap:
 
-This is put forward as a candidate, not a decision. It adds one part, which
-runs against the preference for computation over hardware, but the part is
-passive and it removes the need for a special laser. It is added to the
-plan as scouting candidate X17.
+**Table 6c: the limit set by the gap,** for a 1 mm gap and a reference at
+72°. **Derived here**: the gap times the difference of one over the cosine
+of each angle, and the wavelength squared divided by that distance.
 
-Separately, the rule quoted in section 3.1 applies to all coherent schemes
-on this project, not only beam pairs: with a 1 mm gap, a source whose
-wavelengths spread by more than about 0.3 nm blurs the finest detail
-(**Derived here** from the formula of [[P5](#p5)]).
+| Angle of the light from the detail (°) | Extra distance travelled by the reference (mm) | Largest spread of wavelengths (nm) |
+|--:|--:|--:|
+| 64 | 0.95 | 0.17 |
+| 58 | 1.35 | 0.12 |
+| 23 | 2.15 | 0.08 |
+
+These agree in size with the rule quoted in section 3.1, which gives
+0.33 nm for a 1 mm gap and was worked out for small angles. An ordinary
+diode spreads over 0.5 to 2 nm. So with a 1 mm gap, an ordinary diode is
+not pure enough even with a grating. The limit loosens in proportion as the
+gap shrinks, but section 7 shows the gap cannot go below about 0.6 mm for
+this sensor. The honest position is that beam-pair approaches at a
+millimetre gap need a source with a spread of about 0.1 nm, which is
+between an ordinary diode and a single-frequency laser. Whether cheap
+diodes reach that is a question for data item R10. The simulator's
+`bandwidth_nm` and `gap` together decide it. A reference beam matched in
+slant to the light being read (table 7c) eases this limit as well: detail
+leaving at 23° read against a reference at 13° has an extra distance of
+only 0.06 mm, which an ordinary diode can manage (**Derived here**).
+
+The grating is therefore put forward as a candidate that removes one of two
+coherence limits. It is added to the plan as scouting candidate X17.
 
 ## 7. Has beam-pair mixing been done before?
 
@@ -614,14 +667,17 @@ A group at the University of New Mexico lit samples with steeply slanted
 laser beams so that fine detail was shifted into the range a modest lens
 could pass, and added a reference beam to read it. With red light and a lens
 of numerical aperture 0.4 they resolved a grating of 170 nm lines and
-isolated features of 180 nm [[P68](#p68)]. They then removed the separate reference
-by adding a *second slanted beam at the edge of the lens's range*, which
-acts as the reference and shifts the recorded detail to a coarse,
-"intermediate" spacing [[P69](#p69)]. That is the project's beam pair. They give
-the limit as a line width of a quarter of the wavelength in air [[P68](#p68), [P82](#p82)],
-and passed it only by bringing the light in through glass in contact with
-the sample [[P70](#p70)]. Another group showed the same mixing on a reflecting
-sample [[P71](#p71)].
+isolated features of 180 nm [[P68](#p68)]. They then removed the separate
+reference by adding a second beam, "just at the edge" of the range of
+angles their lens accepts, which acts as the reference and shifts the
+recorded detail to a coarse, "intermediate" spacing [[P69](#p69)]. That is
+a close relative of the project's beam pair, with one difference that turns
+out to matter: their reference is chosen to arrive within the range of
+angles the detector reads well, not as the mirror image of the steep beam.
+They give the limit as a line width of a quarter of the wavelength in air
+[[P68](#p68), [P82](#p82)], and passed it only by bringing the light in
+through glass in contact with the sample [[P70](#p70)]. Another group
+showed the same mixing on a reflecting sample [[P71](#p71)].
 
 Two points from this literature correct or sharpen the project's own
 documents.
@@ -630,12 +686,14 @@ documents.
 scattered (as opposed to fluorescent light), lighting with stripes is
 exactly the same as lighting with the two slanted beams that make the
 stripes, and the finest detail is set by the slant of the light plus the
-angles the detector collects [[P72](#p72)]. The beam pair does not push the limit
-beyond what the two beams reach one at a time.
+angles the detector collects [[P72](#p72)]. The beam pair does not push the
+limit beyond what the two beams reach one at a time. (The paper was
+recalled, not re-read, so the attribution is **Unverified**; the physics
+is standard, and holds when the reconstruction recovers the light's phase.)
 
-**Second: what the pair does provide is a reference travelling almost the
-same way as the light being measured.** This is the useful part, and it
-changes what is asked of the pixel.
+**Second: what a second beam does provide is a reference, and it helps
+only when it travels almost the same way as the light being measured.**
+This is the useful part, and it changes what is asked of the pixel.
 
 ![Two side views to scale: with one beam the turned-back light meets only its own mirror reflection; with a pair it meets the other beam's reflection at a small angle](../diagrams/ptycho-beat-path.svg)
 
@@ -647,37 +705,92 @@ reflection arriving from the left (dashed yellow). The two cross at 136°
 and make stripes about 220 nm apart, far finer than the pixel. Bottom: with
 a pair, the mirror reflection of the second beam (dashed green) arrives
 from almost the same direction as the turned-back light, 8° apart. Their
-stripes are about 8 µm apart, which the pixels read easily. Status:
+stripes are about 8 µm apart, which the pixels read easily. This is the
+favourable case: detail of 219 nm period. Table 7b shows what happens for
+coarser detail. Status:
 **Derived here** (function `fig_beat_path`), straight rays only.*
 
-**Table 7a: the numbers behind the figure.** **Derived here**, for 405 nm
-light at 72° and a 1 mm gap.
+**Table 7a: the geometry behind the figure.** **Derived here**, for 405 nm
+light at 72°, a 1 mm gap, and a sensor body no wider than its 3.68 mm
+light-sensitive area.
 
 | Quantity | Value | Unit |
 |---|--:|---|
-| Stripe period at the sensor, turned-back light at 58° against the reference at 72° | 4.0 | µm |
-| The same for turned-back light at 64° | 7.9 | µm |
-| Stripe period against the beam's own mirror reflection | 219 to 225 | nm |
-| Angle at which both arrive at the pixel, from straight-on | 58 to 72 | ° |
 | Sideways distance light at 72° travels per millimetre of gap | 3.08 | mm |
 | Distance on the chip between the fine lines and the spot that reflects the reference | 1.03 | mm |
 | Smallest gap at which any chip under the sensor is lit by both beams | 0.60 | mm |
-| Part of the sensor's width reached by both the turned-back light and the reference | 1.03 | mm |
+| Width of the band of pixels, at each edge of the sensor, reached by both the turned-back light at 64° and its reference | 1.03 | mm |
 | Change in the difference between the two routes, per millimetre across the sensor | 1.9 | mm |
+| Difference between the two routes at the pixel drawn, with beams of equal length | 1.45 | mm |
+
+**Table 7b: the stripes each size of detail makes on the sensor,** with a
+pair of beams both at 72°. **Derived here** (function `print_beats`). The
+pixel is 1.12 µm wide, so stripes need to be about 2.2 µm apart or more to
+be read at good contrast.
+
+| Line width on the chip (nm) | Period on the chip (nm) | Angle the light leaves at (°) | Stripes against the other beam's reflection (µm) | Stripes against its own beam's reflection (µm) |
+|--:|--:|--:|--:|--:|
+| 107 | 213 | 72 | very coarse | 0.21 |
+| 110 | 219 | 64 | 7.7 | 0.22 |
+| 113 | 225 | 58 | 4.0 | 0.23 |
+| 118 | 235 | 51 | 2.3 | 0.23 |
+| 150 | 300 | 24 | 0.73 | 0.30 |
+| 200 | 400 | 4 | 0.46 | 0.40 |
+
+**The table is the main correction this study makes to the leading
+candidate.** A pair of beams at the same steep slant gives stripes the
+pixels can read only for detail between 213 and 235 nm in period, lines of
+106 to 118 nm. That is the final goal's range. For stage 2's lines of 150
+to 200 nm, the same pair gives stripes of 0.46 to 0.73 µm, finer than a
+pixel, and the pixel reads them only weakly.
+
+The cure follows the New Mexico group: choose the second beam so that its
+mirror reflection lands close in angle to the light being measured. Detail
+of period $\Lambda$, lit by a beam whose slant has sine $s$ and read
+against a reference whose slant has sine $r$, makes readable stripes when
+
+$$
+\frac{\lambda}{s + r + 0.18} \le \Lambda \le \frac{\lambda}{s + r - 0.18}
+$$
+
+In words: each choice of two slants reads one band of detail sizes, and the
+band is narrow. The 0.18 is the wavelength divided by two pixel widths.
+
+**Table 7c: which pair of beams reads which detail,** with the first beam
+at 72°. **Derived here.**
+
+| Slant of the reference beam (°) | Side it arrives from | Finest period read (nm) | Coarsest period read (nm) |
+|--:|---|--:|--:|
+| 72 | Opposite | 213 | 235 |
+| 36 | Opposite | 235 | 298 |
+| 13 | Opposite | 298 | 406 |
+| 8 | Same | 406 | 636 |
+
+So to read everything from the limit up to about 0.6 µm through coarse
+stripes, each steep beam needs about four partner beams at different
+slants, not one. The alternative is to rely on the pixel reading stripes of
+0.3 to 0.7 µm, which is a far easier demand than 0.2 µm (the design's
+table 4.6b) but still depends on the unknown pixel shape. Both are
+options for the simulator to compare.
 
 Consequences, all **Derived here** and to be tested at simulation level 3:
 
-- **The unknown changes from "does the pixel see 200 nm stripes" to "does
-  the pixel accept light at 60° to 72°".** The design treats these as one
-  number. They are different questions, and the second is more hopeful:
-  light arriving at a slant still enters silicon, whereas stripes five
-  times finer than the pixel are averaged away by simple geometry. Section
-  4.3 says what is known, which is little.
+- **For the finest detail, the unknown changes from "does the pixel see
+  200 nm stripes" to "does the pixel accept light at 50° to 72°".** The
+  design treats these as one number. They are different questions. Light
+  arriving at a slant still enters silicon, whereas stripes five times
+  finer than the pixel are averaged away by simple geometry. Section 4.3
+  says what is known, which is little, and what there is (33° in oil) is
+  not encouraging. For stage 2's coarser detail, both unknowns remain
+  unless matched reference beams are used.
 - **The sensor body shadows the chip.** Light at 72° has to enter under the
   edge of the sensor. Below a gap of 0.6 mm no point under this sensor is
-  lit from both sides. At 1 mm, about a quarter of the sensor's width
-  receives both the turned-back light and its reference. The useful part of
-  the sensor is a band, not the whole area, and the band depends on the
+  lit from both sides, and that figure is a lower bound: it takes the
+  sensor body to be no wider than its light-sensitive area. A real chip
+  package is wider. For a body 8 mm wide the smallest gap is 1.3 mm. At a
+  1 mm gap, a band about a quarter of the sensor's width at each edge
+  receives both the turned-back light and its reference. The useful part
+  of the sensor is two bands, not the whole area, and they depend on the
   gap. A smaller sensor, or lighting along the sensor's short side, changes
   these figures. The simulator must trace this shadowing.
 - **Reference and signal come from spots a millimetre apart on the chip.**
@@ -686,9 +799,13 @@ Consequences, all **Derived here** and to be tested at simulation level 3:
   both as parts of one unknown surface, which ptychography does.
 - **The narrow strip appears on the sensor too.** The difference between
   the two routes changes by 1.9 mm for each millimetre across the sensor,
-  the same rate the calibration page found on the chip. An ordinary diode
-  therefore gives coarse stripes over a band of the sensor well under half
-  a millimetre wide, unless one of the measures of section 6 is taken.
+  the same rate the calibration page found on the chip. With mirror-split
+  beams from an ordinary diode, coarse stripes therefore appear over a band
+  of the sensor 0.04 to 0.16 mm wide (by the calibration page's measure:
+  contrast above one half). With beams of equal length the centre of that
+  band falls just outside the sensor for the case drawn, so one beam's path
+  has to be lengthened on purpose, by an amount that differs for each
+  angle of scattered light.
 
 ## 8. What stage 2 needs
 
@@ -707,9 +824,8 @@ section 5 and are **Estimates** until the simulator confirms them.
 | Whole sensor, one pattern | 3,680 | 1,472 | 736 |
 | Stripe band, diode with 0.5 nm spread | 160 | 64 | 32 |
 | Stripe band, diode with 2 nm spread | 40 | 16 | 8 |
-| Baseline scan, for comparison | | 0.28 | |
 
-The baseline step of 0.28 µm is an overlap of 99.99 % of the sensor. The
+The design's baseline step is 0.28 µm, an overlap of 99.99 % of the sensor. The
 overlap rule is met with a margin of tens to thousands of times, even
 inside the narrowest stripe band. The scan could be much faster than the
 baseline, or the surplus can be spent on cycling through many lighting
@@ -730,8 +846,9 @@ dashed lines are the design's baseline speed and its faster worked example.
 Status: **Derived here** (function `fig_pulse`).*
 
 **Table 8.2a: longest pulse.** The "ignored" column allows 50 nm of
-movement. The "modelled" column allows 600 nm, twelve cells of 50 nm, the
-largest movement recovered in [[P50](#p50)].
+movement. The "modelled" column allows 600 nm, twelve cells of 50 nm. Carrying the
+twelve cells of [[P50](#p50)] over from its much larger cells to these is
+an **Assumption**.
 
 | Scan speed (mm/s) | Longest pulse, movement ignored (ms) | Longest pulse, movement modelled (ms) |
 |--:|--:|--:|
@@ -739,7 +856,9 @@ largest movement recovered in [[P50](#p50)].
 | 0.74 | 0.068 | 0.82 |
 
 At the baseline speed the pulse can be as long as 6 ms, a fifth of the
-frame time, and needs no special electronics. At the faster example it must
+33 ms frame time, and needs no special electronics. The 71 ms in the
+second column is longer than a frame, so there the limit is simply the
+frame time. At the faster example it must
 be tens of microseconds, which a laser diode does easily. The two beams of a
 pair must be on together. Different pairs can share a frame only if the
 model separates them, which costs redundancy [[P58](#p58)], so the first plan is one
@@ -749,9 +868,12 @@ lighting state per frame.
 
 Each lighting direction lets the sensor see one disc of the surface's
 detail. The disc's radius is the sine of the widest angle the pixel
-accepts, and it is centred on the sine of the slant of the light. To cover
-all detail down to the limit, the discs must tile the range and each must
-share at least 35 % of its area with a neighbour (section 5.1).
+accepts, and it is centred on the sine of the slant of the light. To cover all detail down to the limit, the discs must tile the range and
+each must share at least 35 % of its area with a neighbour (section 5.1).
+That rule comes from microscopes with a lens, whose camera reads everything
+the lens passes. Applying it to a bare sensor is an **Assumption**, and an
+optimistic one: table 7b shows that the pixels read only part of each disc
+at good contrast. The counts below are therefore lower bounds.
 
 ![Discs of detail covered by rings of lighting directions for two pixel acceptance angles, and the shared area against the number of directions](../diagrams/ptycho-angle-coverage.svg)
 
@@ -783,18 +905,20 @@ outer ring at 72°. The count includes one straight-down direction.
 
 Reading the table:
 
-- **Eleven to eighteen lighting states is the working figure.** Because
-  the scan passes every point under the sensor thousands of times, cycling
-  through eighteen states still leaves each state hundreds of recordings of
-  every point.
+- **Eleven to eighteen lighting states is the least that could do.**
+  Because the scan passes every point under the sensor thousands of times,
+  cycling through eighteen states, or several times that, still leaves each
+  state hundreds of recordings of every point.
 - **An inner ring is needed, not only the steep one.** With only the 72°
-  ring and a pixel accepting ±30°, there is a gap between the coarse detail
-  seen straight-down and the fine detail seen at the slant, and the two
-  cannot be joined. The design and the optical elements study describe the
-  steep beams only. An inner ring near 28° is a new requirement.
-- **A beam pair joins opposite discs directly,** through the reference of
-  section 7, without needing a chain of overlaps between them. Pairs may
-  therefore reduce the count. That is a question for the simulator.
+  ring and a pixel accepting ±30°, the coarse detail seen straight-down and
+  the fine detail seen at the slant share almost no area, and the two
+  cannot be joined reliably. With a pixel accepting ±58° they share about a
+  third, and the inner ring is marginal. The design and the optical
+  elements study describe the steep beams only.
+- **Reference beams add to the count.** Table 7c asks for about four
+  partner slants per steep direction if everything is to be read through
+  coarse stripes. Whether those partners can be the same beams as the
+  inner ring is a question for the simulator.
 - **The pixel's acceptance angle sets the answer twice:** it sets how many
   directions are needed, and it sets the finest line reached. To pass
   200 nm lines (a 400 nm period) is easy for any pixel. To reach 113 nm
@@ -815,19 +939,21 @@ flowchart LR
     M -.->|"refine"| M
 ```
 
-**Table 8.4a: stage 2 requirements in one place.** **Estimates.**
+**Table 8.4a: stage 2 requirements in one place.** **Estimates.** "Bound"
+says whether the value is the least or the most allowed.
 
-| Requirement | Value | Unit | From |
-|---|--:|---|---|
-| Overlap of the lit band between recordings | 60 or more | % | Section 5.1 |
-| Lighting states | 11 to 18 | | Table 8.3a |
-| Slant of the inner ring | about 28 | ° | Table 8.3a |
-| Spread of angles within each beam | 12 or more | ± ° | Section 5.7 |
-| Pulse at 8.4 µm/s | 6 or less | ms | Table 8.2a |
-| Pulse at 0.74 mm/s | 68 or less | µs | Table 8.2a |
-| Beam angle, known or solved to | 0.05 | ° | [[P29](#p29)] |
-| Gap, for both beams to reach under the sensor | 0.6 or more | mm | Table 7a |
-| Spread of wavelengths at a 1 mm gap, with mirror-split beams | 0.3 or less | nm | Section 6 |
+| Requirement | Bound | Value | Unit | From |
+|---|---|--:|---|---|
+| Overlap of the lit band between recordings | at least | 60 | % | Section 5.1 |
+| Lighting states | at least | 11 | | Table 8.3a |
+| Slant of the inner ring | about | 28 | ° | Table 8.3a |
+| Partner slants per steep beam, to read all detail as coarse stripes | about | 4 | | Table 7c |
+| Half-angle of the spread within each beam | at least | 12 | ° | Section 5.7 |
+| Pulse at 8.4 µm/s | at most | 6 | ms | Table 8.2a |
+| Pulse at 0.74 mm/s | at most | 68 | µs | Table 8.2a |
+| Precision to which beam angles are solved | about | 0.05 | ° | [[P29](#p29)], achieved there |
+| Gap, for both beams to reach under the sensor | at least | 0.6 | mm | Table 7a, a lower bound |
+| Spread of wavelengths at a 1 mm gap | at most | 0.1 | nm | Table 6c |
 
 ## 9. Recovering the picture without exact positions
 
@@ -993,11 +1119,12 @@ have been added to it.
 
 | Idea | What it is | Why it matters here | Source | Plan |
 |---|---|---|---|---|
-| Grating-split beams | Stripes whose spacing does not depend on colour | Removes the narrow strip with a passive part and an ordinary diode | [[P65](#p65), [P66](#p66)] | New X17 |
+| Matched reference beams | For each steep beam, partner beams at several shallower slants | Turns each band of detail into stripes the pixels can read, and eases the purity needed of the laser (tables 7c and 6c) | [[P69](#p69)], and derived in section 7 | Design change |
+| Grating-split beams | Stripes on the chip whose spacing does not depend on colour | Removes the narrow strip on the chip with passive parts. The limit set by the gap remains (table 6c). | [[P65](#p65), [P66](#p66)] | New X17 |
 | Uncollimated or speckled beams | Light with a spread of angles or a random pattern | Cures the regular-pattern failure, and gives the scan something to work with | [[P24](#p24), [P17](#p17), [P73](#p73)] | New X18 |
 | Bare-light recording | One recording on blank silicon, used to pin down the light | Took one experiment from 60 nm to 12.6 nm on a regular sample. Costs nothing. | [[P22](#p22)] | Simulator test |
 | Two-part pixel model | Angle response and within-pixel response as separate, fitted parts | Worth 25 % in resolution in the nearest published instrument | [[P8](#p8)] | Design change |
-| Dimming the mirror reflection | A partly transparent stop on the bright direct beam | Gained four orders of magnitude in usable brightness range and doubled resolution in an X-ray instrument. On this project the equivalent is alternating long and short exposures, or a beam pair whose reference is weaker than usual. | [[P74](#p74)] | Simulator test |
+| Dimming the mirror reflection | A partly transparent stop on the bright direct beam | Reported to widen the usable brightness range greatly and to improve resolution in an X-ray instrument (figures recalled, **Unverified**). On this project the equivalent is alternating long and short exposures, or a beam pair whose reference is weaker than usual. | [[P74](#p74)] | Simulator test |
 | Coded layer on the sensor | A known scattering layer a fraction of a millimetre above the pixels | The only route shown to beat the pixel by a factor of six. Already listed in optical elements, section 5.2; this study adds that it has been run in continuous motion. | [[P8](#p8), [P12](#p12)] | Existing |
 | Layered model of the chip | Treat the chip as several thin layers in turn | Chips are stacks of glass-like layers over metal. A single-surface model gives ghost detail from other layers. | [[P76](#p76), [P28](#p28)] | X15 |
 | Two polarisations | Record with the light's electric field along and across the lines | Metal lines narrower than the wavelength reflect the two very differently, which is extra information for no optical cost | [[P75](#p75)] | Simulator test |
@@ -1015,39 +1142,48 @@ To the design:
 
 1. **Split the pixel unknown in two**: response to angle of arrival, out to
    75°, and response to position within the pixel, plus leakage between
-   neighbours. Replace "responds to 200 nm stripes" as the key unknown of
-   section 4.6 with "accepts light at 60° to 72°", for beam-pair
-   approaches.
-2. **State that stripes on the chip do not raise the limit** [[P72](#p72)], and
-   that the pair's role is to provide a nearby reference (section 7).
-3. **Add an inner ring of lighting directions** near 28° to stage 2.
-4. **Add the shadowing of the chip by the sensor body** as a constraint on
+   neighbours.
+2. **State that stripes on the chip do not raise the limit**
+   [[P72](#p72)], and that a second beam's role is to provide a reference
+   close in angle to the light being read (section 7).
+3. **Replace "beam pairs at one steep slant" with "steep beams, each with
+   several matched reference beams"** as the lighting of the leading
+   candidate, or show in simulation that the pixel reads stripes of 0.3 to
+   0.7 µm well enough without them (tables 7b and 7c).
+4. **Add an inner ring of lighting directions** near 28° to stage 2.
+5. **Add the shadowing of the chip by the sensor body** as a constraint on
    gap and sensor size.
-5. **Make the beams slightly spreading or speckled by default.**
-6. **Correct the benchmark**: lensless reflection is demonstrated at 1.7 µm
-   with 405 nm light [[P17](#p17)], not "undemonstrated below about 2 µm".
-
-7. **Record Tim's elimination principle in the reconstruction section**:
+6. **Make the beams slightly spreading or speckled by default.**
+7. **Add the limit that the gap sets on the laser's purity** (table 6c)
+   beside the narrow-strip finding.
+8. **Update the benchmark**: lensless reflection imaging with 405 nm light
+   has been shown at about 2 µm line width on wafers [[P17](#p17)].
+9. **Record Tim's elimination principle in the reconstruction section**:
    positions are searched for, candidates are tested against simulation,
    physical rules remove the impossible ones, and every instrument unknown
-   gets a model in time (section 9). The simulator
-   build thread owns that change.
+   gets a model in time (section 9). The simulator build thread owns that
+   change.
 
 To the simulator parameters:
 
-| Parameter | Meaning | Suggested range | Unit |
-|---|---|--:|---|
-| `pixel_angle_response` | Share of light accepted against angle of arrival | curve from 0 to 75 | ° |
-| `pixel_crosstalk` | Share of a pixel's light read by each neighbour | 0 to 20 | % |
-| `beam_divergence` | Half-angle of the spread within each beam | 0 to 15 | ° |
-| `beam_speckle` | Strength of random structure in each beam | 0 to 1 | |
-| `splitter` | How the pair is made: mirrors or grating | | |
-| `lighting_states` | Directions and pairs cycled through | 4 to 40 | |
-| `inner_ring_angle` | Slant of the inner ring | 20 to 40 | ° |
-| `flyscan_modes` | Patterns summed per recording to model movement | 1 to 10 | |
-| `spectral_modes` | Wavelengths modelled within the source's spread | 1 to 7 | |
-| `beam_angle_error` | Error in each beam's slant, to be solved | 0 to 0.5 | ° |
-| `sensor_shadow` | Whether the sensor body blocks light | on or off | |
+**Table 11a: parameters to add.**
+
+| Parameter | Meaning | Low | High | Unit |
+|---|---|--:|--:|---|
+| `pixel_angle_response` | Share of light accepted, as a curve against angle of arrival | 0 | 75 | ° |
+| `pixel_crosstalk` | Share of a pixel's light read by each neighbour | 0 | 20 | % |
+| `beam_divergence` | Half-angle of the spread within each beam | 0 | 15 | ° |
+| `beam_speckle` | Strength of random structure in each beam | 0 | 1 | |
+| `lighting_states` | Directions and pairs cycled through | 4 | 80 | |
+| `inner_ring_angle` | Slant of the inner ring | 20 | 40 | ° |
+| `reference_angles` | Slants of the partner beams for each steep beam | 0 | 72 | ° |
+| `flyscan_modes` | Patterns summed per recording to model movement | 1 | 10 | |
+| `spectral_modes` | Wavelengths modelled within the source's spread | 1 | 7 | |
+| `beam_angle_error` | Error in each beam's slant, to be solved | 0 | 0.5 | ° |
+| `sensor_body_width` | Width of the part of the sensor that blocks light | 3.7 | 10 | mm |
+
+Two settings are choices, not ranges: `splitter` (mirrors or grating) and
+`sensor_shadow` (on or off).
 
 The ranges are **Assumptions** for sweeping, chosen to bracket the
 published values in this page.
@@ -1074,6 +1210,11 @@ To the plan:
   reflection ptychography of wafers, and for measurements of small-pixel
   response at steep angles, are the least complete. "Nothing found" in
   those two areas is weaker than it reads.
+- **The independent review** of this page re-read twenty of its sources.
+  It corrected four readings and two conclusions of an earlier draft (the
+  reach of a same-slant beam pair, and what a grating cures). Fifteen
+  sources were not re-checked: P4, P6, P7, P9, P13, P15, P18, P21, P23,
+  P26, P28, P34, P36, P42 and P65.
 - **Three possibly closer results were not read**: Chen et al., "Resolution-enhanced
   reflection ptychography with axial distance calibration", 2023
   ([doi:10.1016/j.optlaseng.2023.107684](https://doi.org/10.1016/j.optlaseng.2023.107684));
@@ -1140,7 +1281,7 @@ Numbers read from: Full text.
 Numbers read from: Full text.
 
 (p8)=
-[[P8](#p8)] Jiang et al., "Resolution-enhanced parallel coded ptychography for high-throughput optical imaging", ACS Photonics, 2021. Also [M105] of the reconstruction methods list.
+[[P8](#p8)] Jiang et al., "Resolution-enhanced parallel coded ptychography for high-throughput optical imaging", ACS Photonics, 2021. Also [[M105](../reconstruction-methods.md#m105)] of the reconstruction methods list.
 [doi:10.1021/acsphotonics.1c01085](https://doi.org/10.1021/acsphotonics.1c01085).
 Numbers read from: Full text (arXiv 2112.08144).
 
@@ -1205,7 +1346,7 @@ Numbers read from: Full text, read in part.
 Numbers read from: Full text.
 
 (p22)=
-[[P22](#p22)] Gardner et al., "Subwavelength coherent imaging of periodic samples using a 13.5 nm tabletop high-harmonic light source", Nature Photonics, 2017. Also [M72] of the reconstruction methods list.
+[[P22](#p22)] Gardner et al., "Subwavelength coherent imaging of periodic samples using a 13.5 nm tabletop high-harmonic light source", Nature Photonics, 2017. Also [[M72](../reconstruction-methods.md#m72)] of the reconstruction methods list.
 [doi:10.1038/nphoton.2017.33](https://doi.org/10.1038/nphoton.2017.33).
 Numbers read from: Full text (arXiv 2403.19766).
 
@@ -1250,12 +1391,12 @@ Numbers read from: Abstract.
 Numbers read from: Abstract.
 
 (p32)=
-[[P32](#p32)] Holler et al., "High-resolution non-destructive three-dimensional imaging of integrated circuits", Nature, 2017. Also [M74] of the reconstruction methods list.
+[[P32](#p32)] Holler et al., "High-resolution non-destructive three-dimensional imaging of integrated circuits", Nature, 2017. Also [[M74](../reconstruction-methods.md#m74)] of the reconstruction methods list.
 [doi:10.1038/nature21698](https://doi.org/10.1038/nature21698).
 Numbers read from: Secondary.
 
 (p33)=
-[[P33](#p33)] Holler et al., "Three-dimensional imaging of integrated circuits with macro- to nanoscale zoom", Nature Electronics, 2019. Also [M75].
+[[P33](#p33)] Holler et al., "Three-dimensional imaging of integrated circuits with macro- to nanoscale zoom", Nature Electronics, 2019. Also [[M75](../reconstruction-methods.md#m75)].
 [doi:10.1038/s41928-019-0309-z](https://doi.org/10.1038/s41928-019-0309-z).
 Numbers read from: Secondary.
 
@@ -1285,7 +1426,7 @@ Numbers read from: Abstract.
 Numbers read from: Abstract.
 
 (p39)=
-[[P39](#p39)] Odstrčil, Menzel and Guizar-Sicairos, "Iterative least-squares solver for generalized maximum-likelihood ptychography", Optics Express, 2018. Also [M66].
+[[P39](#p39)] Odstrčil, Menzel and Guizar-Sicairos, "Iterative least-squares solver for generalized maximum-likelihood ptychography", Optics Express, 2018. Also [[M66](../reconstruction-methods.md#m66)].
 [doi:10.1364/oe.26.003108](https://doi.org/10.1364/oe.26.003108).
 Numbers read from: Abstract; the stage model is recalled.
 
@@ -1310,7 +1451,7 @@ Numbers read from: Abstract.
 Numbers read from: Abstract.
 
 (p44)=
-[[P44](#p44)] Thibault and Menzel, "Reconstructing state mixtures from diffraction measurements", Nature, 2013. Also [M63].
+[[P44](#p44)] Thibault and Menzel, "Reconstructing state mixtures from diffraction measurements", Nature, 2013. Also [[M63](../reconstruction-methods.md#m63)].
 [doi:10.1038/nature11806](https://doi.org/10.1038/nature11806).
 Numbers read from: Recalled.
 
@@ -1365,7 +1506,7 @@ Numbers read from: Abstract.
 Numbers read from: Abstract.
 
 (p57)=
-[[P57](#p57)] Huang et al., "Optimization of overlap uniformness for ptychography", Optics Express, 2014. Also [M124].
+[[P57](#p57)] Huang et al., "Optimization of overlap uniformness for ptychography", Optics Express, 2014. Also [[M124](../reconstruction-methods.md#m124)].
 [doi:10.1364/oe.22.012634](https://doi.org/10.1364/oe.22.012634).
 Numbers read from: Abstract.
 
@@ -1435,14 +1576,14 @@ Numbers read from: Abstract.
 Numbers read from: Recalled; the database holds no abstract.
 
 (p73)=
-[[P73](#p73)] Zhang et al., "Near-field Fourier ptychography: super-resolution phase retrieval via speckle illumination", Optics Express, 2019. Also [M123].
+[[P73](#p73)] Zhang et al., "Near-field Fourier ptychography: super-resolution phase retrieval via speckle illumination", Optics Express, 2019. Also [[M123](../reconstruction-methods.md#m123)].
 [doi:10.1364/oe.27.007498](https://doi.org/10.1364/oe.27.007498).
 Numbers read from: Abstract.
 
 (p74)=
 [[P74](#p74)] Wilke, Vassholz and Salditt, "Semi-transparent central stop in high-resolution X-ray ptychography using Kirkpatrick–Baez focusing", Acta Crystallographica Section A, 2013.
 [doi:10.1107/s0108767313019612](https://doi.org/10.1107/s0108767313019612).
-Numbers read from: Abstract.
+Numbers read from: Recalled; the abstract retrieved in review gives neither figure.
 
 (p75)=
 [[P75](#p75)] Ferrand, Baroni, Allain and Chamard, "Quantitative imaging of anisotropic material properties with vectorial ptychography", Optics Letters, 2018.

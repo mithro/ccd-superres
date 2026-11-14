@@ -230,19 +230,19 @@ def fig_angle_coverage():
                 ax.plot(rho * np.cos(a), rho * np.sin(a), ".", color=col, ms=4)
         reach = radii[-1] + r
         for lim, ls, lab in ((2.0, "-", "limit: period = wavelength / 2"),
-                             (WAVELENGTH_NM / 200.0, "--",
+                             (WAVELENGTH_NM / 200.0, ":",
                               "target: 200 nm period")):
             ax.add_patch(Circle((0, 0), lim, fill=False, ec=INK, ls=ls, lw=1.1))
         ax.set_xlim(-2.25, 2.25)
         ax.set_ylim(-2.25, 2.25)
         ax.set_aspect("equal")
-        ax.set_xlabel("Fineness of detail across the scan (wavelength / period)")
+        ax.set_xlabel("Fineness across the scan\n(wavelength / period)")
         ax.set_ylabel("Fineness along the scan (wavelength / period)")
         ax.set_title(f"Sensor collects ±{collect:.0f}°: {1 + sum(counts)} "
                      f"directions\nfinest period {WAVELENGTH_NM / reach:.0f} nm",
                      fontsize=10)
         tidy(ax)
-    axes[0].text(0, -2.12, "solid ring: wavelength / 2     dashed ring: 200 nm"
+    axes[0].text(0, -2.12, "solid ring: wavelength / 2     dotted ring: 200 nm"
                  " period", fontsize=7.5, ha="center")
     for collect in (30.0, 45.0, 58.0):
         for share in (0.35, 0.60):
@@ -462,7 +462,8 @@ def fig_pulse():
     ax.set_ylabel("Distance moved during one pulse (nm)")
     ax.set_ylim(1e-3, 1e5)
     ax.set_xlim(1e-3, 10)
-    ax.legend(frameon=False, fontsize=8, loc="lower right")
+    ax.legend(frameon=False, fontsize=8, loc="upper left", ncol=3,
+              bbox_to_anchor=(0.0, 1.14))
     tidy(ax)
     save(fig, "pulse-timing")
     print("Pulse length for a given smear:")
@@ -505,7 +506,7 @@ PUBLISHED = [
     ("Zhang 2015, extreme ultraviolet (best axis)", 40, 30, "lr"),
     ("Vlasov 2026, infrared through silicon", 2190, 1064, "lr"),
     ("Shao 2024, extreme ultraviolet (best axis)", 50, 18, "lr"),
-    ("Lee 2024, wafer, 405 nm", 1700, 405, "lr"),
+    ("Lee 2024, wafer, 405 nm", 1950, 405, "lr"),
     ("Neumann 2008, light through glass", 150, 633, "lens"),
     ("Kuznetsova 2007, slanted beams + reference", 170, 633, "lens"),
     ("Park 2022, 193 nm, reflection", 80, 193, "lens"),
@@ -571,7 +572,7 @@ def fig_pixel_ratio():
     fig, ax = plt.subplots(figsize=(8.6, 4.4))
     for i, (label, ratio, col) in enumerate(rows):
         ax.barh(i, ratio, color=col, height=0.7)
-        ax.text(ratio + 0.15, i, f"{ratio:.1f}", va="center", fontsize=8.5)
+        ax.text(ratio + 0.3, i, f"{ratio:.1f}", va="center", fontsize=8.5)
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([r[0] for r in rows], fontsize=8.5)
     ax.invert_yaxis()
@@ -612,10 +613,10 @@ def fig_beat_path():
         ax.add_patch(Rectangle((-6.5, -0.3), 13, 0.3, color=SILICON))
         ax.text(6.45, -0.15, "chip", fontsize=8.5, ha="right", va="center")
         ax.add_patch(Rectangle((-half, gap), 2 * half, 0.22, color=BLUE))
-        ax.text(0, gap + 0.36, "sensor, 3.68 mm wide, 1 mm above the chip",
+        ax.text(0.4, gap + 0.36, "sensor, 3.68 mm wide, 1 mm above the chip",
                 fontsize=8.5, color=BLUE, ha="center")
         ax.plot([px], [gap], "v", color=INK, ms=7)
-        ax.text(px - 0.15, gap - 0.05, "pixel", fontsize=8.5, ha="right", va="top")
+        ax.text(px - 0.45, gap + 0.36, "pixel", fontsize=8.5, ha="right")
         arrow(ax, (a - 1.25 * t_in, 1.25), (a, 0), color=YELLOW, lw=2.0)
         arrow(ax, (a, 0), (px, gap), color=VIOLET, lw=2.0)
         ax.plot([a], [0], "s", color=MASK, ms=5)
@@ -630,7 +631,7 @@ def fig_beat_path():
                         Line2D([], [], color=AQUA, lw=1.4, ls="--",
                                label="beam 2 mirrored by the chip: the reference")]
             ax.set_title("Beam pair: the turned-back light and the reference "
-                         "reach the pixel 8° apart. Stripes about 8 µm wide.",
+                         "reach the pixel 8° apart. Stripes about 8 µm apart.",
                          fontsize=9.5)
         else:
             arrow(ax, (c - 1.25 * t_in, 1.25), (c, 0), color=YELLOW, lw=1.2)
@@ -639,7 +640,7 @@ def fig_beat_path():
                                label="beam 1 mirrored by the chip")]
             ax.set_title("One beam: the turned-back light meets only beam 1's "
                          "own mirror reflection, 136° apart. Stripes about "
-                         "220 nm wide.", fontsize=9.5)
+                         "220 nm apart.", fontsize=9.5)
         ax.legend(handles=handles, frameon=False, fontsize=8, ncol=2,
                   loc="lower left", bbox_to_anchor=(0.0, -0.32))
     fig.subplots_adjust(hspace=0.55)
@@ -665,7 +666,7 @@ def fig_beat_path():
     for width in (0.5, 2.0):
         lc = (WAVELENGTH_NM ** 2 / width) * 1e-6
         print(f"  diode spread {width} nm: coherence length {lc:.2f} mm, band "
-              f"on the sensor {2 * lc / slope:.2f} mm, largest gap by the "
+              f"on the sensor (contrast above one half) {2 * 0.46 * lc / slope:.2f} mm, largest gap by the "
               f"rule 2 lambda^2 / spread {2 * lc:.2f} mm")
     print(f"  grating period for 72 deg: {WAVELENGTH_NM / s72:.0f} nm; a 2400 "
           f"line/mm grating gives {1e6 / 2400 / 2:.0f} nm stripes at "
@@ -678,6 +679,46 @@ def fig_beat_path():
               f"period: {np.exp(-2 * np.pi ** 2 * sigma ** 2 / period ** 2):.2g}")
 
 
+# --------------------------------------------------------------------------
+# 9. Which stripes each size of detail makes on the sensor
+# --------------------------------------------------------------------------
+def print_beats(slant_deg=72.0, gap_mm=1.0):
+    """Scalar far-field picture. A beam with slant sine s is turned by detail
+    of period p into the direction with sine s - wavelength / p. Stripes on
+    the sensor between two waves are the wavelength over the difference of
+    their sines."""
+    s = np.sin(np.radians(slant_deg))
+    readable = WAVELENGTH_NM / (2 * PITCH_NM)
+    print(f"Beats for a pair at {slant_deg} deg (readable sine difference "
+          f"{readable:.3f}):")
+    for p in (213, 219, 225, 235, 300, 400):
+        out = s - WAVELENGTH_NM / p
+        diff = abs(out + s)
+        other = "very coarse" if diff < 0.005 else f"{WAVELENGTH_NM / diff / 1e3:.2f} um"
+        print(f"  period {p} nm: leaves at {np.degrees(np.arcsin(abs(out))):.0f} "
+              f"deg, against other beam {other}, against own beam "
+              f"{p / 1e3:.2f} um")
+    print("Bands read by a steep beam with a matched reference:")
+    r = s
+    for _ in range(4):
+        lo = WAVELENGTH_NM / (s + r + readable)
+        hi = WAVELENGTH_NM / (s + r - readable)
+        side = "opposite" if r >= 0 else "same"
+        print(f"  reference at {np.degrees(np.arcsin(abs(r))):.0f} deg "
+              f"({side} side): periods {max(lo, WAVELENGTH_NM / (2 * s)):.0f} "
+              f"to {hi:.0f} nm")
+        r = WAVELENGTH_NM / hi - readable - s
+    print("Extra distance travelled by a 72 deg reference, and the spread of "
+          "wavelengths it allows:")
+    for th in (64, 58, 23):
+        d = gap_mm * (1 / np.cos(np.radians(72)) - 1 / np.cos(np.radians(th)))
+        print(f"  light at {th} deg: {d:.2f} mm, {WAVELENGTH_NM ** 2 / d * 1e-6:.2f} nm")
+    d = gap_mm * abs(1 / np.cos(np.radians(13)) - 1 / np.cos(np.radians(23)))
+    print(f"  light at 23 deg against a 13 deg reference: {d:.2f} mm")
+    print(f"  oil-filled gap, NA 0.83: {np.degrees(np.arcsin(0.83 / 1.52)):.0f} deg; "
+          f"body 8 mm wide needs a gap of {4 / np.tan(np.radians(72)):.1f} mm")
+
+
 if __name__ == "__main__":
     import sys
 
@@ -688,5 +729,6 @@ if __name__ == "__main__":
     fig_benchmark()
     fig_pixel_ratio()
     fig_beat_path()
+    print_beats()
     if "--fast" not in sys.argv:
         fig_toy()

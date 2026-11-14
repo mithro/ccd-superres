@@ -201,7 +201,7 @@ z
    </g>
    <g id="text_2">
     <!-- sensor, 3.68 mm wide, 1 mm above the chip -->
-    <g style="fill: #2a78d6" transform="translate(232.846016 39.377834) scale(0.085 -0.085)">
+    <g style="fill: #2a78d6" transform="translate(252.29147 39.377834) scale(0.085 -0.085)">
      <defs>
       <path id="DejaVuSans-56" d="M 2834 3397 
 L 2834 2853 
@@ -656,7 +656,7 @@ z
    </g>
    <g id="text_3">
     <!-- pixel -->
-    <g style="fill: #0b0b0b" transform="translate(237.44179 65.768097) scale(0.085 -0.085)">
+    <g style="fill: #0b0b0b" transform="translate(222.857699 39.377834) scale(0.085 -0.085)">
      <defs>
       <path id="DejaVuSans-5b" d="M 3513 3500 
 L 2247 1797 
@@ -734,8 +734,8 @@ z
     </g>
    </g>
    <g id="text_5">
-    <!-- One beam: the turned-back light meets only beam 1's own mirror reflection, 136° apart. Stripes about 220 nm wide. -->
-    <g style="fill: #0b0b0b" transform="translate(50.522344 14.418516) scale(0.095 -0.095)">
+    <!-- One beam: the turned-back light meets only beam 1's own mirror reflection, 136° apart. Stripes about 220 nm apart. -->
+    <g style="fill: #0b0b0b" transform="translate(49.012734 14.418516) scale(0.095 -0.095)">
      <defs>
       <path id="DejaVuSans-32" d="M 2522 4238 
 Q 1834 4238 1429 3725 
@@ -1102,11 +1102,12 @@ z
      <use xlink:href="#DejaVuSans-51" transform="translate(5383.765625 0)"/>
      <use xlink:href="#DejaVuSans-50" transform="translate(5447.140625 0)"/>
      <use xlink:href="#DejaVuSans-3" transform="translate(5544.546875 0)"/>
-     <use xlink:href="#DejaVuSans-5a" transform="translate(5576.328125 0)"/>
-     <use xlink:href="#DejaVuSans-4c" transform="translate(5658.109375 0)"/>
-     <use xlink:href="#DejaVuSans-47" transform="translate(5685.890625 0)"/>
-     <use xlink:href="#DejaVuSans-48" transform="translate(5749.375 0)"/>
-     <use xlink:href="#DejaVuSans-11" transform="translate(5810.90625 0)"/>
+     <use xlink:href="#DejaVuSans-44" transform="translate(5576.328125 0)"/>
+     <use xlink:href="#DejaVuSans-53" transform="translate(5637.609375 0)"/>
+     <use xlink:href="#DejaVuSans-44" transform="translate(5701.09375 0)"/>
+     <use xlink:href="#DejaVuSans-55" transform="translate(5762.375 0)"/>
+     <use xlink:href="#DejaVuSans-57" transform="translate(5803.484375 0)"/>
+     <use xlink:href="#DejaVuSans-11" transform="translate(5842.6875 0)"/>
     </g>
    </g>
    <g id="legend_1">
@@ -1320,7 +1321,7 @@ z
    </g>
    <g id="text_10">
     <!-- sensor, 3.68 mm wide, 1 mm above the chip -->
-    <g style="fill: #2a78d6" transform="translate(232.846016 228.091246) scale(0.085 -0.085)">
+    <g style="fill: #2a78d6" transform="translate(252.29147 228.091246) scale(0.085 -0.085)">
      <use xlink:href="#DejaVuSans-56"/>
      <use xlink:href="#DejaVuSans-48" transform="translate(52.09375 0)"/>
      <use xlink:href="#DejaVuSans-51" transform="translate(113.625 0)"/>
@@ -1366,7 +1367,7 @@ z
    </g>
    <g id="text_11">
     <!-- pixel -->
-    <g style="fill: #0b0b0b" transform="translate(237.44179 254.481508) scale(0.085 -0.085)">
+    <g style="fill: #0b0b0b" transform="translate(222.857699 228.091246) scale(0.085 -0.085)">
      <use xlink:href="#DejaVuSans-53"/>
      <use xlink:href="#DejaVuSans-4c" transform="translate(63.484375 0)"/>
      <use xlink:href="#DejaVuSans-5b" transform="translate(91.265625 0)"/>
@@ -1389,8 +1390,8 @@ z
     </g>
    </g>
    <g id="text_13">
-    <!-- Beam pair: the turned-back light and the reference reach the pixel 8° apart. Stripes about 8 µm wide. -->
-    <g style="fill: #0b0b0b" transform="translate(86.031563 203.131927) scale(0.095 -0.095)">
+    <!-- Beam pair: the turned-back light and the reference reach the pixel 8° apart. Stripes about 8 µm apart. -->
+    <g style="fill: #0b0b0b" transform="translate(84.521953 203.131927) scale(0.095 -0.095)">
      <defs>
       <path id="DejaVuSans-25" d="M 1259 2228 
 L 1259 519 
@@ -1570,11 +1571,12 @@ z
      <use xlink:href="#DejaVuSans-77" transform="translate(4635.953125 0)"/>
      <use xlink:href="#DejaVuSans-50" transform="translate(4699.578125 0)"/>
      <use xlink:href="#DejaVuSans-3" transform="translate(4796.984375 0)"/>
-     <use xlink:href="#DejaVuSans-5a" transform="translate(4828.765625 0)"/>
-     <use xlink:href="#DejaVuSans-4c" transform="translate(4910.546875 0)"/>
-     <use xlink:href="#DejaVuSans-47" transform="translate(4938.328125 0)"/>
-     <use xlink:href="#DejaVuSans-48" transform="translate(5001.8125 0)"/>
-     <use xlink:href="#DejaVuSans-11" transform="translate(5063.34375 0)"/>
+     <use xlink:href="#DejaVuSans-44" transform="translate(4828.765625 0)"/>
+     <use xlink:href="#DejaVuSans-53" transform="translate(4890.046875 0)"/>
+     <use xlink:href="#DejaVuSans-44" transform="translate(4953.53125 0)"/>
+     <use xlink:href="#DejaVuSans-55" transform="translate(5014.8125 0)"/>
+     <use xlink:href="#DejaVuSans-57" transform="translate(5055.921875 0)"/>
+     <use xlink:href="#DejaVuSans-11" transform="translate(5095.125 0)"/>
     </g>
    </g>
    <g id="legend_2">
