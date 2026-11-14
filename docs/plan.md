@@ -201,7 +201,7 @@ a short page under `docs/data/` saying what was found and how good it is.
 
 | Item | What changes | State |
 |---|---|---|
-| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 and of every promoted scouting candidate | Not started |
+| C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 and of every promoted scouting candidate | In progress. The four deep research studies B1 to B4 are folded in: [design, section 4.10](design.md#410-what-the-four-research-studies-changed). B5 to B7 and the scouting candidates are not started, so their part remains. |
 | C1a | Replace assumed numbers in the design, the calculator and the explorer with the collected data of R1 to R17, each with its source | Not started |
 | C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) | Not started |
 | C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. |
