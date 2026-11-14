@@ -1541,3 +1541,47 @@ Open questions for Tim:
    drive of the row, reset and column lines of a sensor taken apart, or a
    different sensor chosen for its control? Section 5.7 lists what each
    allows.
+
+## 12. Where each claim comes from
+
+Every fact in this document is one of: taken from a source, derived here,
+an estimate from the project's own model, an assumption, or not yet
+verified. The labels and the full source list are on the
+[references](references.md) page. This table covers the main claims, section
+by section. A claim not listed here and not cited in the text should be read
+as an estimate from the analytic model, and reported as a gap in this table.
+
+| Section | Claim | Status |
+|---|---|---|
+| 3 | A pixel reading is a blurred, sampled, scaled copy of the surface | **Derived here** from the stated geometry. The general form is the standard linear imaging model [Goodman]. |
+| 3.1 | Matt surface: light from a point spreads over the gap as $z_0^2/(r^2+z_0^2)^2$, giving the transfer $u K_1(u)$ | **Derived here** from the inverse-square law and Lambert's cosine law for a matt surface. The transfer is the Fourier transform of that spot. Checked numerically in `tests/test_resolution.py`. Not taken from a publication. |
+| 3.1 | A box-shaped pixel or smear has a sinc transfer | Standard result [Goodman] |
+| 3.2 | The list of noise sources | Standard sensor noise model [Janesick]. The sizes of each for this sensor are **Assumptions** until data item R5 of the plan. |
+| 4.1 | Smallest recoverable period is about 0.75 times the gap | **Estimate** from the analytic model (`ccdsr/resolution.py`), for a contrast floor of 1/1000 |
+| 4.2 | A million times more samples gains about a factor of two | **Estimate**, same model |
+| 4.6 | Detail finer than the wavelength fades as $\exp(-2\pi z\sqrt{1/\Lambda^2-1/\lambda^2})$ | Standard result for evanescent waves [Goodman] |
+| 4.6 | Slanted-light limit, period = wavelength / (sine of slant + sine of collection angle) | Follows from the grating equation [BornWolf]; the same form is used in [Zheng2013] and in the optical elements study, section 9.2 |
+| 4.6 | Table of gaps needed for a 200 nm period | **Estimate** from the analytic model. Below a wavelength only level 4 can confirm it. |
+| 4.6 | Layers on an IMX219 pixel are of the order of a micrometre thick | **Unverified.** [R2] gives the order of the layers, not their thicknesses. |
+| 4.6 | An ideally sharp 1.12 µm pixel passes about 6% of a 200 nm stripe pattern | **Derived here**: the sinc envelope $\Lambda/(\pi a)$ with $a$ = 1120 nm |
+| 4.6 | Lensless imaging in reflection is undemonstrated below about 2 µm | From the optical elements study, section 9.2, and its sources |
+| 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
+| 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
+| 4.8 | A coded exposure keeps motion blur reversible | [Raskar2006] |
+| 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes (`ccdsr/resolution.py`, `motion_transfer`). Not taken from a publication. |
+| 4.8 | Coded exposure does not beat a short pulse when noise comes from the light itself, and does when read noise dominates | **Derived here** from the model; agrees with the known result for multiplexed measurements [HarwitSloane] |
+| 4.8 | Read noise of 2 electrons | **Assumption** |
+| 4.9 | Uncertain ranges for pixel response (edges soft over up to 300 nm, acceptance ±20° to ±60°) | **Assumption**, placeholders until data items R2 and R3 of the plan |
+| 5.1 | Sensor pixel counts, pitch and modes | [R1] |
+| 5.3 | Order of layers on the pixel, and what removing each lens takes with it | [R2], [R3], [R4], [R5], as cited in the section |
+| 5.4, 5.5 | Samples per point, shift per frame, sub-pixel coverage figures | **Derived here** from geometry, computed by `ccdsr/sampling.py` and tested in `tests/test_sampling.py` |
+| 5.7 | IMX219 line time of 18.9 µs, and the list of what its registers expose | **Unverified**: from memory of [LinuxIMX219] (line length 3448 pixel clocks at 182.4 MHz). To be checked in data item R1. |
+| 5.7 | Frame rates for strip readout | **Estimate**, assuming 32 lines of overhead per frame |
+| 5.9 | Coverage with and without tilt (5 against 50 positions, holes of 0.51 against 0.11 to 0.13 pixels) | **Derived here**, computed by `ccdsr/sampling.py` |
+| 5.9 | The array spans ±61° by ±54° at a 1 mm gap | **Derived here** from the sensor's size, 3.67 by 2.76 mm |
+| 5.9 | A shift is estimated to a small fraction of a pixel from many pixels | Method from [GuizarSicairos2008]. The accuracy for this instrument is to be measured at level 1. |
+| 6.2 | Shift and add; regularised reconstruction from many frames | [Fruchter2002], [Farsiu2004] |
+| 6.3 | Sizes and costs of the inverse problem | **Derived here** by counting. Solver from [HestenesStiefel]. Solve times are **Estimates** to be measured. |
+| 6.5, 4.7 | Phase recovery from overlapping scans with positions solved | [Maiden2009], [Zheng2013], and the reconstruction methods survey |
+| 8 | Resolution judged by Fourier ring correlation | [vanHeel2005] |
+| 9 | Closest earlier instruments | [Heng2006], [Cui2008], [Zheng2010], [Zheng2011] |

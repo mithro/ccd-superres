@@ -20,6 +20,7 @@ increasing accuracy that are checked against each other.
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
 | [Glossary](glossary.md) | Plain-language meanings of the terms used across the documentation | Kept current |
+| [References](references.md) | The shared list of sources, and how claims are labelled as sourced, derived, estimated or assumed | Kept current |
 | [Python reference](api.md) | Functions and classes of the `ccdsr` package | Implemented parts only |
 
 Each simulation level will get its own page as it is built, with its method,
@@ -38,5 +39,6 @@ calculator
 explorer
 diagrams
 glossary
+references
 api
 ```
