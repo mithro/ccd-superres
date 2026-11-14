@@ -11,6 +11,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 
 | Page | What it covers | State |
 |---|---|---|
+| [Getting started](getting-started.md) | Diagrams of the current configuration, and how to try the explorer, the simulator and the comparison yourself | Kept current |
 | [Project plan](plan.md) | Every item of work in order, with deep research ahead of the build stages, and the state of each | Kept current |
 | [Design](design.md) | The problem, the measurement model, what limits resolution, noise, the sensor, reconstruction | Draft for review |
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
@@ -39,6 +40,7 @@ its assumptions, worked examples, and the results of its cross-checks.
 :maxdepth: 2
 :hidden:
 
+getting-started
 plan
 design
 simulation-chain
