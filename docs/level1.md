@@ -65,7 +65,7 @@ Each step is a separate, replaceable piece of code, in line with the
 | Gap blur | Light spreading as it crosses the gap | Gap; matt surface, or mirror-like surface with a wavelength | [Design 4.1](design.md#41-the-gap-dominates); [Goodman] |
 | Pixel blur | Each pixel adds up the light over its width | *Pixel pitch*, light-sensitive width, softness of the pixel edge | [Design 4.3](design.md#43-the-pixel-area) |
 | Motion blur | The sensor moves while a reading collects light | Share of the frame time the shutter is open; optional open and shut code | [Design 4.8](design.md#48-motion-blur-cause-model-and-reversal); [Raskar2006] |
-| Sampling | Where each pixel is in each frame | Pixels, frames, shift per frame, random position error | Derived here: `ccdsr/level1.py` |
+| Sampling | Where each pixel is in each frame | Pixels, frames, shift per frame, random position error | Derived here: [`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py) |
 | Noise | *Photon noise*, *read noise*, fixed gain differences between pixels | Electrons at full brightness, read noise, gain spread | [Janesick] |
 
 ## The measurement in one line
@@ -148,7 +148,7 @@ average brightness. A perfect reconstruction would match the first row.
 *Table 2. Contrast of each bar group in each reconstruction, and the rms
 difference from the true surface over the whole strip, in units of
 reflectance. Last row: the transfer at each period. Derived here: computed by
-`docs/diagrams/make_diagrams.py` with the settings of table 1 and random
+[`docs/diagrams/make_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_diagrams.py) with the settings of table 1 and random
 seed 1.*
 
 Three points about reading this table.
@@ -204,7 +204,7 @@ dotted line the error is as large as the pattern itself.*
 
 *Table 3. Level 1 against the formulas. Contrast errors are rms, for a
 pattern of contrast 0.5, from 64 pixels and 100 frames. Derived here:
-computed by `docs/diagrams/make_diagrams.py`.*
+computed by [`docs/diagrams/make_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_diagrams.py).*
 
 | Check | Result | Pass mark | Verdict |
 |---|---|---|---|
@@ -213,7 +213,7 @@ computed by `docs/diagrams/make_diagrams.py`.*
 | Noise in a measured contrast against the prediction | Ratio between 0.78 and 1.07 over 60 runs per period. With 60 runs, a scatter of about ±9% (one standard deviation) is expected, so the 0.78 at 8 µm is an outlier; repeated with 400 runs that ratio is 0.94. The automated test uses 300 runs and requires agreement within 12%. | Agreement within the scatter of the test | Pass |
 
 *Table 4. Verdicts of the cross-checks. The automated versions are in
-`tests/test_level1.py` and run on every change.*
+[`tests/test_level1.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_level1.py) and run on every change.*
 
 The noise prediction is the one-dimensional form of the rule the level 0
 calculator uses. With `M` readings, each with noise `σ` as a share of full
@@ -226,7 +226,7 @@ error = σ × √(2 ÷ M) ÷ (T × m)
 
 More readings shrink the error by the square root of their number. A small
 transfer multiplies it up. Derived here: `predicted_contrast_noise` in
-`ccdsr/level1.py`; the noise model per reading follows [Janesick].
+[`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py); the noise model per reading follows [Janesick].
 
 ## Two dimensions and sensor tilt
 
@@ -290,7 +290,7 @@ groups and turns the lower groups into smears. Bottom middle: with a tilt of
 
 *Table 7. Contrast of each line group in each reconstruction, and the rms
 difference from the true surface in units of reflectance. Derived here:
-computed by `docs/diagrams/make_diagrams.py` with the settings of table 6 and
+computed by [`docs/diagrams/make_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_diagrams.py) with the settings of table 6 and
 random seed 1.*
 
 | Tilt (degrees) | Lines crossed by the scan | Lines lying along the scan |
@@ -337,7 +337,7 @@ What the tilt results say:
 | Rolling readout: each row read slightly later | Positions shift along the scan by the set amount per row, and not across it | Pass |
 
 *Table 9. Cross-checks of the two-dimensional simulator. Automated in
-`tests/test_level1_2d.py`.*
+[`tests/test_level1_2d.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_level1_2d.py).*
 
 ## Scan position errors, and finding them from the data
 
@@ -359,7 +359,7 @@ detail is trusted. The spacing of the pixels inside one frame is fixed by
 the sensor, so there is only one unknown per frame. Moving every frame by
 the same amount only moves the whole picture, so that one number cannot be
 found from the data and does not need to be. Derived here: `estimate_positions`
-in `ccdsr/level1.py`. The idea of solving for scan positions together with
+in [`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py). The idea of solving for scan positions together with
 the picture is standard in ptychography [Maiden2009] and in image
 registration [GuizarSicairos2008].
 
@@ -388,7 +388,7 @@ position error.*
 *Table 10. Effect of random position errors on the 0.8 µm bars (true
 contrast 0.85), averaged over five random scans of 160 frames with the
 settings of table 1. Derived here: computed by
-`docs/diagrams/make_diagrams.py`.*
+[`docs/diagrams/make_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_diagrams.py).*
 
 | Believed speed, relative to true | Position error before (nm, rms) | Left over after estimation (nm, rms) | Contrast, assumed positions | Contrast, estimated positions |
 |---:|---:|---:|---:|---:|
@@ -429,7 +429,7 @@ What these results say:
 | Speed wrong by 1% | Error falls from over 150 nm to under 10 nm rms | Pass |
 
 *Table 12. Automated checks of the position estimate, in
-`tests/test_level1.py`.*
+[`tests/test_level1.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_level1.py).*
 
 This is one dimension, with the blur model known exactly and a surface rich
 in edges. Sideways errors, rotation, gap changes and two dimensions are not

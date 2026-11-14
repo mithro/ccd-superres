@@ -24,7 +24,7 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `exposure-comparison` | Smallest recoverable period for five exposure options under two light conditions | Analytic model |
 | `readout-timing` | When each row is exposed and read for three readout schemes | Illustrative timing |
 | `array-angles` | Directions collected by the array from one point at a 1 mm gap | Sensor dimensions |
-| `plan-status` | Plan items by phase and state | Read from `docs/plan.md` |
+| `plan-status` | Plan items by phase and state | Read from [`docs/plan.md`](plan.md) |
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |
