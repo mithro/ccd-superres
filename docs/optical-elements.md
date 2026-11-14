@@ -145,12 +145,26 @@ it changes that law, and what it costs.
 The candidates fall into four families, and the family decides the result more
 than the particular element does:
 
-| Family | Examples | Smallest feature period | What the gap does |
+| Family | How it works | Examples | What the gap does |
 |---|---|---|---|
-| Nothing added | Open pixels, diffuse light | About 0.75 × gap | Sets the resolution |
-| Angle restriction: each pixel sees only light from nearly straight ahead | One tube per pixel, collimator plates (plates full of fine tubes), pinholes, shadow masks | About √(wavelength × gap): multiply the wavelength by the gap and take the square root. For green light and a 0.1 mm gap that is about 7 µm. | Still matters, but much less. A gap 100 times bigger costs 10 times in sharpness, not 100. |
-| Interference: light waves kept in step, so detail is scrambled and not lost | A parallel beam of one colour with computed unscrambling (phase recovery), lighting in fine stripes (fringes) or random grains (speckle), fine patterned or frosted layers on the sensor (coded masks, diffusers) | About one wavelength, 0.5 µm | Almost nothing |
-| Near field: sensor almost touching the surface | Openings smaller than a pixel, sample in contact | Below a wavelength | Must be far smaller than a wavelength |
+| Nothing added | Every pixel sees light from all directions | Open pixels, diffuse light | Sets the resolution |
+| Angle restriction | Each pixel sees only light from nearly straight ahead | One tube per pixel, collimator plates (plates full of fine tubes), pinholes, shadow masks | Still matters, but much less |
+| Interference | Light waves are kept in step, so detail is scrambled and not lost | A parallel beam of one colour with computed unscrambling (phase recovery), lighting in fine stripes (fringes) or random grains (speckle), fine patterned or frosted layers on the sensor (coded masks, diffusers) | Almost nothing |
+| Near field | The sensor almost touches the surface | Openings smaller than a pixel, sample in contact | Must be far smaller than a wavelength |
+
+The same four families as numbers, for green light with a wavelength of
+0.5 µm. The law gives the smallest feature period that can be recovered. To
+read the square-root law: multiply the wavelength by the gap and take the
+square root. A gap 100 times bigger then costs 10 times in sharpness, not
+100.
+
+| Family | Law for the smallest period | At a 3 µm gap (µm) | At a 30 µm gap (µm) | At a 100 µm gap (µm) | At a 500 µm gap (µm) | Status |
+|---|---|---:|---:|---:|---:|---|
+| Nothing added | 0.75 × gap | 2.3 | 23 | 75 | 375 | Estimate |
+| Angle restriction, best case | 1 × √(wavelength × gap) | 1.2 | 3.9 | 7.1 | 16 | Derived here |
+| Angle restriction, typical | 2 × √(wavelength × gap) | 2.4 | 7.7 | 14 | 32 | Derived here |
+| Interference, best reported | about 1 × wavelength | 0.5 | 0.5 | 0.5 | 0.5 | Published |
+| Interference, typical | about 2 × wavelength | 1.0 | 1.0 | 1.0 | 1.0 | Published |
 
 ![Smallest feature period against gap for each family](diagrams/optics-resolution-vs-gap.svg)
 
@@ -318,16 +332,11 @@ wavelength does not travel at all. Its trace in the light dies away within a
 fraction of a wavelength of the surface, a region called the near field. Reaching it means a gap of tens of nanometres, as the design
 document already concluded.
 
-Putting numbers on the three families, for green light (0.5 µm). The first two
-rows are formulas (the first an **Estimate** from the design's model, the
-second **Derived here**), the third is the range reported in the literature
-[[O6](#ref-o6), [O7](#ref-o7), [O22](#ref-o22)]:
-
-| Gap | 3 µm | 10 µm | 30 µm | 100 µm | 500 µm |
-|---|---|---|---|---|---|
-| Open pixel, diffuse light (0.75 × gap) | 2.3 µm | 7.5 µm | 23 µm | 75 µm | 375 µm |
-| Angle restriction (1 to 2 × √(wavelength × gap)) | 1.2 to 2.4 µm | 2.2 to 4.5 µm | 3.9 to 7.7 µm | 7 to 14 µm | 16 to 32 µm |
-| Interference methods | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm | 0.5 to 1 µm |
+The numbers for the three families at four gaps are in the second table of
+section 1. The first row there is an **Estimate** from the design's model,
+the two angle-restriction rows are **Derived here**, and the interference
+rows are the range reported in the literature
+[[O6](#ref-o6), [O7](#ref-o7), [O22](#ref-o22)].
 
 The same comparison as transfer curves at one gap. A transfer curve shows,
 for each feature size, what fraction of its contrast (the difference between
@@ -351,10 +360,16 @@ and down, and the dashed green curve shows what is reached when several gaps
 or colours are combined, good down to about 0.7 µm. The orange spike is
 lighting in 3 µm stripes, which passes only features near 3 µm.*
 
-At a 30 µm gap the open pixel reaches the illustrative floor at a period of
-23 µm, a 5.6 µm tube at 2.7 µm, and single-colour collimated light at 0.7 µm
-(from the calculation in the diagram script; the last figure assumes a plain
-LED with 20 nm bandwidth).
+Reading the chart at the noise floor gives the finest period each method
+recovers at a 30 µm gap:
+
+| Method | Finest period above the noise floor (µm) | Gain over the open pixel (times) | Status |
+|---|---:|---:|---|
+| Open pixel, diffuse light | 23 | 1.0 | Derived here |
+| Tube 5.6 µm wide per pixel group | 2.7 | 8.5 | Derived here |
+| Parallel single-colour light, gaps or colours combined | 0.7 | 33 | Derived here |
+
+The last row assumes a plain LED with a bandwidth of 20 nm.
 
 *Sources: all three figures are **Derived here**, by the function
 `transfer_functions` in the diagram script. The noise floor of one part in a
@@ -479,13 +494,13 @@ making it deeper than 50 µm.
 
 *Sources: **Derived here** from the diffraction angle of an opening [[O35](#ref-o35)].*
 
-| Depth divided by width | Largest accepted angle | Light kept | Signal-to-noise per sample | Narrowest tube that can use this ratio |
-|---|---|---|---|---|
-| 2 | 27° | 6.9 % | 0.26 | 1 µm |
-| 5 | 11° | 1.2 % | 0.11 | 2.5 µm |
-| 10 | 5.7° | 0.32 % | 0.056 | 5 µm |
-| 30 | 1.9° | 0.035 % | 0.019 | 15 µm |
-| 100 | 0.57° | 0.0032 % | 0.0056 | 50 µm |
+| Depth divided by width | Largest accepted angle (degrees) | Light kept (percent) | Signal-to-noise per sample (open pixel = 1) | Narrowest tube that can use this ratio (µm) |
+|---:|---:|---:|---:|---:|
+| 2 | 27 | 6.9 | 0.26 | 1.0 |
+| 5 | 11 | 1.2 | 0.11 | 2.5 |
+| 10 | 5.7 | 0.32 | 0.056 | 5.0 |
+| 30 | 1.9 | 0.035 | 0.019 | 15 |
+| 100 | 0.57 | 0.0032 | 0.0056 | 50 |
 
 Light kept is the exact geometric fraction of the light entering one end of
 a square tube that reaches the other end directly (the "view factor").
@@ -526,11 +541,14 @@ tube is than it is wide.*
 The middle panel comes from the diffraction calculation. For each gap there is
 a best tube width, about 1.3 × √(wavelength × gap):
 
-| Gap from tube mouth | Best tube width | Patch giving half the signal | Same measure, open pixel | Tube covers (IMX219 pixels) |
-|---|---|---|---|---|
-| 10 µm | 3.1 µm | 1.2 µm | 12 µm | 3 × 3 |
-| 30 µm | 5.0 µm | 2.0 µm | 35 µm | 4 × 4 |
-| 100 µm | 9.3 µm | 3.7 µm | 115 µm | 8 × 8 |
+| Gap from tube mouth (µm) | Best tube width (µm) | Patch giving half the signal (µm) | Same measure, open pixel (µm) | Pixels under one tube, per side |
+|---:|---:|---:|---:|---:|
+| 10 | 3.1 | 1.2 | 12 | 3 |
+| 30 | 5.0 | 2.0 | 35 | 4 |
+| 100 | 9.3 | 3.7 | 115 | 8 |
+
+The last column counts IMX219 pixels of 1.12 µm along one side of the tube,
+so 4 means a block of 4 × 4 pixels.
 
 The patch is 10 to 30 times narrower than for an open pixel. In terms of the
 smallest period above the noise floor the gain at 30 µm is about 9 times
@@ -616,12 +634,17 @@ alone misses.*
 
 ### 4.1 Pulsed and coded light
 
-The design document found that a fast scan smears the image: at 20 percent of
-the sensor length per second and 10 frames per second the sensor moves 65.6
-pixels per frame, and a sharp image needs an exposure of about 0.4 ms. A light
-pulse of that length does the same job as a short exposure, and an LED can be
-switched far faster than that from a Raspberry Pi output pin.
+The design document found that a fast scan smears the image. Its example:
 
+| Quantity | Value | Unit |
+|---|---:|---|
+| Scan speed | 20 | percent of the sensor length per second |
+| Frame rate | 10 | frames per second |
+| Movement during one frame | 65.6 | pixels |
+| Exposure short enough for a sharp image | 0.4 | milliseconds |
+
+A light pulse of 0.4 ms does the same job as a short exposure, and an LED
+can be switched far faster than that from a Raspberry Pi output pin.
 *Sources: the shift per frame and the exposure needed are from the
 [design, section 4.8](design.md#48-motion-blur-cause-model-and-reversal). That an LED can be switched faster than 0.4 ms from an output
 pin is **Unverified** general knowledge.*
@@ -756,10 +779,17 @@ lost. Bottom: the same scan when the surface is lit by 3 µm stripes of light
 that travel with the sensor. The pixel's signal now rises and falls once per
 bar, so the bars are recorded.*
 
-In this one-dimensional calculation, bars of 3 µm period seen across a 30 µm
-gap leave a ripple of 0.1 percent with uniform light (and that is the edge of
-the bar patch, not the bars). With 3 µm fringes travelling with the sensor the
-ripple is 29 percent, against 50 percent for the bars themselves. The idea of
+The calculation is one-dimensional, for bars of 3 µm period seen across a
+30 µm gap:
+
+| Case | Ripple in the pixel signal (percent) |
+|---|---:|
+| The bars themselves, with no blur | 50 |
+| Even light | 0.1 |
+| Stripes of 3 µm period travelling with the sensor | 29 |
+
+The 0.1 percent in even light comes from the edge of the patch of bars, not
+from the bars. The idea of
 fixing the fringes to the sensor is derived here from the model, not taken
 from a publication, and needs confirming in the simulator.
 
@@ -1039,14 +1069,25 @@ better. The methods based on interference give about 0.3 to 5 percent.
 Shading gives about 0.1 percent, and blur width about 0.03 percent. The
 values are order-of-magnitude estimates.*
 
-| Mechanism | Needs | Signal per nanometre | Limits |
-|---|---|---|---|
-| Parallel beam of coherent light, where height shows as a delay of the wave (phase contrast, 4.2) | Smooth surface, small single-colour source | Up to 5 % | Large slow height changes are passed weakly. Repeats every half wavelength unless two colours are used. |
-| Interference against a reference flat or the sensor face (6.2) | Narrow-band light, a flat close to the surface | About 1 % | Gap drift looks like height. |
-| Thin transparent film on a reflecting base | LEDs of a few colours. No coherence needed, because the film is its own interferometer | Of the order of 0.5 % | Only for that kind of sample. Used to measure molecular layers building up on a surface [[O45](#ref-o45)]. Fits the plain reflectance model exactly. |
-| Slanted fringes (4.3) | Two-beam fringes arriving at an angle, so height shifts them sideways [[O46](#ref-o46)] | About 0.3 % | Fringe stability. |
-| Shading from several light angles (4.4) | Diffuse light from known directions | About 0.1 %, for micrometre-wide features | Gives slope. Needs room for slanted light. |
-| Blur width (design option 1) | Two passes at different gaps | 0.03 % at a 3 µm gap | Far too weak at practical gaps. |
+| Mechanism | Section | Signal for one nanometre of height (percent) | Status |
+|---|---|---:|---|
+| Parallel beam of coherent light (phase contrast) | 4.2 | 5 | Estimate, upper limit |
+| Interference against a reference flat or the sensor face | 6.2 | 1 | Estimate |
+| Thin transparent film on a reflecting base | 8 | 0.5 | Estimate |
+| Slanted fringes | 4.3 | 0.3 | Estimate |
+| Shading from several light angles, features a micrometre wide | 4.4 | 0.1 | Estimate |
+| Blur width, at a 3 µm gap | design, option 1 | 0.03 | Estimate |
+
+What each mechanism needs, and what limits it:
+
+| Mechanism | Needs | Limits |
+|---|---|---|
+| Parallel beam of coherent light, where height shows as a delay of the wave (phase contrast) | Smooth surface, small single-colour source | Large slow height changes are passed weakly. Repeats every half wavelength unless two colours are used. |
+| Interference against a reference flat or the sensor face | Narrow-band light, a flat close to the surface | Gap drift looks like height. |
+| Thin transparent film on a reflecting base | LEDs of a few colours. No coherence needed, because the film is its own interferometer | Only for that kind of sample. Used to measure molecular layers building up on a surface [[O45](#ref-o45)]. Fits the plain reflectance model exactly. |
+| Slanted fringes | Two-beam fringes arriving at an angle, so height shifts them sideways [[O46](#ref-o46)] | Fringe stability. |
+| Shading from several light angles | Diffuse light from known directions | Gives slope. Needs room for slanted light. |
+| Blur width | Two passes at different gaps | Far too weak at practical gaps. |
 
 *Sources: every figure in the "Signal per nanometre" column is an
 **Estimate** from the simple formulas in the function `height_signal` of the
@@ -1128,12 +1169,21 @@ along the bottom shows which wavelengths an ordinary sensor can detect as
 sold (green), which may need its colour filter removed (yellow), and which
 need a special sensor (red).*
 
-| Light | Straight down, sensor collects ±30° | Slanted 65°, sensor collects ±30° | Slanted 72°, bare sensor collects ±58° | As previous, water in the gap |
-|---|---|---|---|---|
-| 520 nm, green | 520 nm | 186 nm | 144 nm | 108 nm |
-| 405 nm, laser diode | 405 nm | 145 nm | 113 nm | 84 nm |
-| 365 nm, ultraviolet LED | 365 nm | 130 nm | 101 nm | 76 nm |
-| 266 nm, deep ultraviolet | 266 nm | 95 nm | 74 nm | 55 nm |
+| Wavelength (nm) | Light source | A: line width (nm) | B: line width (nm) | C: line width (nm) | D: line width (nm) |
+|---:|---|---:|---:|---:|---:|
+| 520 | Green LED or laser | 520 | 186 | 144 | 108 |
+| 405 | Violet laser diode | 405 | 145 | 113 | 84 |
+| 365 | Ultraviolet LED | 365 | 130 | 101 | 76 |
+| 266 | Deep ultraviolet laser | 266 | 95 | 74 | 55 |
+
+The four arrangements, A to D:
+
+| Arrangement | Slant of the light (degrees) | Sensor collects up to (degrees) | Medium in the gap | Sum of the two NA values |
+|---|---:|---:|---|---:|
+| A | 0 | 30 | Air | 0.50 |
+| B | 65 | 30 | Air | 1.41 |
+| C | 72 | 58 | Air | 1.80 |
+| D | 72 | 58 | Water | 2.39 |
 
 The entries are smallest line widths from the formula. The collection angles
 are assumptions: ±30° is a guess for a pixel with its microlens in place, and
@@ -1152,7 +1202,21 @@ Reading the table for the target:
 - **100 nm lines and spaces need about 365 nm or shorter**, or water in the
   gap, together with steep light and a wide collection angle.
 
-For comparison, the published benchmark for this kind of imaging on opaque
+Published results quoted on this page, for comparison with those limits:
+
+| Source | Finest detail reported (nm) | Stated as | Lens | Sample | Method |
+|---|---:|---|---|---|---|
+| [O47](#ref-o47) | 80 | Line width | Yes | Opaque, in reflection | Fourier ptychography with a 193 nm laser |
+| [O7](#ref-o7) | 225 | Line width | No | Transparent | Lensless holography with pixel super-resolution |
+| [O6](#ref-o6) | 250 | Resolution | No | Transparent | Lensless, light angle scanned |
+| [O22](#ref-o22) | 308 | Line width | No | Transparent | Coded ptychography, scattering layer on the sensor |
+| [O36](#ref-o36) | 660 | Resolution | No | Cells on the sensor face | Light angle swept, plain light |
+| [O23](#ref-o23) | 780 | Resolution | No | Transparent | Coded ptychography with a low-cost stage |
+| [O4](#ref-o4) | 2000 | Resolution | No | Opaque, in reflection | Lensless holography through a beam splitter |
+
+Figures are from the abstracts of the papers.
+
+The published benchmark for this kind of imaging on opaque
 samples is a microscope with a lens: 80 nm lines resolved in reflection by
 Fourier ptychography with a 193 nm laser [[O47](#ref-o47)]. The lensless results quoted
 earlier (225 nm lines [[O7](#ref-o7)], 250 nm [[O6](#ref-o6)], 308 nm [[O22](#ref-o22)]) were all through
@@ -1175,10 +1239,13 @@ detail itself: about 200 nm for the target. A 1.12 µm pixel covers more than
 five such fringes and averages them. What survives depends on how sharp the
 edges of the pixel's sensitive area are:
 
-| Pixel edges | Contrast left in 200 nm fringes |
-|---|---|
-| Perfectly sharp | About 6 % (fringe period divided by π times the pixel width) |
-| Soft over 100 nm or more | Essentially none |
+| Edges of the pixel's sensitive area | Contrast left in fringes of 200 nm period (percent) |
+|---|---:|
+| Perfectly sharp | 6 |
+| Soft over 100 nm or more | 0 |
+
+The 6 percent is the fringe period divided by π times the pixel width:
+200 nm / (3.14 × 1120 nm).
 
 *Sources: **Derived here**. A pixel adds up the light across its width, and
 the contrast left in a stripe pattern averaged over a box of that width is
@@ -1198,7 +1265,8 @@ depend on the pixel edges.
 1. **Two beams from one laser at once (mutually coherent beams).** If the
    chip is lit by two slanted beams from the same laser, they form light fringes on the chip (section
    4.3). Fine detail then beats against those fringes and appears at the
-   sensor as a coarse pattern. Example: 405 nm beams from opposite sides at
+   sensor as a coarse pattern. The table after this list gives an example:
+   405 nm beams from opposite sides at
    72° make fringes of 213 nm period, and chip detail of 200 nm period beats
    against them with a period of about 3 µm (two patterns of nearly equal
    spacing overlap into a broad one, the moiré effect), which the pixels
@@ -1217,6 +1285,18 @@ depend on the pixel edges.
 3. **Sharp pixel edges.** If the edges turn out sharp, the 6 % that survives
    is recoverable by averaging, as the design document describes for
    sub-pixel detail in general.
+
+The example of mechanism 1 in numbers:
+
+| Quantity | Value | Unit | How it is found |
+|---|---:|---|---|
+| Wavelength of the two beams | 405 | nm | Chosen: a violet laser diode |
+| Slant of each beam from straight ahead | 72 | degrees | Assumption |
+| Period of the light fringes on the chip | 213 | nm | Wavelength / (2 × sin 72°) |
+| Period of the chip detail | 200 | nm | Lines and spaces of 100 nm |
+| Period of the beat pattern at the sensor | 3300 | nm | 1 / (1/200 − 1/213) |
+| Width of one pixel | 1120 | nm | IMX219 |
+| Pixels per beat period | 2.9 | pixels | 3300 / 1120 |
 
 Consequences for this page:
 
@@ -1395,24 +1475,46 @@ Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
 spacer is involved.
 
-| Candidate | Attacks | Resolution gain | Light kept | Hardware | Reconstruction | Raspberry Pi sensor |
-|---|---|---|---|---|---|---|
-| Pulsed or coded light | Motion blur | None; scan can be 100 times faster | 0.1 to 50 % | Trivial | Unchanged | Yes |
-| Tube per pixel group | Gap | About 10 times | 0.03 to 1 % | Collimator plate | Unchanged | Yes, with a bought or made plate |
-| One tube around the sensor | Stray light | None | Nearly all | Trivial | Unchanged | Yes |
-| Collimated single-colour light | Gap, height | 20 to 40 times, plus height | Nearly all | LED or laser, pinhole | Linear if surface is weak, else iterative | Yes |
-| Fringe or speckle lighting | Gap, height | Up to 40 times | Half | Two-beam optics | Linear, larger | Bench only |
-| Coded mask or diffuser | Gap, conditioning, height | 20 to 40 times | Most | Calibrated layer on sensor | Iterative, heavy | Plausible |
-| Several colours with the Bayer filter | Conditioning, height ambiguity | Supports the above | Most | Three LEDs | Small addition | Yes |
-| Several light angles | Height (slope) | None in diffuse light | All | Several LEDs | Small addition | Yes |
-| Sub-pixel openings | Pixel area | None until the gap is below a pixel | 1 to 25 % | Lithography on the die | Unchanged | No |
-| Fibre-optic plate | Mechanics | None by itself | Most | Bonded plate | Unchanged | Yes |
-| Polarisers, filters, liquid | Contrast, coherence | Up to 1.5 times (liquid) | 10 to 50 % | Trivial | Unchanged | Yes |
+| Candidate | Resolution gain, low (times) | Resolution gain, high (times) | Light kept, low (percent) | Light kept, high (percent) |
+|---|---:|---:|---:|---:|
+| Pulsed or coded light | 1 | 1 | 0.1 | 50 |
+| Tube per pixel group | 9 | 10 | 0.03 | 1 |
+| One tube around the sensor | 1 | 1 | 90 | 100 |
+| Collimated single-colour light | 20 | 40 | 90 | 100 |
+| Fringe or speckle lighting | 1 | 40 | 25 | 50 |
+| Coded mask or diffuser | 20 | 40 | – | – |
+| Several colours with the Bayer filter | 1 | 1 | – | – |
+| Several light angles | 1 | 1 | 100 | 100 |
+| Sub-pixel openings | 1 | 1 | 1 | 25 |
+| Fibre-optic plate | 1 | 1 | – | – |
+| Polarisers, filters, liquid | 1 | 1.5 | 10 | 50 |
 
-*Sources: the "Resolution gain" and "Light kept" columns collect figures
-from the sections on each candidate, where they are sourced or labelled.
-Most are **Derived here** or **Estimates**. The last three columns are a
-**Judgement**.*
+A gain of 1 means no change in resolution. A dash means the light kept was
+not worked out. It is expected to be most of the light. Pulsed light does not
+sharpen the picture, but lets the scan run about 100 times faster. Several
+colours and several angles support the other methods and add height
+information. Sub-pixel openings give no gain until the gap is smaller than a
+pixel.
+
+What each candidate attacks and needs:
+
+| Candidate | Attacks | Hardware | Reconstruction | On a Raspberry Pi sensor |
+|---|---|---|---|---|
+| Pulsed or coded light | Motion blur | Trivial | Unchanged | Yes |
+| Tube per pixel group | Gap | Collimator plate | Unchanged | Yes, with a bought or made plate |
+| One tube around the sensor | Stray light | Trivial | Unchanged | Yes |
+| Collimated single-colour light | Gap, height | LED or laser, pinhole | Linear if surface is weak, else iterative | Yes |
+| Fringe or speckle lighting | Gap, height | Two-beam optics | Linear, larger | Bench only |
+| Coded mask or diffuser | Gap, conditioning, height | Calibrated layer on sensor | Iterative, heavy | Plausible |
+| Several colours with the Bayer filter | Conditioning, height ambiguity | Three LEDs | Small addition | Yes |
+| Several light angles | Height (slope) | Several LEDs | Small addition | Yes |
+| Sub-pixel openings | Pixel area | Lithography on the die | Unchanged | No |
+| Fibre-optic plate | Mechanics | Bonded plate | Unchanged | Yes |
+| Polarisers, filters, liquid | Contrast, coherence | Trivial | Unchanged | Yes |
+
+*Sources: the first table collects figures from the sections on each
+candidate, where they are sourced or labelled. Most are **Derived here** or
+**Estimates**. The second table is a **Judgement**.*
 
 That table is the general comparison. For Tim's target and preferences the
 staged path below replaces a single ranking. What Tim has stated:
@@ -1472,6 +1574,21 @@ and its calibration of the light and the sensor on to stage 4.*
 | 3. Detect, locate and fit | From the same data: find and locate isolated 100 nm features, measure line widths of regular arrays from colour and polarisation, and fit structure that obeys chip layout rules (section 9.5). | None, or one polariser | Very large, including the electromagnetic solver | A picture at about 100 nm that is partly inferred. Every part of it is labelled as measured or as assumed. | A starting estimate for stage 4, a list of regions where the assumptions fail and finer imaging is needed, and a calibrated model of how real chip structure scatters light. |
 | 4. True picture at 100 nm | Shorten the wavelength the light has at the chip: near ultraviolet at 365 to 385 nm if the sensor responds to it, or water in the gap at 405 nm. A thin scattering layer on the sensor for a better-conditioned reconstruction, if it was not already added in stage 2 (sections 5.2, 9.4, 9.7). | The heaviest hardware of the path: an ultraviolet source or liquid handling, possibly a stripped sensor, one passive layer | Same pipeline as stage 2, started from the stage 3 estimate | A true picture at about 100 nm lines: 100 to 130 nm at 365 nm, about 85 nm with water at 405 nm (theoretical limits) | The end point. |
 
+The line widths expected at each stage, as numbers:
+
+| Stage | Wavelength (nm) | Medium in the gap | Narrowest line, limit of the formula (nm) | Narrowest line expected in practice (nm) | Kind of picture |
+|---:|---:|---|---:|---:|---|
+| 1 | 520 | Air | – | 1000 | True, coarse |
+| 2 | 405 | Air | 110 to 145 | 150 to 200 | True |
+| 3 | 405 | Air | – | 100 | Partly inferred |
+| 4 | 365 | Air | 100 to 130 | – | True |
+| 4 | 405 | Water | 85 | – | True |
+
+A dash means no figure has been worked out. The limits are **Derived here**
+from the formula of section 9.2. The figures expected in practice are a
+**Judgement**, allowing for the fact that published systems reach somewhat
+less than the formula. The 1000 nm for stage 1 is an order of magnitude.
+
 Why the earlier stages are not a detour:
 
 - **Stage 2 is the same instrument as stage 4 at a longer wavelength.** All
@@ -1493,15 +1610,24 @@ Choosing the stage 4 hardware. The two candidates cost different things. The
 simulations compare what each reaches, and when hardware starts the stage 0
 measurement and a simple test decide between them:
 
-| Candidate | Reaches | Depends on | How to find out on hardware |
-|---|---|---|---|
-| Near ultraviolet, 365 to 385 nm, sensor as sold | 100 to 135 nm lines | Whether the colour filter and microlenses pass ultraviolet | Shine an ultraviolet LED on an unmodified sensor |
-| Near ultraviolet, stripped sensor | 100 to 135 nm lines | Surviving the stripping (design document, section 5.3) | Only if the test above fails |
-| Water in the gap, 405 nm, sensor as sold | About 85 nm lines | Chip and sensor tolerating water, and light entering through it | Bench trial |
-| Deep ultraviolet, 250 to 280 nm | 75 to 95 nm lines | A sensor that responds, costly sources, safety measures | Not recommended unless the others fail |
+| Candidate | Wavelength, low (nm) | Wavelength, high (nm) | Narrowest line, low (nm) | Narrowest line, high (nm) |
+|---|---:|---:|---:|---:|
+| Near ultraviolet, sensor as sold | 365 | 385 | 100 | 135 |
+| Near ultraviolet, stripped sensor | 365 | 385 | 100 | 135 |
+| Water in the gap, sensor as sold | 405 | 405 | 85 | 85 |
+| Deep ultraviolet | 250 | 280 | 75 | 95 |
 
-*Sources: the "Reaches" column is **Derived here** from the formula of
-section 9.2 with the assumed angles stated there. The other columns are a
+What each depends on:
+
+| Candidate | Depends on | How to find out on hardware |
+|---|---|---|
+| Near ultraviolet, sensor as sold | Whether the colour filter and microlenses pass ultraviolet | Shine an ultraviolet LED on an unmodified sensor |
+| Near ultraviolet, stripped sensor | Surviving the stripping (design document, section 5.3) | Only if the test above fails |
+| Water in the gap, sensor as sold | Chip and sensor tolerating water, and light entering through it | Bench trial |
+| Deep ultraviolet | A sensor that responds, costly sources, safety measures | Not recommended unless the others fail |
+
+*Sources: the line widths are **Derived here** from the formula of
+section 9.2 with the assumed angles stated there. The second table is a
 **Judgement**.*
 
 Adopt at every stage: one tube around the whole assembly as a stray light
