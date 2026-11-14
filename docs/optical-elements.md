@@ -10,8 +10,9 @@ what these estimates leave out.
 Sections 2 to 8 survey the options in general. Tim has since stated the
 target: features of about 100 nm on silicon chips, with a strong preference
 for more computation over more hardware, and all processing done offline on
-powerful computers with graphics cards. Section 9 works out what that target
-takes, and the summary and the ranking in section 10 are written for it.
+powerful computers with graphics cards. The goal is to reconstruct the picture, in
+several stages if need be. Section 9 works out what that target takes, and the
+summary and the staged plan in section 10 are written for it.
 
 This page answers one question: what could be added to the scanning lensless
 sensor, in the light, in the gap or on the sensor face, to improve the result?
@@ -58,25 +59,27 @@ micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
   read it directly. Lighting with pairs of beams from one laser turns fine
   detail into coarse patterns the pixels can read. How the pixels respond to
   fine fringes is the first thing to measure (section 9.3).
-- **Much can be measured at 100 nm without resolving it**, and this is where
-  computation substitutes for hardware: finding and locating isolated
-  features, measuring the line width of regular arrays from colour and
-  polarisation, and fitting a known chip layout to the data.
-- **The hardware stays simple.** A laser diode or three, switched in pulses,
-  and the sensor as sold. Almost all the difficulty moves into
-  reconstruction, which matches Tim's preference.
+- **Much can be measured at 100 nm before it can be imaged**: finding and
+  locating isolated features, measuring the line width of regular arrays from
+  colour and polarisation, and fitting structure that obeys chip layout
+  rules. These need no extra hardware, only computation, and they prepare the
+  ground for true imaging.
+- **The hardware stays simple until the last stage.** A laser diode or three,
+  switched in pulses, and the sensor as sold.
 
-Ranked recommendation for this target, explained in section 10:
+Tim's goal is to reconstruct the picture, in stages if need be. The
+recommendation is therefore a staged plan that ends in true imaging at about
+100 nm and adds hardware as late as possible. Section 10 explains it.
 
-1. **Pulsed single-colour laser light, slanted, from several directions and in
-   beam pairs, with ptychographic reconstruction** that also solves for the scan positions.
-   Start at 405 nm.
-2. **Several colours**, separated by the sensor's own colour filter.
-3. **Known-structure fitting**: chip layout rules as prior knowledge, and
-   measurement of features that are detected but not resolved.
-4. **A thin scattering layer on the sensor** (coded ptychography).
-5. **Shorter wavelength or water in the gap**, the only steps that truly
-   resolve 100 nm lines, and the only ones that need real hardware work.
+| Stage | What | Hardware | Result |
+|---|---|---|---|
+| 0 | Measure how the pixels respond to fine fringes and to angle | One laser diode and a mirror | The two unknowns everything depends on |
+| 1 | Pulsed, slanted 405 nm light in beam pairs, several colours, ptychographic reconstruction that solves for positions | A few laser diodes | A true picture down to about 150 to 200 nm lines, with height |
+| 2 | Detect, locate and fit known structure in the same data | None | A partly inferred picture at about 100 nm, labelled as such, and a starting estimate for stage 3 |
+| 3 | Near ultraviolet light or water in the gap, same reconstruction | The first real hardware work | A true picture at about 100 nm lines |
+
+Stage 2 does not replace stage 3. Assumed layout rules cannot show structure
+that breaks them, so a true picture at 100 nm needs the shorter wavelength.
 
 Not recommended for this target: tubes and collimator arrays, one tube around
 the sensor as a way to sharpen the image, sub-pixel openings, near-field gaps,
@@ -773,7 +776,7 @@ Three practical points apply to all of these:
   adds its own interference. It has to be modelled, or avoided by tilting the
   sensor slightly.
 
-## 10. Ranked recommendation
+## 10. Recommendation: a staged plan
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -794,52 +797,86 @@ spacer is involved.
 | Polarisers, filters, liquid | Contrast, coherence | Up to 1.5 times (liquid) | 10 to 50 % | Trivial | Unchanged | Yes |
 
 That table is the general comparison. For Tim's target and preferences the
-ranking below replaces the general one. The preferences, as stated: features of
-about 100 nm on silicon chips; significantly more computation in preference to
-more hardware; all processing offline on powerful computers with graphics
-cards. Computation is therefore treated as nearly free, and hardware as
-expensive.
+staged plan below replaces a single ranking. What Tim has stated:
 
-| Rank | Option | Hardware added | Computation added | What it delivers for 100 nm features |
-|---|---|---|---|---|
-| 1 | Pulsed, slanted, single-colour laser light from several directions, in pairs of beams from one laser, with ptychographic reconstruction that also solves for positions (sections 4.1 to 4.4, 9.3, 9.4) | Small: a few laser diodes, a mirror or beam splitter to make beam pairs, and a pulse driver. Sensor as sold, gap about 1 mm. | Very large | Images down to about 110 to 145 nm lines at 405 nm. Height to nanometres. Everything below builds on it. |
-| 2 | Several colours through the Bayer filter (sections 4.5, 5.3) | Trivial: two more diodes | Moderate | Removes ambiguities in phase and height. Supplies the colour data that rank 3 needs. |
-| 3 | Known-structure fitting and measurement without resolving (section 9.5) | None, or one polariser | Very large, including an electromagnetic solver | Locates isolated 100 nm features, measures line widths of regular arrays, checks against a layout. The main way to reach 100 nm with visible light. |
-| 4 | Thin scattering layer on the sensor, coded ptychography (section 5.2) | One passive layer, calibrated once | Very large | Better-conditioned reconstruction, slow height changes recovered, positions recovered more robustly. Does not change the wavelength limit. |
-| 5 | Near ultraviolet, then liquid in the gap, then deep ultraviolet (section 9.4) | Growing: ultraviolet sources, possibly a stripped sensor, liquid handling | None extra | The only steps that truly resolve 100 nm lines and spaces. Take them only if ranks 1 to 4 fall short. |
+- The goal is to reconstruct the picture: true imaging of features of about
+  100 nm on silicon chips.
+- It can be reached in several stages.
+- Significantly more computation is preferred to more hardware, and all
+  processing can run offline on powerful computers with graphics cards. So
+  computation is treated as nearly free and hardware as expensive.
 
-Adopt regardless: one tube around the whole assembly as a stray light baffle.
+The plan puts the options in the order that adds hardware as late as
+possible. Each stage produces a usable result and hands something specific to
+the next.
+
+```mermaid
+flowchart LR
+    S0["Stage 0<br/>Measure the sensor<br/>fringe and angle response"] --> S1["Stage 1<br/>First picture<br/>about 150 to 200 nm lines"]
+    S1 --> S2["Stage 2<br/>Detect, locate, fit<br/>100 nm with assumptions"]
+    S2 --> S3["Stage 3<br/>True picture<br/>about 100 nm lines"]
+    S1 -. "positions, light and<br/>sensor calibration" .-> S3
+    S2 -. "starting estimate,<br/>checks, where to look" .-> S3
+```
+
+| Stage | What is done | Hardware added | Computation added | Result | What it hands on |
+|---|---|---|---|---|---|
+| 0. Measure the sensor | Two laser beams crossing on the sensor. Record contrast against fringe period and against arrival angle (section 9.3). | One 405 nm laser diode, one mirror | Trivial | Whether pixels can read fine fringes, and their real collection angles | The two numbers every later estimate depends on. The same parts are the stage 1 lighting. |
+| 1. First picture | Pulsed 405 nm light, slanted, from several directions and in beam pairs. Ptychographic reconstruction that also solves for scan positions. Red, green and blue added through the colour filter (sections 4.1 to 4.5, 9.2). | A few laser diodes, a pulse driver. Sensor as sold, gap about 1 mm. | Very large | A true picture down to about 150 to 200 nm lines, with a height map. Theory allows 110 to 145 nm. | Scan positions, the measured light beams, and the sensor model, all recovered from data. A reconstruction pipeline proven on real frames. |
+| 2. Detect, locate and fit | From the same data: find and locate isolated 100 nm features, measure line widths of regular arrays from colour and polarisation, and fit structure that obeys chip layout rules (section 9.5). | None, or one polariser | Very large, including the electromagnetic solver | A picture at about 100 nm that is partly inferred. Every part of it is labelled as measured or as assumed. | A starting estimate for stage 3, a list of regions where the assumptions fail and finer imaging is needed, and a calibrated model of how real chip structure scatters light. |
+| 3. True picture at 100 nm | Shorten the wavelength the light has at the chip: near ultraviolet at 365 to 385 nm if the sensor responds to it, or water in the gap at 405 nm. Optionally a thin scattering layer on the sensor for a better-conditioned reconstruction (sections 5.2, 9.4). | The first real hardware work: an ultraviolet source or liquid handling, possibly a stripped sensor, one passive layer | Same pipeline as stage 1, started from the stage 2 estimate | A true picture at about 100 nm lines: 100 to 130 nm at 365 nm, about 85 nm with water at 405 nm (theoretical limits) | The end point. |
+
+Why the earlier stages are not a detour:
+
+- **Stage 1 is the same instrument as stage 3 at a longer wavelength.** All
+  of its software carries over unchanged. Only the light changes.
+- **Stage 2 makes stage 3 easier and checkable.** An iterative reconstruction
+  started from a good estimate converges faster and more reliably than one
+  started from nothing. Where the stage 3 picture and the stage 2 estimate
+  disagree, one of them is wrong, which is the only independent check
+  available short of an electron microscope.
+- **Stage 2 is not a substitute for stage 3.** Fitting with assumed layout
+  rules cannot show structure that breaks the rules, and that is exactly what
+  a picture is for (section 9.5). Reaching a true picture at 100 nm requires
+  the shorter wavelength of stage 3. Computation alone does not get there.
+
+Choosing the stage 3 hardware. The two candidates cost different things, and
+stage 0 and a simple test decide between them:
+
+| Candidate | Reaches | Depends on | How to find out early |
+|---|---|---|---|
+| Near ultraviolet, 365 to 385 nm, sensor as sold | 100 to 135 nm lines | Whether the colour filter and microlenses pass ultraviolet | Shine an ultraviolet LED on an unmodified sensor |
+| Near ultraviolet, stripped sensor | 100 to 135 nm lines | Surviving the stripping (design document, section 5.3) | Only if the test above fails |
+| Water in the gap, 405 nm, sensor as sold | About 85 nm lines | Chip and sensor tolerating water, and light entering through it | Bench trial |
+| Deep ultraviolet, 250 to 280 nm | 75 to 95 nm lines | A sensor that responds, costly sources, safety measures | Not recommended unless the others fail |
+
+Adopt at every stage: one tube around the whole assembly as a stray light
+baffle.
 
 Dropped for this target, with reasons:
 
 - **Tubes and collimator arrays.** They sharpen diffuse light from matt
   surfaces and reach a few micrometres. A silicon chip is a mirror, and the
   target is 20 times finer.
-- **Fringe lighting as a separate option.** It is now part of rank 1.
-  Section 9.3 shows that beam pairs are what let coarse pixels read fine
-  detail.
+- **Fringe lighting as a separate option.** It is part of stage 1. Section
+  9.3 shows that beam pairs are what let coarse pixels read fine detail.
 - **Sub-pixel openings and near-field gaps.** Hardware-heavy, and section 9.4
   shows the gap needed is not buildable over a chip.
 
-Why this order. Rank 1 is the foundation: it is nearly the cheapest hardware on the
-whole list and it converts the problem into computation, which is what Tim
-asked for. Ranks 2 and 3 add almost no hardware and are where a large
-computing budget buys the most, because they bring in information (colour,
-polarisation, layout rules) that the wavelength limit does not restrict.
-Rank 4 costs one passive part and makes the computation more reliable. Rank 5
-is last because it is the only one that spends on hardware, even though it is
-the only one that moves the physical limit.
-
 Order of work in the simulator. The wave-optics forward model moves to the
-front of the build plan, since every ranked option depends on it. For 100 nm
+front of the build plan, since every stage depends on it. For 100 nm
 features on silicon the surface cannot be treated as a flat sheet that merely
 dims and delays the light: the features are smaller than the wavelength and
 have depth, so the light's interaction with the surface needs the
-electromagnetic solver level of the simulation chain. A sensible sequence is:
-scalar wave model with slanted light and ptychographic reconstruction on
-synthetic layouts; then the electromagnetic solver to generate the surface
-response; then known-structure fitting. Pulsed light and the tube kernel
-remain cheap additions to the linear model for anyone studying matt surfaces.
+electromagnetic solver level of the simulation chain. A sensible sequence
+follows the stages: a scalar wave model with slanted beam pairs, coarse pixels
+and ptychographic reconstruction on synthetic layouts, to answer the open
+question of section 9.3; then the electromagnetic solver to generate the
+surface response; then known-structure fitting; then the same reconstruction
+at the stage 3 wavelengths, started from the fitted estimate. The simulator
+can run all four stages before any hardware is bought. Pulsed light and the
+tube kernel remain cheap additions to the linear model for anyone studying
+matt surfaces.
 
 ## 11. Parameters for the simulator
 
@@ -909,21 +946,18 @@ sharp images with open pixels in diffuse light is too small to let the light
 in. Tubes, and all the interference methods, resolve this by making larger
 gaps usable.
 
-Questions for Tim. The first of the original four is answered (smooth silicon
-chips), and the target raises new ones:
+Questions for Tim. Two are answered: the surfaces are smooth silicon chips,
+and the goal is a true picture at about 100 nm, reached in stages. Still open:
 
-1. **Must unknown structure be imaged at 100 nm, or is it enough to detect,
-   locate and measure features of that size?** The second is realistic with
-   simple hardware. The first probably needs ultraviolet light (section 9.6).
-2. **Are the 100 nm features dense lines and spaces, or isolated?** Isolated
-   features are far easier.
-3. **Is the layout known, or are its rules known?** A layout file or design
-   rules make the known-structure fitting of section 9.5 possible.
-4. **Which layer carries the features, and what lies above it?** Finished
+1. **Are the 100 nm features dense lines and spaces, or isolated?** It sets
+   how much stage 2 can deliver before stage 3.
+2. **Is the layout known, or are its rules known?** A layout file or design
+   rules make the known-structure fitting of section 9.5 much stronger.
+3. **Which layer carries the features, and what lies above it?** Finished
    chips have protective and wiring layers over the finest features. Light
    has to reach them and return.
-5. **Is ultraviolet light, a stripped sensor or liquid on the chip acceptable
-   if visible light falls short?**
+4. **For stage 3, which is more acceptable: ultraviolet light, possibly with a
+   stripped sensor, or water on the chip?**
 
 One open measurement, not a question for Tim: the response of the pixels to
 fine fringes (section 9.3).
