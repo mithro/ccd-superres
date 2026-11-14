@@ -12,7 +12,7 @@ target: features of about 100 nm on silicon chips, with a strong preference
 for more computation over more hardware, and all processing done offline on
 powerful computers with graphics cards. The goal is to reconstruct the picture, in
 several stages if need be. Section 9 works out what that target takes, and the
-summary and the staged plan in section 10 are written for it.
+summary and the staged path in section 10 are written for it.
 
 This page answers one question: what could be added to the scanning lensless
 sensor, in the light, in the gap or on the sensor face, to improve the result?
@@ -58,33 +58,42 @@ micrometres). Lines 100 nm wide repeat every 200 nm, which is finer than
 - **The pixels are five times wider than the detail**, and may not be able to
   read it directly. Lighting with pairs of beams from one laser turns fine
   detail into coarse patterns the pixels can read. How the pixels respond to
-  fine fringes is the first thing to measure (section 9.3).
+  fine fringes is the main unknown. It is carried through the simulations as
+  an uncertain range, and measured first when hardware is built (section 9.3).
 - **Much can be measured at 100 nm before it can be imaged**: finding and
   locating isolated features, measuring the line width of regular arrays from
   colour and polarisation, and fitting structure that obeys chip layout
   rules. These need no extra hardware, only computation, and they prepare the
   ground for true imaging.
-- **The hardware stays simple until the last stage.** A laser diode or three,
-  switched in pulses, and the sensor as sold.
+- **The hardware would stay simple until the last stage.** A laser diode or
+  three, switched in pulses, and the sensor as sold. None of it is built
+  until the simulations show a method works.
 - **Randomness is used, not fought.** Irregular pulse timing, speckle
   lighting, a random scattering layer and noise-aware fitting all swap
   precise hardware for computation. They help reach the limits above. They
   do not move them (section 9.7).
 
 Tim's goal is to reconstruct the picture, in stages if need be. The
-recommendation is therefore a staged plan that ends in true imaging at about
-100 nm and adds hardware as late as possible. Section 10 explains it.
+recommendation is therefore a staged path that ends in true imaging at about
+100 nm. It is the current leading candidate, not a settled choice: the
+project explores many approaches in simulation, and this one is the
+reference the others are compared against. All stages are carried out in the
+simulator first, and all hardware comes at the very end, after the
+simulations show a method works (see the [project plan](plan.md)). The
+hardware column says what each stage would need then. Section 10 explains
+the path.
 
 | Stage | What | Hardware | Result |
 |---|---|---|---|
-| 0 | Measure how the pixels respond to fine fringes and to angle | One laser diode and a mirror | The two unknowns everything depends on |
+| 0 | How the pixels respond to fine fringes and to angle. In simulation this is an uncertain range swept in every run. It is measured on the real sensor only when hardware starts. | One laser diode and a mirror | The two unknowns everything depends on |
 | 1 | A coarse picture at micrometre scale from the linear reconstruction of the design document | A scan and simple lighting | Frame positions, pixel gains and a map of the chip |
 | 2 | Pulsed, slanted 405 nm light in beam pairs, several colours, ptychographic reconstruction that solves for positions | A few laser diodes | A true picture down to about 150 to 200 nm lines, with height |
 | 3 | Detect, locate and fit known structure in the same data | None | A partly inferred picture at about 100 nm, labelled as such, and a starting estimate for stage 4 |
-| 4 | Near ultraviolet light or water in the gap, same reconstruction | The first real hardware work | A true picture at about 100 nm lines |
+| 4 | Near ultraviolet light or water in the gap, same reconstruction | The heaviest hardware of the path | A true picture at about 100 nm lines |
 
-The stage numbers match section 4.7 of the design document, which holds the
-single plan for the project. Stage 3 does not replace stage 4. Assumed layout rules cannot show structure
+The stage numbers match
+[section 4.7 of the design document](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+which holds the single definition of the stages. Stage 3 does not replace stage 4. Assumed layout rules cannot show structure
 that breaks them, so a true picture at 100 nm needs the shorter wavelength.
 
 Not recommended for this target: tubes and collimator arrays, one tube around
@@ -720,11 +729,16 @@ Consequences for this page:
 - Lighting with pairs of beams from one laser becomes part of the first
   recommendation, not an alternative to it. The added hardware is small: a
   mirror beside the chip turns one beam into two.
-- **One measurement should come before any other hardware work:** the
-  response of the pixels to fine fringes. Two beams from a laser diode
-  crossing directly on the sensor make fringes of any chosen period, and the
-  contrast recorded against period gives the edge sharpness. The same
-  two-beam arrangement is the lighting for mechanism 1, so nothing is wasted.
+- **The response of the pixels to fine fringes is the main unknown.** Since
+  all hardware comes at the end, the simulations carry it as an uncertain
+  range, from sharp pixel edges to soft ones, and every approach has to work
+  across that range
+  ([design document, section 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)).
+  When hardware is built it is the first measurement to make: two beams from
+  a laser diode crossing directly on the sensor make fringes of any chosen
+  period, and the contrast recorded against period gives the edge sharpness.
+  The same two-beam arrangement is the lighting for mechanism 1, so nothing
+  is wasted.
 
 ### 9.4 The routes to finer detail
 
@@ -816,7 +830,7 @@ Randomness added on purpose:
 |---|---|---|---|---|
 | Irregular pulse times and a scan that never repeats | A steady scan with evenly timed pulses puts the frames on a regular grid, which is known to leave repeating artefacts in ptychography [O61]. Irregular spacing removes them [O64]. Pulse times drawn from a known random sequence do this along the scan, and a scan direction slightly off the pixel rows, plus the natural wobble, does it across. It also spreads samples evenly over sub-pixel positions, as the design document plans. | None. A change to the pulse timing. | None extra | 1. Adopt from stage 1. |
 | Speckle lighting: the laser sent through a fixed piece of ground glass (section 4.3) | A speckle pattern is every beam pair the lighting cone allows, all at once, in every direction. Its grain is about the wavelength divided by twice the sine of the widest light angle, so about 225 nm at 405 nm with steep light. Fine chip detail beats against the grain into coarse patterns, the same work-around as beam pairs in section 9.3. Since the light travels with the sensor, the pattern is frozen in sensor coordinates and the chip slides through it. That is ptychography with a structured beam, which is known to converge better than with a smooth beam [O59, O62], and the pattern is solved along with the picture [O61]. | One diffuser in place of several aligned mirrors. Arguably less hardware than beam pairs. | Larger: the light pattern becomes a large unknown | 2. Compare with beam pairs in the simulator for stage 2. |
-| Random scattering layer on the sensor (section 5.2) | A third work-around for coarse pixels, on the detection side. The layer scrambles light arriving at steep angles into patterns the pixels can record, and makes each frame a different encoding of the surface. It is the basis of the closest published results [O22, O23]. | One passive layer on the sensor face. No precision needed, but it touches the sensor. | Larger: the layer is another unknown, solved once | 3. Simulate for stage 2. Build it there if stage 0 shows the pixels read fine fringes poorly. Otherwise keep it for stage 4. |
+| Random scattering layer on the sensor (section 5.2) | A third work-around for coarse pixels, on the detection side. The layer scrambles light arriving at steep angles into patterns the pixels can record, and makes each frame a different encoding of the surface. It is the basis of the closest published results [O22, O23]. | One passive layer on the sensor face. No precision needed, but it touches the sensor. | Larger: the layer is another unknown, solved once | 3. Simulate for stage 2. It belongs there if the approach only works with sharp pixel edges without it. Otherwise keep it for stage 4. |
 | Noise as dither | A sensor that rounds to whole counts loses any change smaller than one count, unless noise of about half a count or more is present. Then averaging many samples recovers it [O63]. The design gives every surface point thousands of samples, so this matters for the weakest signals. | None. Choose the sensor gain so that the noise is at least about one count. | None | Adopt. A setting, to be checked on the sensor. Past that level more noise only costs samples. |
 | Coded pulses within one exposure (section 4.1) | Keeps all feature sizes when the exposure is long | None | Small | Low. A laser diode is bright enough for a single short pulse. |
 | A fresh random pattern in every frame, such as a moving diffuser | Many different encodings | A moving part | Very large, and poorly determined | Not recommended. |
@@ -829,17 +843,17 @@ Randomness already present, to be modelled and not fought:
 | Vibration during a pulse, and laser light that is not perfectly coherent | The light is described as a mixture of a few patterns instead of one [O58, O26] | Recovers contrast that would otherwise be counted as lost, and relaxes the pulse length and laser quality needed. |
 | Photon noise | The fit is weighted by the true statistics of photon counting instead of plain least squares [O60] | Matters most where the signal is dim: light scattered far from the mirror direction, which carries the finest detail. |
 | Pulse to pulse laser brightness, and laser colour jumps | One brightness and one wavelength per frame, solved or read from the frame average | Lets an ordinary laser diode be used without stabilising it. |
-| Pixel to pixel differences in gain, and in the shape of each pixel's sensitive area | A map per pixel, frozen, solved from the data | Gain is already in stage 1. Differences in shape would act as a weak built-in random mask. Whether they are large enough to help is not known, and stage 0 can show it. |
+| Pixel to pixel differences in gain, and in the shape of each pixel's sensitive area | A map per pixel, frozen, solved from the data | Gain is already in stage 1. Differences in shape would act as a weak built-in random mask. Whether they are large enough to help is not known. The simulations sweep it, and the stage 0 measurement on hardware would show it. |
 | Gap and tilt drift | A few slowly changing numbers per frame | Removes the need for a precise mount. |
 
-What changes in the plan of section 10: stage 1 gains irregular pulse timing
+What changes in the path of section 10: stage 1 gains irregular pulse timing
 and the dither setting. Stage 2 gains noise-aware fitting and the mixture
 model as standard parts of the reconstruction, and two options to compare in
 the simulator against beam pairs before any are built: speckle lighting and
 the scattering layer. None of this changes the stage numbers or the limits
 quoted for each stage.
 
-## 10. Recommendation: a staged plan
+## 10. Recommendation: a staged path, the current leading candidate
 
 Comparison of all candidates. Gains are relative to open pixels in diffuse
 light at a 30 µm gap, which is a plausible first-hardware gap once a plate or
@@ -860,7 +874,7 @@ spacer is involved.
 | Polarisers, filters, liquid | Contrast, coherence | Up to 1.5 times (liquid) | 10 to 50 % | Trivial | Unchanged | Yes |
 
 That table is the general comparison. For Tim's target and preferences the
-staged plan below replaces a single ranking. What Tim has stated:
+staged path below replaces a single ranking. What Tim has stated:
 
 - The goal is to reconstruct the picture: true imaging of features of about
   100 nm on silicon chips.
@@ -868,16 +882,34 @@ staged plan below replaces a single ranking. What Tim has stated:
 - Significantly more computation is preferred to more hardware, and all
   processing can run offline on powerful computers with graphics cards. So
   computation is treated as nearly free and hardware as expensive.
+- Many approaches are to be explored, not one.
+- All hardware work comes at the very end, after simulation shows that a
+  method works.
 
-The plan puts the options in the order that adds hardware as late as
-possible. Each stage produces a usable result and hands something specific to
-the next. The stage numbers are those of section 4.7 of the design document,
-which holds the single plan for the project. This section gives the optical
+So the path below is the current leading candidate and not a decision. It is
+the approach that looks strongest from the analysis on this page, slanted
+coherent 405 nm light in beam pairs with phase recovery, and it is the
+reference that other approaches are compared against in the simulator. The
+alternatives this page supplies for that comparison are speckle lighting and
+a scattering layer on the sensor (section 9.7), collimated single-colour
+light (section 4.2), and for matt surfaces the collimator array (section 3).
+If the comparisons favour another approach, this section is rewritten.
+
+Every stage is carried out in the simulator first. The hardware column says
+what a stage would need when it is eventually built, and nothing is built
+until the approach has passed the gate described in
+[section 4.9 of the design document](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware).
+The path orders the options so that each stage would add as little hardware
+as possible. Each stage produces a usable result and hands something specific
+to the next. The stage numbers are those of
+[section 4.7 of the design document](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+which holds the single definition of the stages, and the
+[project plan](plan.md) tracks their state. This section gives the optical
 reasoning behind stages 0, 2, 3 and 4.
 
 ```mermaid
 flowchart LR
-    S0["Stage 0<br/>Measure the sensor<br/>fringe and angle response"] --> S1["Stage 1<br/>Coarse picture<br/>micrometre scale"]
+    S0["Stage 0<br/>Pixel response<br/>swept in simulation,<br/>measured at the end"] --> S1["Stage 1<br/>Coarse picture<br/>micrometre scale"]
     S1 --> S2["Stage 2<br/>True picture<br/>about 150 to 200 nm lines"]
     S2 --> S3["Stage 3<br/>Detect, locate, fit<br/>100 nm with assumptions"]
     S3 --> S4["Stage 4<br/>True picture<br/>about 100 nm lines"]
@@ -887,11 +919,11 @@ flowchart LR
 
 | Stage | What is done | Hardware added | Computation added | Result | What it hands on |
 |---|---|---|---|---|---|
-| 0. Measure the sensor | Two laser beams crossing on the sensor. Record contrast against fringe period and against arrival angle (section 9.3). | One 405 nm laser diode, one mirror | Trivial | Whether pixels can read fine fringes, and their real collection angles | The two numbers every later estimate depends on. The same parts are the stage 2 lighting. |
+| 0. Pixel response | In simulation: the response to fine fringes and to arrival angle is an uncertain range, swept in every run and narrowed by the electromagnetic level on a model of the pixel's layers. On hardware, at the end: two laser beams crossing on the sensor, recording contrast against fringe period and against arrival angle (section 9.3). | None until the end. Then one 405 nm laser diode and one mirror. | Small | Whether pixels can read fine fringes, and their collection angles | The two numbers every later estimate depends on. When built, the same parts are the stage 2 lighting. |
 | 1. Coarse picture | A scan with simple lighting and the linear reconstruction of the design document, with frame positions estimated from the data. | A scan and simple lighting | Moderate | A picture of the chip at micrometre scale: blocks, wide wiring, pads | The position of every frame, the speed and tilt, pixel gains, and a map of the chip to register everything else against. No optical element from this page is needed. |
 | 2. True picture to 150 to 200 nm | Pulsed 405 nm light, slanted, from several directions and in beam pairs. Ptychographic reconstruction that also solves for scan positions. Red, green and blue added through the colour filter (sections 4.1 to 4.5, 9.2). Pulse times irregular, fitting aware of photon noise and of imperfect coherence. Speckle lighting and a scattering layer on the sensor are compared with beam pairs in the simulator first (section 9.7). | A few laser diodes, a pulse driver. Sensor as sold, gap about 1 mm. Possibly a diffuser in the beam. | Very large | A true picture down to about 150 to 200 nm lines, with a height map. Theory allows 110 to 145 nm. | Scan positions, the measured light beams, and the sensor model, all recovered from data. A reconstruction pipeline proven on real frames. |
 | 3. Detect, locate and fit | From the same data: find and locate isolated 100 nm features, measure line widths of regular arrays from colour and polarisation, and fit structure that obeys chip layout rules (section 9.5). | None, or one polariser | Very large, including the electromagnetic solver | A picture at about 100 nm that is partly inferred. Every part of it is labelled as measured or as assumed. | A starting estimate for stage 4, a list of regions where the assumptions fail and finer imaging is needed, and a calibrated model of how real chip structure scatters light. |
-| 4. True picture at 100 nm | Shorten the wavelength the light has at the chip: near ultraviolet at 365 to 385 nm if the sensor responds to it, or water in the gap at 405 nm. A thin scattering layer on the sensor for a better-conditioned reconstruction, if it was not already added in stage 2 (sections 5.2, 9.4, 9.7). | The first real hardware work: an ultraviolet source or liquid handling, possibly a stripped sensor, one passive layer | Same pipeline as stage 2, started from the stage 3 estimate | A true picture at about 100 nm lines: 100 to 130 nm at 365 nm, about 85 nm with water at 405 nm (theoretical limits) | The end point. |
+| 4. True picture at 100 nm | Shorten the wavelength the light has at the chip: near ultraviolet at 365 to 385 nm if the sensor responds to it, or water in the gap at 405 nm. A thin scattering layer on the sensor for a better-conditioned reconstruction, if it was not already added in stage 2 (sections 5.2, 9.4, 9.7). | The heaviest hardware of the path: an ultraviolet source or liquid handling, possibly a stripped sensor, one passive layer | Same pipeline as stage 2, started from the stage 3 estimate | A true picture at about 100 nm lines: 100 to 130 nm at 365 nm, about 85 nm with water at 405 nm (theoretical limits) | The end point. |
 
 Why the earlier stages are not a detour:
 
@@ -910,10 +942,11 @@ Why the earlier stages are not a detour:
   a picture is for (section 9.5). Reaching a true picture at 100 nm requires
   the shorter wavelength of stage 4. Computation alone does not get there.
 
-Choosing the stage 4 hardware. The two candidates cost different things, and
-stage 0 and a simple test decide between them:
+Choosing the stage 4 hardware. The two candidates cost different things. The
+simulations compare what each reaches, and when hardware starts the stage 0
+measurement and a simple test decide between them:
 
-| Candidate | Reaches | Depends on | How to find out early |
+| Candidate | Reaches | Depends on | How to find out on hardware |
 |---|---|---|---|
 | Near ultraviolet, 365 to 385 nm, sensor as sold | 100 to 135 nm lines | Whether the colour filter and microlenses pass ultraviolet | Shine an ultraviolet LED on an unmodified sensor |
 | Near ultraviolet, stripped sensor | 100 to 135 nm lines | Surviving the stripping (design document, section 5.3) | Only if the test above fails |
@@ -946,7 +979,7 @@ and ptychographic reconstruction on synthetic layouts, to answer the open
 question of section 9.3; then the electromagnetic solver to generate the
 surface response; then known-structure fitting; then the same reconstruction
 at the stage 4 wavelengths, started from the fitted estimate. The simulator
-can run all four stages before any hardware is bought. Pulsed light and the
+runs every stage before any hardware is built, as the project plan requires. Pulsed light and the
 tube kernel remain cheap additions to the linear model for anyone studying
 matt surfaces.
 
@@ -1037,8 +1070,9 @@ and the goal is a true picture at about 100 nm, reached in stages. Still open:
 4. **For stage 4, which is more acceptable: ultraviolet light, possibly with a
    stripped sensor, or water on the chip?**
 
-One open measurement, not a question for Tim: the response of the pixels to
-fine fringes (section 9.3).
+One open unknown, not a question for Tim: the response of the pixels to fine
+fringes (section 9.3). It is swept in simulation and measured when hardware
+starts.
 
 ## 13. Limits of these estimates
 
