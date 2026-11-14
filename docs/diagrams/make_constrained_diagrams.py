@@ -9,6 +9,7 @@ quoted on docs/constrained-reconstruction.md. All results come from the level
 1 simulator with the random seeds stated below.
 """
 
+import dataclasses
 import sys
 import warnings
 from pathlib import Path
@@ -44,81 +45,133 @@ def contrasts(x):
 
 
 def materials():
-    """What each physical constraint adds, with positions known."""
-    names = ["no constraint", "reflectance between 0 and 1", "two known materials"]
-    rows = {n: [] for n in names}
-    wrong = []
-    for seed in range(5):
+    """What each physical constraint adds, with positions known and equal smoothing."""
+    rows = [("plain fit, usual smoothing (0.01)", lambda f: l1.least_squares(f)[0]),
+            ("plain fit, light smoothing (0.001)", lambda f: l1.least_squares(f, smoothness=1e-3)[0]),
+            ("reflectance between 0 and 1", lambda f: c.material_reconstruction(f, None, (0.0, 1.0))[0]),
+            ("two known materials", lambda f: c.material_reconstruction(f, LEVELS)[0]),
+            ("three materials offered, one absent", lambda f: c.material_reconstruction(f, (0.2, 0.6, 1.0))[0])]
+    seeds = range(15)
+    out = {n: [] for n, _ in rows}
+    wrong, shown = [], {}
+    for seed in seeds:
         f = frames_for(seed)
-        rms = lambda x: float(np.sqrt(np.mean((x - SURFACE) ** 2)))
-        x0 = l1.least_squares(f)[0]
-        x1, _ = c.material_reconstruction(f, None, (0.0, 1.0))
-        x2, s2 = c.material_reconstruction(f, LEVELS)
-        for n, x in zip(names, (x0, x1, x2)):
-            rows[n].append(contrasts(x) + [rms(x)])
+        for n, fn in rows:
+            x = fn(f)
+            out[n].append(contrasts(x) + [float(np.sqrt(np.mean((x - SURFACE) ** 2)))])
+            if seed == 1:
+                shown[n] = x
+        s2 = c.material_reconstruction(f, LEVELS)[1]
         wrong.append([float(np.mean(s2[a:b] != SURFACE[a:b])) for _, a, b in GROUPS])
-        if seed == 1:
-            shown = (x0, x1, x2)
-    print("Materials (mean of seeds 0-4): contrast of the 4, 2, 1.2, 0.8, 0.48 µm groups, then rms error")
+    print("Materials (seeds 0-14): mean contrast of the 4, 2, 1.2, 0.8, 0.48 µm groups, rms error, "
+          "then lowest and highest 0.48 µm contrast")
     print("  true surface   ", np.round(contrasts(SURFACE), 2))
-    for n in names:
-        print(f"  {n:28s}", np.round(np.mean(rows[n], axis=0), 3))
+    for n, _ in rows:
+        v = np.array(out[n])
+        print(f"  {n:38s}", np.round(v.mean(axis=0), 3), round(v[:, 4].min(), 2), round(v[:, 4].max(), 2))
     print("  share of grid cells given the wrong material, per group:", np.round(np.mean(wrong, axis=0), 3))
     print("  transfer at 0.48 µm:", round(float(abs(l1.transfer(np.array([1 / 480.0]), OPTICS)[0])), 4))
 
     lo, hi = GROUPS[3][1] - 50, STOP + 50
     x = np.arange(SURFACE.size) * DX / 1e3
-    fig, ax = plt.subplots(figsize=(9.6, 5.4))
-    traces = [("true surface", SURFACE, INK), ("fit with no constraint", shown[0], ORANGE),
-              ("fit with reflectance kept between 0 and 1", shown[1], AQUA),
-              ("fit with two known materials (0.2 and 1.0)", shown[2], BLUE)]
+    fig, ax = plt.subplots(figsize=(9.6, 6.6))
+    traces = [("true surface", SURFACE, INK),
+              ("plain fit, usual smoothing", shown[rows[0][0]], INK2),
+              ("plain fit, light smoothing", shown[rows[1][0]], ORANGE),
+              ("light smoothing, reflectance kept between 0 and 1", shown[rows[2][0]], AQUA),
+              ("light smoothing, two known materials (0.2 and 1.0)", shown[rows[3][0]], BLUE)]
     for k, (name, y, col) in enumerate(traces):
-        off = 1.6 * (len(traces) - 1 - k)
+        off = 1.7 * (len(traces) - 1 - k)
         ax.plot(x[lo:hi], y[lo:hi] + off, color=col, lw=1.3)
-        ax.text(x[lo], off + 1.2, name, fontsize=9.5, color=INK)
+        ax.text(x[lo], off + 1.25, name, fontsize=9.5, color=INK)
     ax.set_yticks([0, 1])
-    ax.set_ylim(-0.2, 6.4)
+    ax.set_ylim(-0.3, 8.5)
     ax.set_ylabel("reflectance (each trace offset upward)")
     ax.set_xlabel("position along the scan (µm)")
-    ax.set_title("0.8 µm bars (left) and 0.48 µm bars (right), 1.12 µm pixels, positions known", loc="left",
-                 fontsize=11)
+    ax.set_title("bars repeating every 0.8 µm (left) and 0.48 µm (right), 1.12 µm pixels, positions known",
+                 loc="left", fontsize=11)
     _clean(ax)
     fig.tight_layout()
     save(fig, "constrained-materials")
+
+
+def _outcome(result):
+    """Classify an elimination: 'true', 'set', 'none' or 'wrong'.
+
+    'true': the only arrangement of bars left is the true one (it may be left
+    at more than one neighbouring shift). 'set': the true arrangement is left
+    together with others.
+    'none': the method reported that nothing fits. 'wrong': something is left
+    and the true layout is not part of it.
+    """
+    if not result.fits:
+        return "none"
+    shapes = result.surviving_shapes(LAYOUTS, 12)
+    truth = np.repeat(TRUTH, 12).astype(np.int8)
+    filled = np.nonzero(truth)[0]
+    truth = truth[filled[0]:filled[-1] + 1]
+    if any(s.size == truth.size and (s == truth).all() for s in shapes):
+        return "true" if len(shapes) == 1 else "set"
+    return "wrong"
 
 
 def elimination():
     """Listing all 4,096 layouts of the 0.48 µm group and striking out those the data contradict."""
     f = frames_for(2)
     _, base = c.material_reconstruction(f, LEVELS)
-    misfits, survivors = c.eliminate_candidates(f, base, START, 12, LAYOUTS, LEVELS)
-    excess = np.sort(misfits - misfits.min())
-    print("Elimination, seed 2, full light: survivors", int(survivors.sum()), "true survives",
-          bool(survivors[TRUE_INDEX]), "second-best excess", round(float(excess[1]), 0),
+    r = c.eliminate_candidates(f, base, START, 12, LAYOUTS, LEVELS)
+    excess = np.sort(r.misfits[0] - r.misfits.min())
+    print("Elimination, seed 2, full light, reconstructed surroundings: survivors", r.n_survivors,
+          "true survives", bool(r.survivors[0, TRUE_INDEX]), "second-best excess", round(float(excess[1]), 0),
+          "margin", round(r.margin, 1), "fits", r.fits, "local chi2 per reading", round(r.local_chi2_per_reading, 2),
           "layout counts for minimum width 1, 2, 3 cells:", [len(c.allowed_layouts(12, k)) for k in (1, 2, 3)])
     lights = [2500, 250, 50, 25, 10, 5]
     table = []
     for full in lights:
-        counts, kept, best = [], [], []
+        counts, kept, best, fits = [], [], [], []
         for seed in range(40):
             g = frames_for(100 + seed, full_e=full)
-            m, s = c.eliminate_candidates(g, SURFACE, START, 12, LAYOUTS, LEVELS)
-            counts.append(int(s.sum()))
-            kept.append(bool(s[TRUE_INDEX]))
-            best.append(int(np.argmin(m)) == TRUE_INDEX)
-        table.append((full, np.median(counts), np.min(counts), np.max(counts), np.mean(kept), np.mean(best)))
-    print("Light sweep, seeds 100-139 (electrons at full brightness, median / min / max survivors of 4096, "
-          "share of trials true layout survives, share of trials true layout is the best fit):")
+            q = c.eliminate_candidates(g, SURFACE, START, 12, LAYOUTS, LEVELS)
+            counts.append(q.n_survivors)
+            kept.append(bool(q.survivors[0, TRUE_INDEX]))
+            best.append(q.best[1] == TRUE_INDEX)
+            fits.append(q.fits)
+        table.append((full, np.median(counts), np.min(counts), np.max(counts), np.mean(kept), np.mean(best),
+                      np.mean(fits)))
+    print("Light sweep, seeds 100-139, true surroundings (electrons at full brightness; median / min / max "
+          "survivors of 4096; share of trials: true layout kept, true layout is best fit, best passes absolute test):")
     for row in table:
-        print("  ", row[0], row[1], row[2], row[3], round(row[4], 3), round(row[5], 3))
+        print("  ", row[0], row[1], row[2], row[3], round(row[4], 3), round(row[5], 3), round(row[6], 3))
     table = np.array(table)
+
+    print("When an assumption is wrong, seeds 0-11, full light, reconstructed surroundings "
+          "(counts of: only the true layout left / true layout among several / nothing fits / wrong layout left):")
+    wrong_gap = l1.Optics1D(gap_nm=330)
+    cases = [
+        ("nothing wrong", LEVELS, None, 0.0, (0,)),
+        ("materials assumed 0.25 and 0.95", (0.25, 0.95), None, 0.0, (0,)),
+        ("gap assumed 330 nm, really 300 nm", LEVELS, wrong_gap, 0.0, (0,)),
+        ("whole scan 120 nm from where assumed, not searched", LEVELS, None, 120.0, (0,)),
+        ("whole scan 120 nm from where assumed, shifts searched", LEVELS, None, 120.0, tuple(range(-8, 9))),
+    ]
+    for name, levels, optics, offset, shifts in cases:
+        tally = {"true": 0, "set": 0, "none": 0, "wrong": 0}
+        for seed in range(12):
+            g = frames_for(seed)
+            if optics is not None:
+                g = dataclasses.replace(g, optics=optics)
+            pos = g.positions_nm + offset
+            _, b = c.material_reconstruction(g, levels, positions_nm=pos)
+            tally[_outcome(c.eliminate_candidates(g, b, START, 12, LAYOUTS, levels, positions_nm=pos,
+                                                  shifts=shifts))] += 1
+        print(f"  {name:52s}", tally["true"], tally["set"], tally["none"], tally["wrong"])
 
     fig, (a, b) = plt.subplots(1, 2, figsize=(11.2, 4.3))
     rank = np.arange(1, excess.size + 1)
     a.semilogy(rank[1:], excess[1:], ".", ms=2.5, color=ORANGE, label="wrong layouts")
     a.semilogy([1], [1.0], "o", ms=7, color=BLUE, label="true layout (best fit, drawn at 1)")
-    a.axhline(49, color=INK2, lw=0.9, ls=(0, (2, 3)))
-    a.text(4000, 62, "eliminated above this line", ha="right", fontsize=8.5, color=INK2)
+    a.axhline(r.margin, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    a.text(4000, r.margin * 1.25, "eliminated above this line", ha="right", fontsize=8.5, color=INK2)
     a.set_xscale("log")
     a.set_xlabel("candidate layouts, best fit first")
     a.set_ylabel("misfit above the best candidate")
@@ -137,49 +190,65 @@ def elimination():
     save(fig, "constrained-elimination")
 
 
+def _position_trial(seeds, stiffness, settings=COARSE, **scan):
+    errors = []
+    for seed in seeds:
+        f = frames_for(seed, **scan)
+        est, _ = l1.estimate_positions(f, path_stiffness=stiffness, **settings)
+        errors.append(l1.position_error(f, est))
+    e = np.array(errors)
+    solved = e < 20
+    return e, int(solved.sum()), (float(np.median(e[solved])) if solved.any() else float("nan"))
+
+
 def temporal():
     """The smooth-path constraint on frame positions."""
-    methods = [("each frame free", dict()), ("each frame free, coarse start", COARSE),
-               ("smooth path, coarse start", dict(path_stiffness=10.0, **COARSE))]
-    errors = {n: [] for n, _ in methods}
-    shown = None
-    for seed in range(8):
-        f = frames_for(seed, wander_px=1.0, wander_frames=20.0)
-        for n, kw in methods:
-            est, _ = l1.estimate_positions(f, **kw)
-            errors[n].append(l1.position_error(f, est))
-            if seed == 0:
-                shown = shown or {}
-                shown[n] = (est - l1.nominal_positions(f))[:, 0]
-        if seed == 0:
-            true_path = (f.positions_nm - l1.nominal_positions(f))[:, 0]
-            limit = l1.position_precision_limit(f)
-    print("Temporal, wander 1 pixel rms over 20 frames, seeds 0-7. Per-frame reference limit (nm):", round(limit, 2))
-    for n, _ in methods:
-        e = np.array(errors[n])
-        print(f"  {n:32s} errors nm {np.round(e, 1)}  solved (<20 nm): {int((e < 20).sum())}/8  "
-              f"median of solved {np.median(e[e < 20]):.1f}")
+    seeds = range(40)
+    wander = dict(wander_px=1.0, wander_frames=20.0)
+    methods = [("each frame free", 0.0, dict()), ("each frame free, coarse start", 0.0, COARSE),
+               ("smooth path, coarse start", 10.0, COARSE)]
+    f0 = frames_for(0, **wander)
+    limit = l1.position_precision_limit(f0)
+    before = l1.position_error(f0, l1.nominal_positions(f0))
+    print("Temporal, wander 1 pixel rms lasting 20 frames, seeds 0-39. Reference limit for one frame (nm):",
+          round(limit, 2), "error before estimation (nm):", round(before, 0))
+    errors = {}
+    for n, stiff, settings in methods:
+        e, solved, med = _position_trial(seeds, stiff, settings, **wander)
+        errors[n] = e
+        print(f"  {n:32s} solved (<20 nm): {solved}/40  median of solved {med:.1f} nm")
+    print("Sweeps with the coarse start, seeds 0-23 (solved of 24, median nm of solved): smooth path | each frame free")
+    sweep = range(24)
+    for stiff in (0.1, 1.0, 10.0, 100.0, 1000.0):
+        _, solved, med = _position_trial(sweep, stiff, **wander)
+        print(f"  stiffness {stiff:7.1f}: {solved} {med:.1f}")
+    for length in (3.0, 5.0, 10.0, 20.0, 40.0):
+        _, s1, m1 = _position_trial(sweep, 10.0, wander_px=1.0, wander_frames=length)
+        _, s0, m0 = _position_trial(sweep, 0.0, wander_px=1.0, wander_frames=length)
+        print(f"  wander lasting {length:4.0f} frames: {s1} {m1:.1f} | {s0} {m0:.1f}")
+    for jitter in (0.01, 0.03):
+        _, s1, m1 = _position_trial(sweep, 10.0, jitter_px=jitter, **wander)
+        _, s0, m0 = _position_trial(sweep, 0.0, jitter_px=jitter, **wander)
+        print(f"  plus jitter {jitter} pixel per frame: {s1} {m1:.1f} | {s0} {m0:.1f}")
+    _, s1, m1 = _position_trial(seeds, 10.0, wander_px=2.0, wander_frames=20.0)
+    print(f"  wander 2 pixels rms, smooth path, seeds 0-39: {s1}/40 solved, median {m1:.1f} nm")
 
-    larger = []
-    for seed in range(4):
-        f = frames_for(seed, wander_px=2.0, wander_frames=20.0)
-        est, _ = l1.estimate_positions(f, path_stiffness=10.0, **COARSE)
-        larger.append(l1.position_error(f, est))
-    print("  wander 2 pixels rms, smooth path, seeds 0-3: errors nm", np.round(larger, 1))
-
+    nominal = l1.nominal_positions(f0)[:, 0]
+    true_path = f0.positions_nm[:, 0] - nominal
+    free = l1.estimate_positions(f0, **COARSE)[0][:, 0] - nominal
+    tied = l1.estimate_positions(f0, path_stiffness=10.0, **COARSE)[0][:, 0] - nominal
     fig, (a, b) = plt.subplots(1, 2, figsize=(11.2, 4.3))
     t = np.arange(true_path.size)
-    centre = lambda v: (v - v.mean()) / 1e3
-    a.plot(t, centre(true_path), color=INK, lw=2.2, label="true path")
-    a.plot(t, centre(shown["each frame free, coarse start"]), color=ORANGE, lw=1.1, label="estimate, each frame free")
-    a.plot(t, centre(shown["smooth path, coarse start"]), color=BLUE, lw=1.1, ls=(0, (4, 2)),
-           label="estimate, smooth path required")
+    a.plot(t, true_path / 1e3, color=INK, lw=2.2, label="true path")
+    a.plot(t, free / 1e3, color=ORANGE, lw=1.1, label="estimate, each frame free")
+    a.plot(t, tied / 1e3, color=BLUE, lw=1.1, ls=(0, (4, 2)), label="estimate, smooth path required")
     a.set_xlabel("frame number")
     a.set_ylabel("position error of the frame (µm)")
-    a.set_title("one scan (seed 0): the sensor wanders by about a pixel", loc="left", fontsize=10.5)
+    a.set_title("one scan (seed 0): the sensor wanders by up to 3 µm", loc="left", fontsize=10.5)
     a.legend(frameon=False, fontsize=8.5)
-    for k, (n, _) in enumerate(methods):
-        b.semilogy(np.full(8, k) + np.linspace(-0.15, 0.15, 8), errors[n], "o", ms=5.5,
+    rng = np.random.default_rng(0)
+    for k, (n, _, _) in enumerate(methods):
+        b.semilogy(k + rng.uniform(-0.22, 0.22, 40), errors[n], "o", ms=4.5, alpha=0.8,
                    color=[INK2, ORANGE, BLUE][k])
     b.axhline(limit, color=INK2, lw=0.9, ls=(0, (2, 3)))
     b.text(2.45, limit * 1.15, "limit for one frame alone", ha="right", fontsize=8.5, color=INK2)
@@ -187,7 +256,7 @@ def temporal():
     b.set_xticklabels(["each frame free", "each frame free,\ncoarse start", "smooth path,\ncoarse start"], fontsize=9)
     b.set_xlim(-0.5, 2.5)
     b.set_ylabel("position error left after estimation (nm, rms)")
-    b.set_title("eight scans: error left over", loc="left", fontsize=10.5)
+    b.set_title("forty scans: error left over", loc="left", fontsize=10.5)
     for ax in (a, b):
         _clean(ax)
     fig.tight_layout()
@@ -195,18 +264,27 @@ def temporal():
 
 
 def together():
-    """All constraints at once, positions unknown."""
-    print("Together, wander 1 pixel rms, seeds 0-4: position error nm; contrast (five groups) with assumed "
-          "positions and no constraints; with everything; layouts surviving; true layout survives")
-    for seed in range(5):
+    """All constraints at once: positions unknown, and the whole scan misplaced by an unknown amount."""
+    shifts = tuple(range(-8, 9))
+    tally = {"true": 0, "set": 0, "none": 0, "wrong": 0}
+    print("Together, wander 1 pixel rms, overall offset unknown within 150 nm, seeds 0-23: offset nm; position "
+          "error nm; contrast of 0.8 and 0.48 µm bars with assumed positions and a plain fit; the same with the "
+          "constraints; outcome of elimination; shift found nm; local chi2 per reading")
+    for seed in range(24):
         f = frames_for(seed, wander_px=1.0, wander_frames=20.0)
-        _, _, pos = c.solve_surface_and_positions(f, LEVELS)
-        aligned = l1.align_positions(f, pos)
-        fitted, snapped = c.material_reconstruction(f, LEVELS, positions_nm=aligned)
-        _, s = c.eliminate_candidates(f, snapped, START, 12, LAYOUTS, LEVELS, positions_nm=aligned)
-        plain = l1.least_squares(f, positions_nm=l1.align_positions(f, l1.nominal_positions(f)))[0]
-        print("  ", seed, round(l1.position_error(f, pos), 1), np.round(contrasts(plain), 2),
-              np.round(contrasts(fitted), 2), int(s.sum()), bool(s[TRUE_INDEX]))
+        offset = float(np.random.default_rng(1000 + seed).uniform(-150, 150))
+        start = l1.nominal_positions(f) + offset
+        fitted, snapped, pos = c.solve_surface_and_positions(f, LEVELS, start_positions_nm=start)
+        r = c.eliminate_candidates(f, snapped, START, 12, LAYOUTS, LEVELS, positions_nm=pos, shifts=shifts)
+        tally[_outcome(r)] += 1
+        aligned = l1.align_positions(f, pos)                       # for scoring the contrast only
+        scored = c.material_reconstruction(f, LEVELS, positions_nm=aligned)[0]
+        plain = l1.least_squares(f, positions_nm=l1.align_positions(f, start))[0]
+        print("  ", seed, round(offset), round(l1.position_error(f, pos), 1), np.round(contrasts(plain)[3:], 2),
+              np.round(contrasts(scored)[3:], 2), _outcome(r), shifts[r.best[0]] * DX,
+              round(r.local_chi2_per_reading, 2), "shifts left nm:", r.surviving_shifts_nm(DX))
+    print("  totals: only the true layout", tally["true"], "| true among several", tally["set"],
+          "| nothing fits", tally["none"], "| wrong layout", tally["wrong"])
 
 
 if __name__ == "__main__":

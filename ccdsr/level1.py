@@ -330,7 +330,7 @@ def nominal_positions(frames: Frames1D, shift_px=None):
 
 
 def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smoothness=(1.0, 1e-2),
-                       max_step_px=0.5, path_stiffness=0.0, reconstruct=None):
+                       max_step_px=0.5, path_stiffness=0.0):
     """Estimate where each frame really was, from the readings alone.
 
     Alternates two steps. First, reconstruct the surface with the current
@@ -346,13 +346,13 @@ def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smo
 
     ``path_stiffness`` adds what is known about time: a stage with inertia
     cannot jump between frames, so the offsets must form a smooth path. Each
-    round then fits a smooth curve through the per-frame steps, trusting each
-    frame in proportion to how much detail it saw, and penalising bending
-    (second differences) with this weight. Zero leaves every frame free.
-
-    ``reconstruct`` replaces the surface step: a function ``(frames,
-    positions, level) -> surface``. It is how a constrained reconstruction is
-    used inside the loop.
+    round, after the per-frame steps, replaces the offsets by a smooth curve
+    fitted through them, trusting each frame in proportion to how much detail
+    it saw, and penalising bending (second differences) with this weight. Zero
+    leaves every frame free. The weight is per frame interval, with no
+    physical unit: the right value depends on how fast the real path can
+    bend between frames. Too stiff a curve cannot follow real motion, and any
+    error that truly changes from frame to frame is smoothed away wrongly.
 
     Returns ``(positions, offsets_history)`` where the history has one row of
     per-frame offsets (nanometres, relative to the start) per round.
@@ -367,10 +367,7 @@ def estimate_positions(frames: Frames1D, start_positions_nm=None, rounds=12, smo
     history = []
     for level in levels:
         pos = start + offsets[:, None]
-        if reconstruct is None:
-            est, _ = least_squares(frames, smoothness=level, positions_nm=pos)
-        else:
-            est = reconstruct(frames, pos, level)
+        est, _ = least_squares(frames, smoothness=level, positions_nm=pos)
         spectrum = np.fft.fft(est) * h
         s = sampling_matrix(pos, n, dx)
         predicted = (s @ np.fft.ifft(spectrum).real).reshape(m.shape)

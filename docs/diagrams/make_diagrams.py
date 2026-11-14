@@ -53,7 +53,9 @@ plt.rcParams.update(
 
 
 def save(fig, name):
-    fig.savefig(OUT / f"{name}.svg", bbox_inches="tight")
+    # fixed ids and no date, so that an unchanged figure gives an unchanged file
+    plt.rcParams["svg.hashsalt"] = name
+    fig.savefig(OUT / f"{name}.svg", bbox_inches="tight", metadata={"Date": None})
     fig.savefig(OUT / f"{name}.png", bbox_inches="tight", dpi=160)
     plt.close(fig)
 
