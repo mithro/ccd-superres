@@ -5,7 +5,8 @@ Run from the repository root:
     python docs/diagrams/make_optics_diagrams.py
 
 Writes SVG (used by the document) and PNG copies next to this file, all with
-the prefix ``optics-``, and prints the numbers quoted in the document.
+the prefix ``optics-``, and prints the numbers quoted in the document. The
+run takes about a minute.
 
 Everything here is an analytic or one-dimensional estimate, not a result from
 the simulator. The tube model in particular is a slit (one-dimensional),
@@ -687,6 +688,543 @@ def hundred_nm():
     save(fig, "hundred-nm")
 
 
+# --------------------------------------------------------------------------
+# 10. Pulsed and coded light: what one frame records
+# --------------------------------------------------------------------------
+def pulse_timing(frame_ms=100.0, shift_px=65.6, pulse_ms=0.4):
+    """Light against time within one frame, and the smear each choice leaves.
+
+    Figures are those of the design document's example: 10 frames per second
+    and a movement of 65.6 pixels per frame.
+    """
+    rng = np.random.default_rng(3)
+    t = np.linspace(0, frame_ms, 4000)
+    code = rng.integers(0, 2, 32)
+    code[0] = 1
+    chips = np.minimum((t / frame_ms * 32).astype(int), 31)
+    cases = [
+        ("Light on for the whole frame", np.ones_like(t), INK2,
+         f"smear {shift_px:.1f} pixels: fine detail is lost"),
+        (f"One pulse of {pulse_ms} ms", ((t > 50) & (t < 50 + pulse_ms)).astype(float), BLUE,
+         f"smear {shift_px * pulse_ms / frame_ms:.2f} pixels: sharp, but only "
+         f"{100 * pulse_ms / frame_ms:.1f} % of the light"),
+        ("Coded pulses: on and off in a known irregular pattern", code[chips].astype(float),
+         ORANGE, f"smear known exactly, so it can be undone: "
+         f"{100 * code.mean():.0f} % of the light"),
+    ]
+    fig, axes = plt.subplots(3, 2, figsize=(12.5, 6.2), sharex="col",
+                             gridspec_kw={"width_ratios": [1, 1]})
+    for row, (title, on, col, note) in enumerate(cases):
+        ax = axes[row, 0]
+        ax.fill_between(t, 0, on, step="mid", color=col, alpha=0.85, lw=0)
+        ax.set_ylim(0, 1.25)
+        ax.set_yticks([0, 1])
+        ax.set_yticklabels(["off", "on"])
+        ax.set_title(title, loc="left", fontsize=10.5)
+        tidy(ax)
+        ax = axes[row, 1]
+        ax.fill_between(t / frame_ms * shift_px, 0, on, step="mid", color=col,
+                        alpha=0.85, lw=0)
+        ax.set_ylim(0, 1.25)
+        ax.set_yticks([])
+        ax.set_title(note, loc="left", fontsize=10)
+        tidy(ax)
+    axes[2, 0].set_xlabel("time within one frame (ms)")
+    axes[2, 1].set_xlabel("where one surface point lands during the frame (pixels)")
+    axes[0, 0].set_ylabel("light")
+    axes[1, 0].set_ylabel("light")
+    axes[2, 0].set_ylabel("light")
+    fig.tight_layout()
+    save(fig, "pulse-timing")
+
+
+# --------------------------------------------------------------------------
+# 11. Collimated single-colour light: surface, and the ripples on the sensor
+# --------------------------------------------------------------------------
+def propagate_1d(field, dx, wavelength, distance):
+    """Exact scalar propagation of a one-dimensional field (angular spectrum)."""
+    f = np.fft.fftfreq(field.size, dx)
+    kz = 2 * np.pi * np.sqrt(np.maximum(0.0, 1 / wavelength**2 - f**2))
+    spectrum = np.fft.fft(field) * np.exp(1j * kz * distance) * (np.abs(f) < 1 / wavelength)
+    return np.fft.ifft(spectrum)
+
+
+def hologram_demo(gap=100.0, wavelength=WAVELENGTH_UM):
+    dx = 0.05
+    x = (np.arange(16384) - 8192) * dx
+    height_nm = np.zeros_like(x)
+    height_nm[(x > -42) & (x < -38)] = 5.0     # a raised line 4 um wide, 5 nm high
+    height_nm[(x > -2) & (x < -1)] = 5.0       # two raised lines 1 um wide, 1 um apart
+    height_nm[(x > 0) & (x < 1)] = 5.0
+    refl = np.ones_like(x)
+    refl[(x > 38) & (x < 42)] = 0.9            # a mark that reflects 10 % less light
+    field = np.sqrt(refl) * np.exp(1j * 4 * np.pi * height_nm * 1e-3 / wavelength)
+    intensity = np.abs(propagate_1d(field, dx, wavelength, gap)) ** 2
+    intensity_close = np.abs(propagate_1d(field, dx, wavelength, 0.0)) ** 2
+
+    fig, axes = plt.subplots(4, 1, figsize=(11.5, 8.2), sharex=True)
+    axes[0].plot(x, height_nm, color=INK2, lw=1.2)
+    axes[0].set_ylabel("height (nm)")
+    axes[0].set_ylim(-1, 7)
+    axes[0].set_title("Surface height: one raised line 4 µm wide, and two 1 µm wide, all 5 nm high",
+                      loc="left", fontsize=10.5)
+    axes[1].plot(x, 100 * refl, color=INK2, lw=1.2)
+    axes[1].set_ylabel("light reflected (%)")
+    axes[1].set_ylim(86, 102)
+    axes[1].set_title("Surface reflectance: one mark 4 µm wide that reflects 10 % less",
+                      loc="left", fontsize=10.5)
+    axes[2].plot(x, intensity_close, color=BLUE, lw=1.2)
+    axes[2].set_ylabel("brightness")
+    axes[2].set_ylim(0.8, 1.2)
+    axes[2].set_title("Brightness right at the surface: the mark shows, the height does not",
+                      loc="left", fontsize=10.5)
+    axes[3].plot(x, intensity, color=AQUA, lw=1.0)
+    axes[3].set_ylabel("brightness")
+    axes[3].set_ylim(0.8, 1.2)
+    axes[3].set_title(f"Brightness on the sensor, {gap:.0f} µm away, in a parallel beam of green light: "
+                      "ripples from all three", loc="left", fontsize=10.5)
+    axes[3].set_xlabel("position (µm)")
+    for ax in axes:
+        tidy(ax)
+        ax.set_xlim(-90, 90)
+    fig.tight_layout()
+    save(fig, "hologram-demo")
+    sel = (x > -60) & (x < -20)
+    return {"ripple_from_5nm_line_percent": 100 * float(np.ptp(intensity[sel]) / 2)}
+
+
+# --------------------------------------------------------------------------
+# 12. Talbot self-imaging behind a grating
+# --------------------------------------------------------------------------
+def talbot_carpet(period=10.0, wavelength=WAVELENGTH_UM):
+    dx = 0.05
+    n = int(round(16 * period / dx))
+    x = np.arange(n) * dx
+    grating = ((x % period) < period / 2).astype(complex)
+    zt = 2 * period**2 / wavelength
+    zs = np.linspace(0, 1.25 * zt, 300)
+    carpet = np.array([np.abs(propagate_1d(grating, dx, wavelength, z)) ** 2 for z in zs])
+    fig, ax = plt.subplots(figsize=(11.5, 4.6))
+    sel = x < 4 * period
+    im = ax.imshow(carpet[:, sel].T, origin="lower", aspect="auto", cmap="magma",
+                   extent=[zs[0], zs[-1], 0, 4 * period], vmin=0, vmax=2.5)
+    for z, lab in [(zt / 2, "half the Talbot distance:\ncopy shifted by half a period"),
+                   (zt, "Talbot distance:\nsharp copy of the grating")]:
+        ax.axvline(z, color="white", lw=1, ls="--")
+        ax.text(z + 6, 4 * period * 0.97, lab, color="white", va="top", fontsize=9)
+    ax.set_xlabel("distance behind the grating (µm)")
+    ax.set_ylabel("position across the grating (µm)")
+    ax.set_title(f"Light behind a grating of {period:.0f} µm period in a parallel beam of green light "
+                 f"(Talbot distance {zt:.0f} µm)", loc="left", fontsize=10.5)
+    fig.colorbar(im, ax=ax, label="brightness (1 = average of the open slits)", pad=0.015)
+    fig.tight_layout()
+    save(fig, "talbot-carpet")
+    return zt
+
+
+# --------------------------------------------------------------------------
+# 13. What can sit on the sensor face
+# --------------------------------------------------------------------------
+def sensor_face():
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.8))
+    pitch = 1.12
+
+    def base(ax, title, note):
+        ax.axis("off")
+        ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold")
+        ax.add_patch(Rectangle((-2.4, 2.2), 4.8, 0.9, fc=SILICON, ec=INK2, lw=1))
+        ax.text(0, 2.85, "silicon of the sensor", ha="center", va="center", color=INK2,
+                fontsize=8.5)
+        for i in range(4):
+            x0 = -2.24 + i * pitch
+            ax.add_patch(Rectangle((x0 + 0.06, 2.2), pitch - 0.12, 0.28, fc="#ffffff",
+                                   ec=INK2, lw=0.7))
+        ax.text(-2.24 + 0.5 * pitch, 2.34, "pixel", ha="center", va="center", fontsize=7.5,
+                color=INK2)
+        arrow(ax, (-2.24, 3.3), (-2.24 + pitch, 3.3), style="<|-|>", lw=0.9, scale=7)
+        ax.text(-2.24 + pitch / 2, 3.42, "1.12 µm", ha="center", va="bottom", fontsize=8)
+        ax.add_patch(Rectangle((-2.6, -0.5), 5.2, 0.4, fc=SAMPLE, ec=INK2, lw=1))
+        ax.text(0, -0.3, "surface", ha="center", va="center", color=INK2, fontsize=8.5)
+        ax.text(0, -0.75, note, ha="center", va="top", fontsize=9, linespacing=1.4)
+        ax.set_xlim(-2.9, 2.9)
+        ax.set_ylim(-2.2, 3.8)
+        ax.set_aspect("equal")
+
+    def rays(ax, top, cols=(YELLOW,) * 4):
+        for i, c in enumerate(cols):
+            xc = -2.24 + (i + 0.5) * pitch
+            for dxr in (-0.9, 0.0, 0.9):
+                ax.plot([xc + dxr, xc], [-0.1, top], color=c, lw=0.9, alpha=0.8)
+
+    ax = axes[0]
+    base(ax, "As sold: colour filter and microlenses",
+         "Each pixel has a red, green or blue filter\nand a tiny lens. Free, and usable for\n"
+         "three colours of light at once.")
+    for i, c in enumerate(["#d84b3c", "#3fa34d", "#3b6fd0", "#3fa34d"]):
+        x0 = -2.24 + i * pitch
+        ax.add_patch(Rectangle((x0, 1.95), pitch, 0.25, fc=c, ec="none", alpha=0.75))
+        th = np.linspace(0, np.pi, 30)
+        ax.fill(x0 + pitch / 2 + pitch / 2 * np.cos(th), 1.95 - 0.3 * np.sin(th),
+                color="#cfe3f7", ec=INK2, lw=0.6)
+    rays(ax, 1.65)
+    ax.text(2.45, 2.07, "colour\nfilter", fontsize=8, va="center")
+    ax.text(2.45, 1.7, "microlens", fontsize=8, va="center")
+
+    ax = axes[1]
+    base(ax, "Sub-pixel openings",
+         "A dark layer with one small hole per\npixel. The pixel acts as small as the\n"
+         "hole, and most light is lost.")
+    for i in range(4):
+        x0 = -2.24 + i * pitch
+        hole = 0.25
+        ax.add_patch(Rectangle((x0, 2.0), (pitch - hole) / 2, 0.2, fc=MASK, ec="none"))
+        ax.add_patch(Rectangle((x0 + (pitch + hole) / 2, 2.0), (pitch - hole) / 2, 0.2,
+                               fc=MASK, ec="none"))
+        ax.plot([x0 + pitch / 2, x0 + pitch / 2], [-0.1, 2.0], color=YELLOW, lw=1.2)
+    ax.text(2.45, 2.1, "dark layer\nwith holes", fontsize=8, va="center")
+
+    ax = axes[2]
+    base(ax, "Random scattering layer",
+         "A rough layer scrambles the light, so each\npoint of the surface leaves a detailed\n"
+         "pattern. The computer learns the layer.")
+    rng = np.random.default_rng(5)
+    xs = np.linspace(-2.24, 2.24, 90)
+    ax.fill_between(xs, 2.2, 1.95 - 0.12 * rng.random(xs.size), color=BLUE, alpha=0.45, lw=0)
+    for i in range(4):
+        xc = -2.24 + (i + 0.5) * pitch
+        for dxr in (-0.9, 0.0, 0.9):
+            ax.plot([xc + dxr, xc + 0.3 * dxr], [-0.1, 1.9], color=YELLOW, lw=0.9, alpha=0.8)
+            for k in (-0.35, 0.2):
+                ax.plot([xc + 0.3 * dxr, xc + 0.3 * dxr + k], [1.9, 2.2], color=ORANGE,
+                        lw=0.7, alpha=0.9)
+    ax.text(2.45, 2.03, "scattering\nlayer", fontsize=8, va="center")
+    fig.tight_layout()
+    save(fig, "sensor-face")
+
+
+# --------------------------------------------------------------------------
+# 14. What can sit in the gap
+# --------------------------------------------------------------------------
+def gap_elements():
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.8))
+
+    def base(ax, title, note, gap=2.2):
+        ax.axis("off")
+        ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold")
+        ax.add_patch(Rectangle((-2.4, gap), 4.8, 0.6, fc=SILICON, ec=INK2, lw=1))
+        ax.text(0, gap + 0.3, "sensor", ha="center", va="center", color=INK2, fontsize=9)
+        ax.add_patch(Rectangle((-2.6, -0.5), 5.2, 0.5, fc=SAMPLE, ec=INK2, lw=1))
+        ax.text(0, -0.25, "surface", ha="center", va="center", color=INK2, fontsize=9)
+        ax.text(0, -0.75, note, ha="center", va="top", fontsize=9, linespacing=1.4)
+        ax.set_xlim(-2.9, 3.6)
+        ax.set_ylim(-2.3, 3.2)
+        ax.set_aspect("equal")
+
+    ax = axes[0]
+    base(ax, "Fibre-optic plate",
+         "A block of glass fibres carries the picture\nfrom its lower face to the sensor. The gap\n"
+         "that counts is now below the plate.")
+    for i in range(16):
+        ax.add_patch(Rectangle((-2.4 + i * 0.3, 0.5), 0.3, 1.7, fc="#dfeefc", ec=INK2, lw=0.5))
+    for xc in (-1.35, 0.15, 1.35):
+        ax.plot([xc, xc], [0.0, 2.2], color=YELLOW, lw=1.6)
+    arrow(ax, (2.6, 0.0), (2.6, 0.5), style="<|-|>", lw=0.9, scale=7)
+    ax.text(2.7, 0.25, "gap that\ncounts", fontsize=8, va="center")
+    ax.text(2.7, 1.35, "fibres", fontsize=8, va="center")
+
+    ax = axes[1]
+    base(ax, "Reference flat",
+         "A part-reflecting plate. Its reflection and the\nsurface's meet and interfere, so brightness\n"
+         "follows the distance between them.")
+    ax.add_patch(Rectangle((-2.4, 0.55), 4.8, 0.12, fc=AQUA, ec="none", alpha=0.8))
+    ax.plot([-1.6, -0.9], [2.2, 0.0], color=YELLOW, lw=1.6)
+    ax.plot([-0.9, -0.2], [0.0, 2.2], color=YELLOW, lw=1.6)
+    ax.plot([-1.42, -0.72], [0.61, 2.2], color=ORANGE, lw=1.6)
+    ax.text(0.1, 1.5, "two reflections\nreach the same pixel", fontsize=8, va="center")
+    arrow(ax, (2.6, 0.0), (2.6, 0.55), style="<|-|>", lw=0.9, scale=7)
+    ax.text(2.7, 0.27, "height sets\nthis distance", fontsize=8, va="center")
+    ax.text(2.7, 0.75, "flat", fontsize=8, va="bottom")
+
+    ax = axes[2]
+    base(ax, "Liquid in the gap",
+         "Light has a shorter wavelength in water\nor oil, so everything limited by the\n"
+         "wavelength improves by 1.3 to 1.5 times.")
+    ax.add_patch(Rectangle((-2.4, 0.0), 2.4, 2.2, fc="#ffffff", ec="none"))
+    ax.add_patch(Rectangle((0.0, 0.0), 2.4, 2.2, fc="#cfe3f7", ec="none"))
+    y = np.linspace(0.0, 2.2, 400)
+    ax.plot(-1.2 + 0.25 * np.sin(2 * np.pi * y / 0.6), y, color=YELLOW, lw=1.6)
+    ax.plot(1.2 + 0.25 * np.sin(2 * np.pi * y / (0.6 / 1.33)), y, color=YELLOW, lw=1.6)
+    ax.text(-1.2, 1.1, "air", ha="center", fontsize=9, color=INK2,
+            bbox=dict(fc="#ffffff", ec="none", pad=1))
+    ax.text(1.2, 1.1, "water", ha="center", fontsize=9, color=INK2,
+            bbox=dict(fc="#cfe3f7", ec="none", pad=1))
+    fig.tight_layout()
+    save(fig, "gap-elements")
+
+
+# --------------------------------------------------------------------------
+# 15. Polarisers: separating mirror-like from scattered light
+# --------------------------------------------------------------------------
+def polarisers():
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.4))
+    for ax, title, second, passes, note in [
+        (axes[0], "Parallel polarisers", "same direction",
+         "mirror-like reflection passes",
+         "Keeps the mirror-like reflection, which carries\nthe surface detail and stays coherent."),
+        (axes[1], "Crossed polarisers", "turned by 90°",
+         "only scattered light passes",
+         "Blocks the glare, and keeps the light that\nwas scattered inside a matt surface."),
+    ]:
+        ax.axis("off")
+        ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold")
+        ax.add_patch(Rectangle((-3.2, -0.5), 6.4, 0.5, fc=SAMPLE, ec=INK2, lw=1))
+        ax.text(0, -0.25, "surface", ha="center", va="center", color=INK2, fontsize=9)
+        ax.add_patch(Rectangle((-3.3, 3.0), 0.9, 0.6, fc=LIGHT, ec=INK2, lw=1))
+        ax.text(-2.85, 3.3, "light", ha="center", va="center", fontsize=9)
+        ax.add_patch(Rectangle((1.6, 3.0), 1.6, 0.6, fc=SILICON, ec=INK2, lw=1))
+        ax.text(2.4, 3.3, "sensor", ha="center", va="center", fontsize=9, color=INK2)
+        ax.add_patch(Rectangle((-2.25, 1.9), 1.2, 0.1, fc=BLUE, ec="none", angle=-45))
+        ax.text(-2.6, 1.3, "first polariser", fontsize=8.5, ha="center")
+        ax.add_patch(Rectangle((1.15, 1.05), 1.2, 0.1, fc=BLUE, ec="none", angle=45))
+        ax.text(2.75, 1.3, f"second polariser,\n{second}", fontsize=8.5, ha="center")
+        arrow(ax, (-2.4, 3.0), (0.0, 0.02), color=YELLOW, lw=2)
+        arrow(ax, (0.0, 0.02), (2.3, 2.98), color=ORANGE if "Crossed" in title else YELLOW, lw=2)
+        ax.text(0.0, 2.2, passes, ha="center", fontsize=9)
+        ax.text(0, -0.8, note, ha="center", va="top", fontsize=9, linespacing=1.4)
+        ax.set_xlim(-3.6, 3.8)
+        ax.set_ylim(-2.0, 3.9)
+        ax.set_aspect("equal")
+    fig.tight_layout()
+    save(fig, "polarisers")
+
+
+# --------------------------------------------------------------------------
+# 16. Which detail slanted light brings within reach
+# --------------------------------------------------------------------------
+def frequency_coverage():
+    cases = [
+        ("A  Light straight down,\nsensor collects ±30°", 0.405, 0.0, 0.5, 1.0),
+        ("B  Light slanted 65° from 8 sides,\nsensor collects ±30°", 0.405,
+         np.sin(np.radians(65)), 0.5, 1.0),
+        ("C  Light slanted 72°,\nbare sensor collects ±58°", 0.405,
+         np.sin(np.radians(72)), np.sin(np.radians(58)), 1.0),
+        ("D  As C, with water in the gap", 0.405,
+         np.sin(np.radians(72)), np.sin(np.radians(58)), 1.333),
+    ]
+    fig, axes = plt.subplots(1, 4, figsize=(15.5, 4.6))
+    th = np.linspace(0, 2 * np.pi, 200)
+    target = 1 / 0.2
+    for ax, (title, lam, na_i, na_c, n) in zip(axes, cases):
+        r = n * na_c / lam
+        shift = n * na_i / lam
+        centres = [(0.0, 0.0)] if na_i == 0 else [
+            (shift * np.cos(a), shift * np.sin(a)) for a in np.arange(8) * np.pi / 4]
+        for cx, cy in centres:
+            ax.fill(cx + r * np.cos(th), cy + r * np.sin(th), color=BLUE, alpha=0.22, lw=0)
+            ax.plot(cx + r * np.cos(th), cy + r * np.sin(th), color=BLUE, lw=0.6)
+        ax.plot(target * np.cos(th), target * np.sin(th), color=INK, lw=1.2, ls="--")
+        reach = r + shift
+        ax.plot(reach * np.cos(th), reach * np.sin(th), color=ORANGE, lw=1.2)
+        ax.set_title(title, loc="left", fontsize=9.8)
+        ax.text(0, -6.9, f"finest line reached: {1000 / (2 * reach):.0f} nm", ha="center",
+                color=ORANGE, fontsize=9.5)
+        ax.set_xlim(-6.4, 6.4)
+        ax.set_ylim(-7.4, 6.4)
+        ax.set_aspect("equal")
+        ax.set_xlabel("fineness across the chip (repeats per µm)")
+        tidy(ax)
+    axes[0].set_ylabel("fineness along the chip (repeats per µm)")
+    axes[0].text(0, 5.25, "target: 100 nm lines\n(5 repeats per µm)", ha="center", va="bottom",
+                 fontsize=8.5)
+    fig.suptitle("Detail within reach with 405 nm light. Each blue disc is what one direction of "
+                 "light brings in. The orange circle is the limit. The dashed circle is the target.",
+                 x=0.01, ha="left", fontsize=10.5)
+    fig.tight_layout()
+    save(fig, "frequency-coverage")
+
+
+# --------------------------------------------------------------------------
+# 17. How strongly a pixel records stripes of a given period
+# --------------------------------------------------------------------------
+def pixel_fringe_response(pixel_nm=1120.0):
+    period = np.logspace(2, 4.3, 2000)
+    fig, ax = plt.subplots(figsize=(11, 5.2))
+    out = {}
+    for soft, col, lab in [(0.0, INK2, "perfectly sharp edges"),
+                           (100.0, BLUE, "edges soft over about 100 nm"),
+                           (300.0, ORANGE, "edges soft over about 300 nm")]:
+        sigma = soft / 2.355
+        resp = np.abs(np.sinc(pixel_nm / period)) * np.exp(-2 * (np.pi * sigma / period) ** 2)
+        # Envelope of the sinc, so the curve is readable between its zeros.
+        env = np.minimum(1.0, period / (np.pi * pixel_nm)) * np.exp(
+            -2 * (np.pi * sigma / period) ** 2)
+        ax.plot(period, resp, color=col, lw=0.7, alpha=0.5)
+        ax.plot(period, env, color=col, lw=2.2, label=lab)
+        out[soft] = float(np.interp(200.0, period, env))
+    for p, lab in [(200, "detail of the target:\n200 nm period"),
+                   (3300, "beat pattern from\nbeam pairs: 3300 nm")]:
+        ax.axvline(p, color=INK, lw=0.9, ls=":")
+        ax.text(p * 1.05, 1.5e-3, lab, fontsize=9, va="bottom")
+    ax.axvline(pixel_nm, color=INK2, lw=0.9, ls="--")
+    ax.text(pixel_nm * 0.95, 0.5, "pixel width\n1120 nm", fontsize=9, ha="right", color=INK2)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_ylim(1e-3, 1.5)
+    ax.set_xlim(100, 20000)
+    ax.set_xlabel("period of the stripes of light falling on the pixel (nm)")
+    ax.set_ylabel("share of the stripe contrast the pixel records")
+    ax.set_title("A pixel averages stripes narrower than itself (thick: upper limit, thin: exact curve)",
+                 loc="left", fontsize=10.5)
+    ax.legend(frameon=False, loc="upper left")
+    tidy(ax)
+    fig.tight_layout()
+    save(fig, "pixel-fringe-response")
+    return out
+
+
+# --------------------------------------------------------------------------
+# 18. Beam pairs: fine detail and fine stripes make a coarse pattern
+# --------------------------------------------------------------------------
+def beam_pair_beat(pixel_nm=1120.0, wavelength_nm=405.0, slant_deg=72.0, detail_nm=200.0):
+    fringe_nm = wavelength_nm / (2 * np.sin(np.radians(slant_deg)))
+    beat_nm = 1 / (1 / detail_nm - 1 / fringe_nm)
+    x = np.arange(0, 11200, 2.0)
+    detail = 0.5 + 0.2 * np.sign(np.sin(2 * np.pi * x / detail_nm))
+    fringes = 1 + np.cos(2 * np.pi * x / fringe_nm)
+    product = detail * fringes
+    edges = np.arange(0, x[-1] + 1, pixel_nm)
+
+    def pixels(signal):
+        return np.array([signal[(x >= a) & (x < a + pixel_nm)].mean() for a in edges[:-1]])
+
+    fig, axes = plt.subplots(4, 1, figsize=(11.5, 8.6), sharex=True)
+    axes[0].plot(x, detail, color=INK2, lw=0.8)
+    axes[0].set_title(f"Chip detail: lines and spaces of {detail_nm / 2:.0f} nm "
+                      f"(period {detail_nm:.0f} nm)", loc="left", fontsize=10.5)
+    axes[0].set_ylabel("light reflected")
+    axes[1].plot(x, fringes, color=YELLOW, lw=0.8)
+    axes[1].set_title(f"Stripes of light from two {wavelength_nm:.0f} nm beams slanted "
+                      f"{slant_deg:.0f}° (period {fringe_nm:.0f} nm)", loc="left", fontsize=10.5)
+    axes[1].set_ylabel("light arriving")
+    axes[2].plot(x, product, color=ORANGE, lw=0.6)
+    axes[2].set_title(f"Light leaving the chip: a broad pattern of period {beat_nm:.0f} nm appears",
+                      loc="left", fontsize=10.5)
+    axes[2].set_ylabel("light leaving")
+    centres = edges[:-1] + pixel_nm / 2
+    axes[3].bar(centres - 0.2 * pixel_nm, pixels(detail * fringes.mean()), width=0.38 * pixel_nm,
+                color=INK2, label="even light: every pixel reads the same")
+    axes[3].bar(centres + 0.2 * pixel_nm, pixels(product), width=0.38 * pixel_nm, color=ORANGE,
+                label="stripe light: the broad pattern is recorded")
+    for e in edges:
+        axes[3].axvline(e, color=GRID, lw=0.8)
+    axes[3].set_title("What pixels 1120 nm wide record (each bar is one pixel)", loc="left",
+                      fontsize=10.5)
+    axes[3].set_ylabel("pixel reading")
+    axes[3].set_ylim(0, 0.95)
+    axes[3].legend(frameon=False, loc="upper right", ncol=2, fontsize=9)
+    axes[3].set_xlabel("position on the chip (nm)")
+    for ax in axes:
+        tidy(ax)
+        ax.set_xlim(0, edges[-1])
+    fig.tight_layout()
+    save(fig, "beam-pair-beat")
+    return {"fringe_nm": float(fringe_nm), "beat_nm": float(beat_nm),
+            "pixel_swing": float(np.ptp(pixels(product)) / pixels(product).mean())}
+
+
+# --------------------------------------------------------------------------
+# 19. Finding and measuring a feature without resolving it
+# --------------------------------------------------------------------------
+def locate_without_resolving(blur_fwhm_nm=400.0):
+    x = np.arange(-1500, 1500, 1.0)
+    sigma = blur_fwhm_nm / 2.355
+    kernel = np.exp(-0.5 * (x / sigma) ** 2)
+    kernel /= kernel.sum()
+
+    def seen(width, centre=0.0):
+        line = (np.abs(x - centre) < width / 2).astype(float)
+        return np.convolve(line, kernel, mode="same")
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.6))
+    ax = axes[0]
+    for w, col in [(50, AQUA), (100, BLUE), (150, ORANGE)]:
+        ax.plot(x, seen(w), color=col, lw=2, label=f"line {w} nm wide")
+    ax.set_title(f"Lines seen with a blur {blur_fwhm_nm:.0f} nm wide: same shape, different strength",
+                 loc="left", fontsize=10.5)
+    ax.set_xlabel("position (nm)")
+    ax.set_ylabel("signal (1 = a very wide line)")
+    ax.legend(frameon=False)
+    tidy(ax)
+    ax = axes[1]
+    ax.plot(x, seen(100, 0), color=BLUE, lw=2, label="line at 0 nm")
+    ax.plot(x, seen(100, 40), color=ORANGE, lw=2, label="same line moved by 40 nm")
+    ax.plot(x, 4 * (seen(100, 40) - seen(100, 0)), color=INK2, lw=1.2, ls="--",
+            label="difference, 4 times enlarged")
+    ax.set_title("A shift far smaller than the blur still changes the signal", loc="left",
+                 fontsize=10.5)
+    ax.set_xlabel("position (nm)")
+    ax.set_xlim(-800, 800)
+    ax.legend(frameon=False, fontsize=9)
+    tidy(ax)
+    fig.tight_layout()
+    save(fig, "locate-without-resolving")
+
+
+# --------------------------------------------------------------------------
+# 20. Randomness as a tool: three small demonstrations
+# --------------------------------------------------------------------------
+def randomness_demo(shift_px=65.6, wavelength_nm=405.0, na=0.9):
+    rng = np.random.default_rng(11)
+    fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
+
+    # (a) Where successive frames fall within one pixel.
+    ax = axes[0]
+    frames = np.arange(200)
+    regular = (frames * shift_px) % 1.0
+    jittered = (frames * shift_px + rng.uniform(-0.5, 0.5, frames.size)) % 1.0
+    bins = np.linspace(0, 1, 21)
+    ax.hist(regular, bins=bins, color=INK2, alpha=0.8, label="evenly timed pulses")
+    ax.hist(jittered, bins=bins, color=ORANGE, alpha=0.7, label="pulse times varied at random")
+    ax.set_xlabel("position of the frame within one pixel (pixels)")
+    ax.set_ylabel("number of frames out of 200")
+    ax.set_title("Irregular timing spreads the samples", loc="left", fontsize=10.5)
+    ax.set_ylim(0, 52)
+    ax.legend(frameon=False, fontsize=9)
+    tidy(ax)
+
+    # (b) A speckle pattern for light arriving from all directions up to the given NA.
+    ax = axes[1]
+    n, size_nm = 512, 4000.0
+    f = np.fft.fftfreq(n, size_nm / n)
+    fx, fy = np.meshgrid(f, f)
+    pupil = (np.hypot(fx, fy) < na / wavelength_nm)
+    field = np.fft.ifft2(pupil * np.exp(2j * np.pi * rng.random((n, n))))
+    speckle = np.abs(field) ** 2
+    ax.imshow(speckle / speckle.mean(), cmap="magma", extent=[0, size_nm, 0, size_nm], vmax=5)
+    ax.plot([300, 300 + 1120], [300, 300], color="white", lw=3)
+    ax.text(300 + 560, 420, "one pixel, 1120 nm", color="white", ha="center", fontsize=9)
+    ax.set_xlabel("position (nm)")
+    ax.set_ylabel("position (nm)")
+    ax.set_title(f"Speckle from {wavelength_nm:.0f} nm light: grains of about "
+                 f"{wavelength_nm / (2 * na):.0f} nm", loc="left", fontsize=10.5)
+
+    # (c) Dither: averaging rounded readings with and without noise.
+    ax = axes[2]
+    true = np.linspace(0, 3, 121)
+    for noise, col, lab in [(0.0, INK2, "no noise: steps of one count"),
+                            (0.5, ORANGE, "noise of half a count: follows the truth")]:
+        reads = np.round(true[:, None] + noise * rng.standard_normal((true.size, 2000)))
+        ax.plot(true, reads.mean(axis=1), color=col, lw=2, label=lab)
+    ax.plot(true, true, color=AQUA, lw=1, ls="--", label="true signal")
+    ax.set_xlabel("true signal (counts)")
+    ax.set_ylabel("average of 2000 rounded readings (counts)")
+    ax.set_title("A little noise lets averaging see below one count", loc="left", fontsize=10.5)
+    ax.legend(frameon=False, fontsize=9)
+    tidy(ax)
+    fig.tight_layout()
+    save(fig, "randomness-demo")
+
+
 def main():
     element_positions()
     tube_geometry()
@@ -697,6 +1235,21 @@ def main():
     demo = fringe_demo()
     height_signal()
     hundred_nm()
+    pulse_timing()
+    holo = hologram_demo()
+    talbot = talbot_carpet()
+    sensor_face()
+    gap_elements()
+    polarisers()
+    frequency_coverage()
+    pixel = pixel_fringe_response()
+    beat = beam_pair_beat()
+    locate_without_resolving()
+    randomness_demo()
+    print("Hologram demonstration:", holo)
+    print("Talbot distance (um):", talbot)
+    print("Pixel response at 200 nm period, by edge softness (nm):", pixel)
+    print("Beam-pair beat:", beat)
 
     lam = WAVELENGTH_UM
     print("Best tube width and patch width (slit model, tube depth 10 x gap):")
