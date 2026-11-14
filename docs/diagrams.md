@@ -86,3 +86,25 @@ python docs/diagrams/make_calibration_diagrams.py
 | `calib-frc-demo` | A prior that invents detail passes a split-data test and fails against the truth | Two-dimensional toy calculation |
 | `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
 | `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
+
+## Ptychography research figures
+
+The figures on the [ptychography and lensless coherent imaging](research/ptychography.md)
+page come from
+[`docs/diagrams/make_ptychography_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_ptychography_diagrams.py),
+which also prints the derived numbers quoted on that page. The toy
+reconstructions take a few minutes; `--fast` skips them.
+
+```
+python docs/diagrams/make_ptychography_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `ptycho-family` | Five arrangements of ptychography, side views | Illustrative |
+| `ptycho-benchmark` | Finest published line width as a multiple of the wavelength used | Published figures, cited on the page |
+| `ptycho-pixel-ratio` | Pixel width over finest line resolved, published and required | Published figures, cited on the page |
+| `ptycho-toy-overlap-position` | Reconstruction error against overlap and against position error | Small far-field reconstruction with photon noise, fixed seeds |
+| `ptycho-beat-path` | The rays that meet at one pixel with one beam and with a pair | Straight-ray geometry, to scale |
+| `ptycho-pulse-timing` | Movement during one pulse against scan speed | Speed times pulse length |
+| `ptycho-angle-coverage` | Detail covered by rings of lighting directions, and shared area between neighbours | Scalar far-field formula |

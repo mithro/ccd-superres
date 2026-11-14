@@ -6,6 +6,7 @@ link here the first time they use a term that is not explained on the spot.
 | Term | Meaning |
 |---|---|
 | Acceptance angle | How far from straight ahead light can arrive at a pixel, or at a tube in front of it, and still be detected. The same idea as collection angle. |
+| Achromatic | Not depending on the colour (wavelength) of the light. |
 | Anchor | A quantity that the scan data cannot fix by itself, so that one outside measurement is needed to pin it: an absolute length, an absolute brightness or an absolute height. |
 | Aperture | The opening through which light is collected. A wider opening, or a wider range of angles, lets finer detail through. |
 | Approach | One complete way of building and running the instrument: a choice of light, optical parts, gap, sensor, readout, scan, exposure and reconstruction method. |
@@ -42,6 +43,7 @@ link here the first time they use a term that is not explained on the spot.
 | Exposure | The time during which a pixel adds up light for one reading. |
 | Far field | Far enough from the surface, many wavelengths, that only ordinary travelling light is left. |
 | Feature | A detail on the surface, such as a line of wiring on a chip. |
+| Fly scan | Recording while the object or sensor moves continuously, in place of stopping for each recording. |
 | Footprint (patch) | The area of surface that one pixel sees, and how strongly it sees each part of it. Another name for the blur kernel seen from the pixel. |
 | Forward model | The calculation that predicts what the sensor would record for a given surface. Reconstruction runs it backwards. |
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
@@ -73,6 +75,7 @@ link here the first time they use a term that is not explained on the spot.
 | Micrometre (µm) | A thousandth of a millimetre. A human hair is roughly 80 µm across. |
 | Mirror-like (specular) surface | A smooth surface that reflects light in one direction, like polished silicon. |
 | Mixed states | A description of light, in ptychography, as a mixture of a few patterns instead of one. It accounts for imperfect coherence and for vibration during an exposure. |
+| Mixed states (modes) | Treating one recording as the sum of a few different patterns added in brightness, to model blur from movement, vibration or impure colour. |
 | Motion blur | Smearing caused by the sensor moving while a pixel is adding up light. |
 | Nanometre (nm) | A thousandth of a micrometre, a millionth of a millimetre. 100 nm is roughly a thousandth of the width of a human hair. |
 | Near field | Within a fraction of a wavelength of the surface, where detail finer than the wavelength can still be picked up. |
@@ -114,6 +117,7 @@ link here the first time they use a term that is not explained on the spot.
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Spectral width | The spread of wavelengths in a light source. A narrow spread means a pure colour and a long coherence length. |
+| Specular reflection | The mirror reflection of a beam: the part that leaves a surface at the same angle it arrived. |
 | Stage | Used in two senses: a step of the staged path (stage 0 to stage 4), and the moving platform that carries a sample or the sensor. |
 | Sub-pixel | Smaller than one pixel. |
 | Super-resolution | Recovering detail finer than the pixels by combining many readings taken at slightly different positions. |
