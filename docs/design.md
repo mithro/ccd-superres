@@ -500,47 +500,53 @@ stage cannot proceed without it.
 
 ```mermaid
 flowchart LR
+    S0["0. Measure<br/>the pixels"]
     S1["1. Coarse picture<br/>micrometre scale"]
-    S2["2. Detect and locate<br/>fine features"]
-    S3["3. Measure by<br/>fitting a model"]
-    S4["4. Full picture<br/>110 to 145 nm lines"]
-    S5["5. Full picture<br/>100 nm lines"]
+    S2["2. True picture<br/>150 to 200 nm lines"]
+    S3["3. Detect, locate, fit<br/>inferred picture, 100 nm"]
+    S4["4. True picture<br/>100 nm lines"]
+    S0 -->|"pixel response"| S1
     S1 -->|"positions, gains,<br/>chip map"| S2
-    S2 -->|"edges, pitch and<br/>direction per region"| S3
+    S2 -->|"picture and<br/>calibration"| S3
     S3 -->|"layout estimate"| S4
-    S4 -->|"picture and<br/>calibration"| S5
+    S3 -.->|"better starting<br/>estimate"| S2
 ```
+
+This is the single staged plan for the project. The optical elements study
+(`docs/optical-elements.md`, pull request 2) uses the same stage numbers.
 
 | Stage | What it produces | Hardware | Computation | Simulation levels | Passes on |
 |---|---|---|---|---|---|
-| 1. Coarse picture | A picture of the chip at micrometre scale: blocks, wide wiring, pads | The sensor, a scan and simple lighting | The linear solve of section 6, with frame positions estimated from the data | 0 and 1 | Position of every frame, speed, tilt, pixel gains, and a map of the chip to register everything else against |
-| 2. Detect and locate | Where fine structure is, without resolving it: edges, isolated lines and defects located to tens of nanometres, and for each region of regular pattern its repeat distance and direction, read from the direction in which it throws light | One 405 nm laser diode at a steep slant, pulsed | Moderate: wave model of an isolated feature, fitted per feature | 3, with 4 for the response of a single feature | A list of features and, per region, pitch and direction |
-| 3. Measure by fitting a model | Line widths, pitches and heights per region, as numbers with uncertainties: a layout described by parameters | A few more colours or slant directions, and a polariser | Large: the electromagnetic solver inside a fitting loop, thousands of runs, one independent job per region | 4 | A layout estimate: the best description of the chip that straight edges and a few materials allow |
-| 4. Full picture | A picture of the layout with lines of about 110 to 145 nm, not restricted to the assumed kinds of structure | Slanted 405 nm beams from several directions, including pairs switched on together (section 4.6) | Very large: iterative recovery of the light's phase over every frame, with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
-| 5. Full picture at 100 nm | The stated goal | 365 nm light or liquid in the gap, and possibly a sensor with its top layers removed | As stage 4 | 3 and 4 | The result |
+| 0. Measure the pixels | How strongly a pixel responds to fine light stripes and to light from each angle. This is the shared unknown of section 4.6 and decides how far every later stage gets. | The sensor, one laser diode and a mirror, to cross two beams on the sensor | Small | 4, to compare with the measurement | The pixel response, used as a kernel by every level |
+| 1. Coarse picture | A picture of the chip at micrometre scale: blocks, wide wiring, pads | A scan and simple lighting | The linear solve of section 6, with frame positions estimated from the data | 0 and 1 | Position of every frame, speed, tilt, pixel gains, and a map of the chip to register everything else against |
+| 2. True picture to 150 to 200 nm lines | A picture of the layout, with height, not restricted to any assumed kind of structure. Lines of 150 to 200 nm are expected, and 110 to 145 nm is the limit of the formula in section 4.6. | Pulsed 405 nm laser beams at a steep slant from several directions, switched on in pairs, and several colours | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions and the pixel response as unknowns, tiled across graphics cards | 3 for the solver's forward model, 4 to check it on patches | The picture, and a calibrated model of the instrument |
+| 3. Detect, locate and fit | From the same data, with no new hardware: edges, isolated lines and defects located to tens of nanometres, the repeat distance and direction of each regular region, and line widths and heights fitted with an electromagnetic model. Together these give a picture at about 100 nm that is partly inferred, and is labelled as such. | None | Very large: the electromagnetic solver inside a fitting loop, thousands of runs, one independent job per region | 4 | A layout estimate: the best description of the chip that straight edges and a few materials allow |
+| 4. True picture at 100 nm | The stated goal | Near-ultraviolet light (365 nm) or water in the gap, and possibly a sensor with its top layers removed | As stage 2, started from the stage 3 layout | 3 and 4 | The result |
 
-How each stage uses the one before:
+How each stage uses the ones before:
 
-- **As a starting estimate.** The solve in stage 4 has many false solutions
-  and takes a long time from a blank start. Started from the layout estimate
-  of stage 3, it begins close to the answer.
-- **As a prior.** The layout estimate also enters stage 4 as a preference,
-  with a weight that is lowered step by step, so the final picture is held up
-  by the data and not by the assumption.
-- **As calibration.** Frame positions, pixel gains and the pixel's response
-  to fine stripes are estimated once in the early stages and refined, not
-  rediscovered, later.
-- **As a guide to where to look.** Stage 2 says which regions hold fine
-  structure, so the expensive stages run only there.
+- **As a starting estimate.** The phase-recovery solve has many false
+  solutions and takes a long time from a blank start. Stage 2 starts from
+  the coarse picture. Stage 4 starts from the stage 3 layout, and stage 2
+  can be rerun from it as well, so stages 2 and 3 are repeated in turn until
+  they stop changing.
+- **As a prior.** The layout estimate enters the picture solve as a
+  preference, with a weight that is lowered step by step, so the final
+  picture is held up by the data and not by the assumption.
+- **As calibration.** The pixel response, frame positions and pixel gains
+  are estimated once in the early stages and refined, not rediscovered,
+  later.
+- **As a guide to where to look.** Stage 3's detection pass says which
+  regions hold fine structure, so the expensive fits run only there.
 
-Two checks keep the stages honest. Each picture from stage 4 or 5 is also
+Two checks keep the stages honest. Each picture from stage 2 or 4 is also
 reconstructed from a deliberately wrong starting layout, and only the detail
 that appears in both counts as seen. And each stage reports its result at the
-scale it can support, so a stage 3 number is never presented as a picture.
+scale it can support, so a stage 3 result is never presented as a true picture.
 
 In the simulator the stages are run in the same order on the default scene,
 which gives the first evidence of how far each one gets before any hardware
-is bought. Stage 5 is at the edge of what is possible (section 4.6), and the
+is bought. Stage 4 is at the edge of what is possible (section 4.6), and the
 simulator's job is to say how close to 100 nm it comes and what limits it.
 
 ## 5. Baseline parameters
