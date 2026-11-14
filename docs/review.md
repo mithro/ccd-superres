@@ -292,3 +292,84 @@ mentions of the script that were not links. All were fixed.
 | The last method of [section 8.2](research/beamforming.md#82-a-toy-calculation) when the stage's average step is not given | Not calculated. | Its advantage is shown only for a known average step. |
 | The derivation of [section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) against a wave calculation | It needs simulation levels 3 and 4. | The beam-layout result is an estimate until then. |
 
+
+## Review 5: simulation level 1 and reconstruction by elimination
+
+[Simulation level 1](level1.md) and
+[reconstruction by elimination](constrained-reconstruction.md) were each
+reviewed on 14 November 2026 by a reviewer who was given the code, tests,
+figure scripts and pages, and not the author's conclusions. Each reviewer
+also changed the code on purpose in small ways ("mutants") to see whether
+the tests would notice.
+
+| Asset | Reviewed in | When |
+|---|---|---|
+| [`ccdsr/level1.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1.py), [`ccdsr/level1_2d.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/level1_2d.py), their tests and the [level 1 page](level1.md) | [Pull request 30](https://github.com/mithro/ccd-superres/pull/30) | After pull requests 22 and 23 had merged, before position estimation merged |
+| [`ccdsr/constrained.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/constrained.py), [`tests/test_constrained.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_constrained.py), [`make_constrained_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_constrained_diagrams.py) and the [elimination page](constrained-reconstruction.md) | [Pull request 33](https://github.com/mithro/ccd-superres/pull/33), in two rounds | Before merging |
+
+*Table: what review 5 covered.*
+
+### Findings on level 1 and what was done
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The table of speed errors scored positions without removing the common shift that no method can know, so the errors shown were an artefact. | Scoring now aligns positions first. |
+| 2 | Error | The formula for noise on measured contrast left out the error on the mean. | Factor added, and checked against 400 simulated runs. |
+| 3 | Gap | 12 of 13 deliberate code changes went unnoticed by the tests. | Independent tests added. All 13 are now caught. |
+| 4 | Source | A ptychography paper was cited for a claim it does not make. | Citation removed and the claim marked Unverified. |
+| 5 | Wording | Several results were stated more strongly than the runs supported; the blur check compared the code with itself. | Reworded. |
+
+### Findings on reconstruction by elimination and what was done
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The gain credited to reflectance limits came from using lighter smoothing than the plain fit it was compared with. | All methods are compared at the same smoothing. Limits of 0 and 1 alone give no gain; two known materials do. |
+| 2 | Error | The misfit favoured bright candidates, and the threshold was said to be "set by trial". | Term added to the misfit; threshold now follows from the number of candidates and the accepted chance of rejecting the truth. |
+| 3 | Error | Elimination always returned an answer, even with wrong assumptions, and the test scans gave away the overall position. | An absolute test near the region can answer "nothing fits"; the overall position is unknown in the experiments and is searched. |
+| 4 | Gap | Tables rested on 5 to 8 random scans, which flattered the smooth-path rule. | 24 to 40 scans, with solved counts as well as medians. |
+| 5 | Gap | The smooth-path rule was shown only for motion that suits it. | Sweeps over stiffness and kind of motion added; the page says it fails for frame-to-frame shake. |
+| 6 | Gap | Several deliberate code changes survived the tests; some quoted numbers were typed by hand; figures changed from run to run. | Tests added; the script prints every number on the page; figure files are now the same on every run. |
+
+### Second review of the reworked elimination approach
+
+A second reviewer, again given the code and pages and not the author's
+conclusions, checked the rework. It confirmed the statistics, found no
+information about the truth leaking into the method, and reproduced tables
+3 to 6, 9 and 10 and one row of table 8 of the page.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | Table 10 compared a plain fit at usual smoothing and wrong positions with the constrained fit at light smoothing and found positions, so it mixed three gains. | Column added for a plain fit with the same smoothing and positions: 0.32 against 0.57. |
+| 2 | Error | The position read out for the surviving layout could be wrong by a whole cell, because the same surface has two labels. | Replaced by a readout of the place on the surface (`surviving_edges_nm`), with a test. |
+| 3 | Gap | "Placed within 20 nm" and the medians of table 10 were not printed by the script. | Both are now printed. |
+| 4 | Gap | Two deliberate code changes survived the tests (the fit threshold and the window of readings used). | Three tests added. |
+| 5 | Gap | The method is told the brightness of the light and the noise sizes, which the page did not say. | Said, and tested: brightness wrong by 2 % gives "nothing fits". |
+| 6 | Gap | The path stiffness was chosen on the same scans the result was reported on. | The combined test was repeated on 24 fresh scans, with the same counts. |
+| 7 | Wording | Medians quoted without saying they cover solved scans only; a guarantee stated without its conditions; the region tested stands alone. | Reworded, and added to the table of limits. |
+
+### Not checked
+
+Level 1 in two dimensions has no position estimation yet, so none was
+reviewed. The second reviewer did not rerun table 7, the other rows of
+table 8, or the full test suite. The fixes made after the second review
+were checked by the tests and by rerunning the experiments.
+
+## Review 6: the research studies folded into the design
+
+[Design, section 4.10](design.md#410-what-the-four-research-studies-changed)
+and the smaller edits that go with it were reviewed on 14 November 2026,
+before merging, in [pull request 33](https://github.com/mithro/ccd-superres/pull/33). The reviewer was given the change and the four study pages,
+and checked every table row and edited sentence against the study section
+it cites.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The gap range of section 5.2 (20 nm to 0.5 mm) contradicted the new minimum gap of 0.6 mm. | Range widened to 2 mm, and the minimum is stated as applying to steep laser beams only. |
+| 2 | Error | The cure for streaks in pixel gains was given as one pass shifted by a pixel. The study showed that only on a toy sensor of 12 columns and advises shifts at several scales. | Row, section 6.4 and the wording corrected. |
+| 3 | Error | "Every reading falls on one of 4 places inside a pixel" left out that this is along the scan only and matters when 8 fine samples are wanted. The 0.2 pixel jitter was worked out for a different step. | Reworded; the size of the variation is left to the simulator. |
+| 4 | Gap | Six rows dropped a condition the study attaches (beam spread, laser purity, beam count, lighting states, read-noise price, the gain from weighing candidates). | Conditions added to each row. |
+| 5 | Gap | Fourteen recommended settings and components were missing from Table 4.10c. | Added. |
+| 6 | Wording | Table captions claimed a single status for values of mixed status; two links pointed at the wrong section. | Captions and links corrected. |
+
+*Table: findings of review 6. Not checked: the studies' own derivations,
+scripts and references.*

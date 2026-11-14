@@ -32,3 +32,12 @@ Two dimensions:
 .. automodule:: ccdsr.level1_2d
    :members:
 ```
+
+## Reconstruction by elimination
+
+See the [page on this approach](constrained-reconstruction.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.constrained
+   :members:
+```
