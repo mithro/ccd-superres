@@ -1,0 +1,7 @@
+name = "shift-and-add"
+description = "Put every reading where it was taken and average. No sharpening. Shows what dense sampling alone gives."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage", "position readout good to a few nanometres"]
+positions = "known"
+
+[reconstruction]
+method = "shift_and_add"

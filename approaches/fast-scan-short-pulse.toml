@@ -1,0 +1,12 @@
+name = "fast-scan-short-pulse"
+description = "Scan six times faster (2.37 pixels per frame) with the light flashed briefly for each frame. Least squares, positions given."
+hardware = ["sensor with its lens removed", "pulsed light", "scan stage", "position readout good to a few nanometres"]
+positions = "known"
+
+[scan]
+shift_px = 2.37
+exposure_fraction = 0.0
+
+[reconstruction]
+method = "least_squares"
+smoothness = 1e-2

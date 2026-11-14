@@ -1,0 +1,9 @@
+name = "position-solving"
+description = "Least squares with the position of every frame found from the readings themselves, each frame free."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage"]
+positions = "unknown"
+
+[reconstruction]
+method = "least_squares_positions"
+smoothness = 1e-2
+path_stiffness = 0.0

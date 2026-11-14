@@ -41,3 +41,15 @@ See the [page on this approach](constrained-reconstruction.md).
 .. automodule:: ccdsr.constrained
    :members:
 ```
+
+## Approaches and comparisons
+
+See [comparing approaches](comparison.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.approaches
+   :members:
+
+.. automodule:: ccdsr.compare
+   :members:
+```

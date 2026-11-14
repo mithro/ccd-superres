@@ -1,0 +1,9 @@
+name = "smooth-path-position-solving"
+description = "Position solving with the rule that the sensor's path is smooth from frame to frame."
+hardware = ["sensor with its lens removed", "diffuse light", "scan stage"]
+positions = "unknown"
+
+[reconstruction]
+method = "least_squares_positions"
+smoothness = 1e-2
+path_stiffness = 10.0
