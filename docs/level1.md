@@ -8,8 +8,9 @@ bright and dark, blurs it the way the gap and the pixels would, reads it off
 at the places the moving pixels visit, adds sensor noise, and then
 reconstructs the strip from those readings.
 
-This page covers the first part: one dimension, with the scan positions
-known exactly. It shows three things.
+This page covers level 1 in one dimension and in two, with the scan
+positions known exactly. The one-dimensional part shows three things, and
+the [two-dimensional part](#two-dimensions-and-sensor-tilt) adds a fourth.
 
 1. Dense sampling by itself is not enough. Averaging the readings in place
    loses lines narrower than a pixel. Undoing the known blur brings them back.
@@ -19,6 +20,11 @@ known exactly. It shows three things.
    the test.
 3. What is lost is lost for a stated reason. Detail comes back wherever the
    blur leaves more of it than the noise, and nowhere else.
+
+4. In two dimensions the sensor must be turned slightly. With the pixel rows
+   exactly in line with the scan, lines lying along the scan cannot be
+   recovered at all. A tilt of a few degrees on a small sensor, and far less
+   on a full-size one, recovers them as well as lines crossed by the scan.
 
 Level 1 is **not** a model of the 100 nm target. That target needs coherent
 slanted light, which is level 3 in the [simulation chain](simulation-chain.md).
@@ -216,16 +222,127 @@ More readings shrink the error by the square root of their number. A small
 transfer multiplies it up. Derived here: `predicted_contrast_noise` in
 `ccdsr/level1.py`; the noise model per reading follows [Janesick].
 
+## Two dimensions and sensor tilt
+
+The two-dimensional simulator has the same steps as figure 1. The surface is
+a picture, the sensor is a small square array of pixels, and the array can be
+turned by a tilt angle about the line of sight. The gap blurs equally in
+every direction, the square pixel blurs along its own tilted sides, and
+motion blur lies along the scan.
+
+**Why tilt matters.** The scan moves the sensor along one direction only.
+Along that direction a point of the surface is visited at many slightly
+different positions, which is what makes detail finer than a pixel
+recoverable. Across the scan nothing moves. With no tilt, every pixel in a
+row looks at the same strip, the strips are one whole pixel apart, and what
+lies between two strips is seen only through the blur of a whole pixel.
+Turning the sensor makes each pixel along a row sit a little further across
+the scan than the one before, so that together they cover the space between
+the strips. This is the same geometry as the
+[scan sampling figure in the design](design.md#2-concept), now simulated end
+to end.
+
+| Setting | Value | Unit |
+|---|---:|---|
+| Pixel pitch | 1.12 | µm |
+| Gap, matt surface | 0.30 | µm |
+| Sensor | 16 × 16 | pixels |
+| Frames | 300 | |
+| Shift between frames | 0.37 | pixels |
+| Readings in total | 76,800 | |
+| Unknowns (grid cells) | 131,072 | |
+| Electrons at full brightness | 2,500 | e⁻ |
+| Read noise | 2.0 | e⁻ |
+| Grid step | 70 | nm |
+| Picture size | 35.8 × 17.9 | µm |
+
+*Table 6. Settings of the two-dimensional example. There are fewer readings
+than grid cells; the blur removes the finest detail anyway, and the mild
+preference for smoothness settles what the readings leave open.*
+
+![Six panels: true line groups, one raw frame, three reconstructions and a plot of recovered contrast against tilt](diagrams/level1-2d.svg)
+
+*Figure 4. Top left: the true surface, with four groups of lines crossed by
+the scan and the same four groups lying along it. Top middle: one raw frame,
+256 readings. Top right: all frames averaged in place with the sensor tilted.
+Bottom left: the best-fit reconstruction with no tilt recovers the upper
+groups and turns the lower groups into smears. Bottom middle: with a tilt of
+3.6° both sets are recovered equally. Bottom right: recovered contrast of the
+1.4 µm lines against tilt.*
+
+| Lines | Repeat distance (µm) | True | No tilt, best fit | Tilt 3.6°, averaged | Tilt 3.6°, best fit | Share the blur lets through |
+|---|---:|---:|---:|---:|---:|---:|
+| Crossed by the scan | 1.96 | 0.85 | 0.85 | 0.32 | 0.85 | 0.336 |
+| Crossed by the scan | 1.40 | 0.85 | 0.78 | 0.14 | 0.79 | 0.110 |
+| Crossed by the scan | 0.98 | 0.86 | 0.37 | 0.02 | 0.43 | 0.035 |
+| Crossed by the scan | 0.70 | 0.86 | 0.23 | 0.01 | 0.28 | 0.029 |
+| Lying along the scan | 1.96 | 0.85 | 0.19 | 0.32 | 0.85 | 0.336 |
+| Lying along the scan | 1.40 | 0.85 | 0.04 | 0.14 | 0.78 | 0.110 |
+| Lying along the scan | 0.98 | 0.86 | 0.03 | 0.02 | 0.42 | 0.035 |
+| Lying along the scan | 0.70 | 0.86 | 0.02 | 0.01 | 0.27 | 0.029 |
+| Overall error (rms) | | 0.000 | 0.194 | 0.213 | 0.129 | |
+
+*Table 7. Contrast of each line group in each reconstruction, and the rms
+difference from the true surface in units of reflectance. Derived here:
+computed by `docs/diagrams/make_diagrams.py` with the settings of table 6 and
+random seed 1.*
+
+| Tilt (degrees) | Lines crossed by the scan | Lines lying along the scan |
+|---:|---:|---:|
+| 0.00 | 0.78 | 0.04 |
+| 0.25 | 0.80 | 0.32 |
+| 0.50 | 0.80 | 0.51 |
+| 1.00 | 0.80 | 0.66 |
+| 1.50 | 0.80 | 0.71 |
+| 2.00 | 0.80 | 0.75 |
+| 2.50 | 0.80 | 0.78 |
+| 3.00 | 0.79 | 0.78 |
+| 3.58 | 0.79 | 0.78 |
+| 5.00 | 0.80 | 0.79 |
+| 10.00 | 0.80 | 0.79 |
+
+*Table 8. Recovered contrast of the 1.4 µm lines (true value 0.85) against
+sensor tilt, best-fit reconstruction, 16 × 16 pixel sensor. Derived here.*
+
+What the tilt results say:
+
+- **No tilt loses one direction completely.** Even the coarsest lines lying
+  along the scan, 1.96 µm, come back at a contrast of 0.19 against a true
+  0.85, and the picture shows smears, not lines.
+- **The tilt needed is small and depends on the sensor's length.** The lines
+  across the scan are fully recovered once the far end of a pixel row has
+  drifted sideways by about one pixel. For this 16-pixel row that is 3.6°
+  (one in sixteen). For the 3,280-pixel row of the baseline sensor the same
+  rule gives about 0.02°. Derived here from the geometry; the practical
+  choice of tilt, which also has to avoid repeating the same offsets, is
+  worked out by the [scan calculator](calculator.md).
+- **Beyond that point more tilt changes little**, up to the 10° tested.
+- **With the right tilt both directions come out the same**, to within 0.01
+  in contrast, so a single scan pass is enough for a full picture at this
+  level of modelling.
+
+### Cross-checks in two dimensions
+
+| Check | Result | Verdict |
+|---|---|---|
+| Against one dimension: a surface that is uniform across the scan, no tilt, no noise | Every pixel row gives the same readings as the one-dimensional simulator, to 9 significant figures | Pass |
+| Blur against the two-dimensional transfer formula, for waves at 0°, 30° and 90° to the scan, with tilt and motion blur | Agrees to 6 significant figures | Pass |
+| Reconstruction with no noise and tilt | Every line group recovered within 5% of its true contrast | Pass |
+| Rolling readout: each row read slightly later | Positions shift along the scan by the set amount per row, and not across it | Pass |
+
+*Table 9. Cross-checks of the two-dimensional simulator. Automated in
+`tests/test_level1_2d.py`.*
+
 ## What this version leaves out
 
 | Limit | Why it matters | Where it is dealt with |
 |---|---|---|
-| One dimension | The real sensor is a tilted two-dimensional array, which gives finer sampling across the scan as well | Next step of [plan item D2](plan.md#d-simulation-chain) |
-| Positions known exactly in the reconstruction | The real scan speed and position wander. The simulator can already add position error; the reconstruction does not yet estimate it. | Motion estimation at level 1, a later step of plan item D2 |
+| Small sensor and small picture | 16 × 16 pixels and 36 × 18 µm, against 3,280 × 2,464 pixels on the baseline sensor. Larger cases need the tiled, parallel solver. | [Design 6.5](design.md#65-spending-computation-instead-of-hardware); later step of [plan item D2](plan.md#d-simulation-chain) |
+| Positions known exactly in the reconstruction | The real scan speed and position wander. The simulator can already add position error; the reconstruction does not yet estimate it. | Motion estimation at level 1, the next step of plan item D2 |
 | The same blur model simulates and reconstructs | A reconstruction always looks best when it knows the blur perfectly. Real pixels will differ from the model. | Uncertain pixel response as a swept setting ([design 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)); cross-checks against levels 2 to 4 |
 | Pixel gain differences are simulated but not corrected | Uncorrected gain differences leave stripes | [Calibration and test methods](calibration-and-test.md) |
 | Matt or mirror-like surface, no interference | The 100 nm target relies on interference of coherent light | Level 3 |
-| Grid wraps round | Harmless with margins; would mix the two ends of a real strip | Removed when two dimensions are added |
+| Grid wraps round | Harmless with margins; would mix the two ends of a real strip | Removed with the tiled solver |
 
 *Table 5. Known limits of this version.*
 
@@ -242,6 +359,17 @@ frames = l1.simulate(surface, dx, l1.Optics1D(gap_nm=300), scan, l1.Noise1D(), s
 estimate, steps = l1.least_squares(frames)
 for group in groups:
     print(group[0], l1.bar_contrast(estimate, group, dx))
+```
+
+The two-dimensional version has the same shape:
+
+```python
+from ccdsr import level1_2d as l2
+
+picture, groups = l2.line_groups([1960, 1400, 980, 700], 70.0, (256, 512))
+scan = l2.Scan2D(n_rows=16, n_cols=16, n_frames=300, tilt_deg=3.58)
+frames = l2.simulate(picture, 70.0, l2.Optics(gap_nm=300), scan, seed=1)
+estimate, steps = l2.least_squares(frames)
 ```
 
 The functions are listed in the [Python reference](api.md#simulation-level-1).
