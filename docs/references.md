@@ -15,6 +15,7 @@ the [documentation standard](plan.md#documentation-standard).
 | **Derived here** | Worked out in this project from stated starting points. The page or code that does the working is named, so it can be checked. |
 | **Estimate** | A number from the project's own simplified model. Good for comparing options, not yet confirmed by a more exact simulation. |
 | **Assumption** | Chosen to make progress, with no source. Listed so it can be challenged. |
+| **Judgement** | A ranking, verdict or recommendation: an opinion reached from the evidence, not a fact. |
 | **Unverified** | Believed from general knowledge or a secondary source, not yet checked against a primary one. To be sourced or removed. |
 
 Entries marked "checked" were matched against a bibliographic database when
