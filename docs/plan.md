@@ -333,6 +333,15 @@ Tim's requirement is proper, clear diagrams, not only text.
   so it can be regenerated and corrected.
 - **Parts are labelled and axes carry units.**
 - **Each figure has a caption that stands alone.**
+- **Clicking any figure enlarges it.** Every image and flow chart on every
+  page opens in a viewer that fills the window, where it can be zoomed and
+  moved. This is done for the whole site by
+  [`docs/_static/image-zoom.js`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.js)
+  and
+  [`docs/_static/image-zoom.css`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.css),
+  loaded from
+  [`docs/conf.py`](https://github.com/mithro/ccd-superres/blob/main/docs/conf.py),
+  so a new figure needs nothing added to its page.
 
 ### Tables
 
