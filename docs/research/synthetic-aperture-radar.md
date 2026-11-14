@@ -25,18 +25,20 @@ small fraction of the radio wavelength, which no navigation system
 delivers. Radar engineers solved this decades ago with **autofocus**: the
 blurred picture itself is used to work out where the aircraft really was.
 
-This project has the same problem at a scale about 77 000 times smaller:
-the wavelength of a typical satellite radar is 31 mm, and the wavelength of
-the laser here is 405 nm. Every radar size on this page is given first in
-the radar's own units and then shrunk by the ratio of the wavelengths, so
-that a kilometre of flight path can be compared with a millimetre of scan
-([how radar sizes are scaled](#how-radar-sizes-are-scaled-to-the-instrument)). The sensor slides over the chip, the positions are not known well
-enough, and the gap between sensor and chip is not known well enough
-either. The comparison of sizes is worth keeping in mind: a radar
-wavelength is a few centimetres, about the width of a finger; the violet
-laser light here has a wavelength of 405 nm, about a two-hundredth of the
-width of a hair; and one pixel of the sensor is 1.12 µm wide, almost three
-of those wavelengths.
+This project has the same problem at a scale about 77 000 times smaller.
+The sensor slides over the chip, the positions are not known well enough,
+and the gap between sensor and chip is not known well enough either. The
+comparison of sizes is worth keeping in mind: a radar wavelength is a few
+centimetres, about the width of a finger (31 mm for a typical satellite
+radar); the violet laser light here has a wavelength of 405 nm, about a
+two-hundredth of the width of a hair; and one pixel of the sensor is
+1.12 µm wide, almost three of those wavelengths.
+
+Radar sizes on this page are given first in the radar's own units and
+then shrunk by the ratio of the wavelengths, wherever the wavelength of
+the radar is known, so that a kilometre of flight path can be compared
+with a millimetre of scan
+([how radar sizes are scaled](#how-radar-sizes-are-scaled-to-the-instrument)).
 
 What this study found:
 
@@ -121,8 +123,9 @@ idea maps onto the instrument, are this page's own reasoning. They are all
 
 ## How radar sizes are scaled to the instrument
 
-Radar, sonar and terahertz systems work in metres and kilometres. To make
-their figures comparable with this instrument, each length on this page is
+Radar systems work in metres and kilometres, and the sonar and terahertz
+systems quoted here in millimetres and micrometres. To make their figures
+comparable with this instrument, each length on this page is
 given twice: first in the units of the source, then scaled to the
 instrument. The scaling rule (**derived here**) is to keep the number of
 wavelengths the same:
@@ -134,23 +137,48 @@ $$
 In words: divide the length by the wavelength of the system that reported
 it, then multiply by the 405 nm wavelength of the instrument's laser. A
 radar picture with a resolution of 100 radar wavelengths becomes a picture
-with a resolution of 100 light wavelengths. Wavelength is the right
-yardstick because every limit in this study (resolution, path tolerance,
-focus) is set by a number of wavelengths, not by a number of metres.
+with a resolution of 100 light wavelengths. This is a scale model: the
+whole radar, with its antenna, its pulse and its distance to the ground,
+is imagined shrunk by one factor. Wavelength is the yardstick because the
+path tolerance and the focus are set by a number of wavelengths. Other
+figures, such as the width of the strip covered, the resolution along the
+line of sight and the accuracy of a distance measurement, are set by the
+antenna, the pulse and the timing, and they scale only because the whole
+radar is shrunk together.
 
-| System | Where it appears | Frequency | Wavelength | Wavelength unit | Shrink factor to 405 nm | 1 m becomes | Unit | Source of the wavelength |
-|---|---|---|---:|---|---:|---:|---|---|
-| Satellite radar (TerraSAR-X) | Sections 6.1 and 7.2 | 9.65 GHz | 31.1 | mm | 76 700 | 13.0 | µm | [[SA96](#sa96)] |
-| Airborne radar used for the high-definition pictures | Section 7.1 | 9.6 GHz | 31.2 | mm | 77 100 | 13.0 | µm | [[SA70](#sa70), full text] |
-| Airborne radar of the tolerance table | Section 2.2 | Not given | 18 | mm | 44 400 | 22.5 | µm | [[SA5](#sa5), full text] |
-| Low-frequency airborne radar (modelled on CARABAS-II) | Sections 3, 4.1 and 5.4 | About 55 MHz, the middle of 20 to 90 MHz | 5.45 | m | 13 500 000 | 0.074 | µm | **Unverified**: [[SA6](#sa6)] says only "VHF"; the band is from general knowledge |
-| Sonar | Section 4.1 | 118 to 182 kHz, middle 150 kHz | 10 | mm | 24 700 | 40.5 | µm | Band from [[SA29](#sa29)]; wavelength is own arithmetic with sound at 1 500 m/s in water (**estimate**) |
-| Terahertz imaging | Section 6.1 | Not given | 214 | µm | 528 | 1 890 | µm | Centre of the band in [[SA57](#sa57)], own arithmetic |
+| System | Wavelength (mm) | Shrink factor to 405 nm | 1 m becomes (µm) | Source of the wavelength |
+|---|---:|---:|---:|---|
+| Satellite radar (TerraSAR-X) | 31.1 | 76 700 | 13.0 | [[SA96](#sa96)], from a search-result summary |
+| Airborne radar used for the high-definition pictures | 31.2 | 77 100 | 13.0 | [[SA70](#sa70), full text] |
+| Airborne radar of the tolerance table | 18.0 | 44 400 | 22.5 | [[SA5](#sa5), full text] |
+| Low-frequency airborne radar (modelled on CARABAS-II) | 5 450 | 13 500 000 | 0.0743 | **Unverified** |
+| Sonar | 10.0 | 24 700 | 40.5 | **Estimate** from the band in [[SA29](#sa29)] |
+| Terahertz imaging | 0.214 | 528 | 1 890 | **Estimate** from the band in [[SA57](#sa57)] |
 
 *Table: the wavelength used to scale each system's figures. The shrink
 factor is the system's wavelength divided by 405 nm. Computed by
 [`make_sar_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_sar_diagrams.py),
-which prints every scaled value quoted on this page.*
+which prints the scaled values quoted on this page.*
+
+Where each wavelength comes from, and where it is used:
+
+- **Satellite radar**, used in the introduction and in sections 2.2, 6.1
+  and 7.2: a frequency of 9.65 GHz.
+- **Airborne radar of the high-definition pictures**, section 7.1: a
+  frequency of 9.6 GHz.
+- **Airborne radar of the tolerance table**, section 2.2: the source gives
+  the wavelength directly.
+- **Low-frequency radar**, sections 3, 4.1 and 5.4: [[SA6](#sa6)] says
+  only that the radar works at "VHF" and is modelled on a system called
+  CARABAS-II. From general knowledge, not checked against a source, that
+  system covers 20 to 90 MHz, which is wavelengths from 3.3 to 15 m. The
+  middle, 55 MHz or 5.45 m, is used here. Because the band is so wide,
+  the scaled values for this radar could be about three times smaller or
+  1.6 times larger, and they are quoted as "about".
+- **Sonar**, sections 1 and 4.1: the source gives 118 to 182 kHz. The
+  middle, 150 kHz, with sound at 1 500 m/s in water, gives 10 mm.
+- **Terahertz imaging**, section 6.1: the middle of the band in the
+  source's abstract.
 
 Three cautions go with every scaled value:
 
@@ -164,14 +192,20 @@ Three cautions go with every scaled value:
   of a resolution cell are the same at any scale and are quoted once.
 - **Where the source that was read does not give its wavelength, the
   figure is left unscaled and the table says so.** A guess at the
-  wavelength would be passed off as a result.
+  wavelength would be passed off as a result. Optical instruments quoted
+  on this page, such as other lensless sensors, already work at the
+  instrument's own scale and are not scaled either.
+- **Radar and sonar waves travel out and back, so a path error counts
+  twice.** In this instrument a position error of the sensor counts once.
+  A scaled radar tolerance is therefore about half the matching figure in
+  [section 4.2](#42-what-this-instrument-needs).
 
 ## 1. Summary of answers
 
 | Question from the plan | Short answer | Section |
 |---|---|---|
 | How is an aperture built when the path is not known exactly? | Navigation gets close, and autofocus finds the rest from the data. Low-order errors (wrong speed, slow bends) are removed almost completely. Fast errors are not, and must be kept small by the hardware or modelled. | [2](#2-how-radar-builds-an-aperture-from-an-uncertain-path), [3](#3-autofocus-the-families-and-what-each-needs) |
-| How accurately can the path be recovered? | Published results range from a fiftieth of a wavelength in optical holography to a five-hundredth of a wavelength for sonar (20 µm at a wavelength of about 10 mm; the same share of 405 nm is 0.8 nm). For this instrument the need is about 3 to 40 nm depending on where the light is mounted. | [4](#4-how-well-the-path-must-be-known-and-how-well-it-can-be-found) |
+| How accurately can the path be recovered? | Published results range from a fiftieth of a wavelength in optical holography to a five-hundredth of a wavelength for sonar (20 µm at a wavelength of about 10 mm; the same share of 405 nm is 0.8 nm). For this instrument the need is about 3 to 36 nm depending on where the light is mounted. | [4](#4-how-well-the-path-must-be-known-and-how-well-it-can-be-found) |
 | Can the surface be recovered without exact positions, by eliminating impossible candidates? | Yes: it is how radar autofocus already works. The physical rules do the eliminating, the search must run coarse to fine, and a few quantities stay undetermined whatever is done. | [5.4](#54-proposing-candidates-and-eliminating-the-impossible), [5.5](#55-time-as-a-source-of-rules) |
 | Which autofocus methods carry over to brightness-only data? | Map drift and sharpness maximisation carry over directly. Phase gradient autofocus carries over only where a strong reference wave makes the recording a hologram. Geometry autofocus is the best model for the full solver. | [5](#5-autofocus-when-only-brightness-is-recorded) |
 | How do stripmap and spotlight map onto the instrument? | The baseline, light fixed to the stage, is neither: it is radar's "stationary transmitter, moving receiver" case. Stripmap is a light that rides with the sensor. Spotlight is a light direction that is stepped or swept. Turning the chip is inverse synthetic aperture. | [6](#6-radar-modes-and-the-instrument) |
@@ -212,7 +246,8 @@ The phase of an echo changes by a full cycle when the round-trip distance
 changes by one wavelength. An aircraft that is a quarter of a wavelength
 from where the processor thinks it is puts that pulse half a cycle out, and
 it subtracts where it should add. For a satellite radar with a wavelength
-of 31.1 mm that quarter is 7.8 mm; for 405 nm light it is 101 nm. Radar
+of 31.1 mm that quarter is 7.8 mm; for 405 nm light sent out and back the
+same way it would be 101 nm. Radar
 wavelengths are centimetres, and aircraft do not fly to millimetres.
 
 What navigation leaves behind, and what radar treats as tolerable, from a
@@ -221,8 +256,8 @@ Sandia National Laboratories report on motion measurement for radar
 
 | Kind of phase error | Limit with no autofocus (degrees) | Original: path error at 18 mm wavelength (µm) | Scaled to 405 nm (nm) | Removed by ordinary autofocus? |
 |---|---:|---:|---:|---|
-| Slow bend across the aperture (quadratic), peak | 90 | 2 300 | 50.6 | Yes |
-| Cubic, peak | 30 | 750 | 16.9 | Yes |
+| Slow bend across the aperture (quadratic), peak | 90 | 2 300 | 51 | Yes |
+| Cubic, peak | 30 | 750 | 17 | Yes |
 | Ripple (sinusoidal), peak | 1 | 25 | 0.6 | Not if fast |
 | Random from pulse to pulse, standard deviation | 1 | 25 | 0.6 | No |
 
@@ -233,7 +268,9 @@ radar of 18 mm wavelength, where the wave travels out and back, so that a
 full cycle of 360 degrees is half a wavelength of path. The scaled column
 is derived here by the
 [scaling rule](#how-radar-sizes-are-scaled-to-the-instrument): the same
-number of degrees for a 405 nm wave that also travels out and back. It
+number of degrees for a 405 nm wave that also travels out and back, which
+is 405/720 nm for each degree. The report rounds its first distance from
+2 250 to 2 300 µm; the scaled value is computed from the degrees. It
 translates the radar's limits and is not the instrument's requirement,
 which is in [section 4.2](#42-what-this-instrument-needs).*
 
@@ -330,8 +367,8 @@ phase. Searching over the path geometry inside the image formation fixed
 it: a 2 050 m aperture length assumed in place of the true 2 000 m was
 recovered to within 5 cm [[SA6](#sa6), full text]. Scaled to 405 nm, with
 the caution that this radar's wavelength of about 5.45 m is unverified,
-that is a scan of 149 µm whose length was wrong by 3.7 µm and was
-recovered to within 3.7 nm. The authors note the
+that is a scan of about 150 µm whose length was wrong by about 4 µm and
+was recovered to within about 4 nm. The authors note the
 limit of the idea as they ran it: "an exhaustive 6-D geometry search is not
 a feasible" option, so they varied one parameter at a time. A search by
 gradient, which present-day automatic differentiation makes easy, is the
@@ -379,15 +416,15 @@ illustrate them; they are not a prediction for the instrument.*
 
 ### 4.1 What other fields have achieved
 
-| Field | What was estimated from the data | Reported accuracy, original | Original unit | Wavelength of that system | Share of that wavelength | Scaled to 405 nm (nm) | Source |
-|---|---|---:|---|---|---:|---:|---|
-| Sonar | Sideways movement between pings | 20 | µm | About 10 mm | 0.002 | 0.8 | [[SA29](#sa29)] |
-| Optical holography, computer simulation under ideal conditions | Phase error across the aperture, more than 15 independent recordings | 0.02 | wavelengths rms | Any | 0.02 | 8.1 | [[SA30](#sa30)] |
-| Optical holography, the same simulation | The same, with 2 recordings | 0.10 | wavelengths rms | Any | 0.10 | 40.5 | [[SA30](#sa30)] |
-| Radar, low frequency | Length of a 2 000 m aperture | 0.05 | m | About 5.45 m (unverified) | 0.009 | 3.7 | [[SA6](#sa6), full text] |
-| Radar, airborne | Track error | 0.02 | m | Not given in the abstract | | Not scaled | [[SA32](#sa32)] |
-| Radar, signal-based tracking | Distance to the scene, from correlating part-pictures | 0.02 | resolution cells | Not a length | | Not scaled | [[SA31](#sa31), full text] |
-| Optical synthetic aperture, moving camera | Shift between overlapping recordings, against the motor | 0.2 | pixels | Not a length | | Not scaled | [[SA34](#sa34), full text] |
+| Field | What was estimated from the data | Reported accuracy, original | Original unit | Wavelength of that system (mm) | Share of that wavelength | Scaled to 405 nm (nm) | Source |
+|---|---|---:|---|---:|---:|---:|---|
+| Sonar | Sideways movement between pings | 20 | µm | 10 | 0.002 | 0.8 | [[SA29](#sa29)] |
+| Optical holography, computer simulation under ideal conditions | Phase error across the aperture, more than 15 independent recordings | 0.02 | wavelengths rms | | 0.02 | 8.1 | [[SA30](#sa30)] |
+| Optical holography, the same simulation | The same, with 2 recordings | 0.10 | wavelengths rms | | 0.10 | 40.5 | [[SA30](#sa30)] |
+| Radar, low frequency | Length of a 2 000 m aperture | 0.05 | m | 5 450 | 0.009 | 3.7 | [[SA6](#sa6), full text] |
+| Radar, airborne | Track error | 0.02 | m | | | | [[SA32](#sa32)] |
+| Radar, signal-based tracking | Distance to the scene, from correlating part-pictures | 0.02 | resolution cells | | | | [[SA31](#sa31), full text] |
+| Optical synthetic aperture, moving camera | Shift between overlapping recordings, against the motor | 0.2 | pixels | | | | [[SA34](#sa34), full text] |
 
 *Table: published accuracy of recovering motion or phase from the data
 itself, in the source's own units and then as the same share of the
@@ -395,21 +432,28 @@ instrument's 405 nm wavelength (derived here by the
 [scaling rule](#how-radar-sizes-are-scaled-to-the-instrument)). The sonar
 entry is a theoretical accuracy, and is the same result the overview
 quoted as 0.002 wavelengths; its wavelength is own arithmetic. The
-holography entries are simulations and are already in wavelengths. The
-low-frequency radar's 0.05 m is also 1/40 000 of the aperture length. The
+holography entries are simulations and are already in wavelengths, so
+they scale at any wavelength. The low-frequency radar's wavelength is
+unverified and its band is wide, so its scaled value could lie anywhere
+from about 1 to 6 nm; its 0.05 m is also 1/40 000 of the aperture length.
+The last three rows are not scaled: the airborne radar's abstract does
+not give its wavelength, and resolution cells and pixels are not lengths.
+The
 moving-camera entry is the difference between 135 pixels measured and
 134.8 commanded. No radar abstract read for this study gave the phase
 error left after autofocus in radians.*
 
-Read in instrument units, the published accuracies span 0.8 to 40 nm.
-That is the same range as the 3 to 36 nm this instrument needs
-([section 4.2](#42-what-this-instrument-needs)), which is the reason for
-expecting the methods to be good enough (judgement).
+The scaled column translates these results to 405 nm. It is not a
+forecast for the instrument, whose need depends on the stripe period and
+is compared with these results at the end of
+[section 4.2](#42-what-this-instrument-needs).
 
 Before autofocus, airborne radar is typically left with "deviations in the
 order of centimeters" between the real and the assumed track
-[[SA35](#sa35)], against wavelengths of a few centimetres. Scaled to
-405 nm, that is a starting error of a few hundred nanometres. So autofocus
+[[SA35](#sa35)], against wavelengths of a few centimetres. If the
+wavelength were 31 mm, a 1 cm deviation scaled to 405 nm would be a
+starting error of about 130 nm (an illustration: the source's wavelength
+is not in its abstract). So autofocus
 routinely starts from an error of the same size as the wavelength and ends
 a factor of tens to hundreds below it.
 
@@ -593,7 +637,8 @@ What this means here (derived here):
   demonstration that translated a lensless sensor carrying a coded
   layer, placed far from the object, with reflective silicon chips among
   its test objects, and synthesised a 20 mm aperture from a 5 mm
-  sensor, with "a fourfold gain in resolution" [[SA49](#sa49)]. That work
+  sensor (an optical instrument, so these sizes are already at this
+  instrument's scale), with "a fourfold gain in resolution" [[SA49](#sa49)]. That work
   belongs to study B4 and is noted here because its authors frame it as a
   synthetic aperture.
 
@@ -696,7 +741,7 @@ flowchart TD
 
 | How radar and its relatives do it | What is proposed | What eliminates candidates | Result reported | Source |
 |---|---|---|---|---|
-| Geometry autofocus | Candidate flight paths | The picture each path gives is scored for focus | A 50 m error in a 2 000 m aperture length recovered to 5 cm, on simulated data with one path parameter free. Scaled to 405 nm: a 3.7 µm error in a 149 µm scan recovered to 3.7 nm (radar wavelength of about 5.45 m unverified) | [[SA6](#sa6), full text] |
+| Geometry autofocus | Candidate flight paths | The picture each path gives is scored for focus | A 50 m error in a 2 000 m aperture length recovered to 5 cm, on simulated data with one path parameter free. Scaled to 405 nm: an error of about 4 µm in a scan of about 150 µm recovered to about 4 nm (radar wavelength unverified) | [[SA6](#sa6), full text] |
 | Sharpness search from many starting points | Candidate error curves | Sharpness; several starting guesses guard against a wrong best answer | Second, third and fourth order errors "successfully sensed" | [[SA37](#sa37)] |
 | Multichannel autofocus | Every possible set of phase errors at once | A rule that comes from the instrument, not from an assumption about the scene: the part of the picture outside the antenna's beam is known to be empty. Only one set of errors leaves it empty | "A unique solution", found directly with no iteration | [[SA21](#sa21)] |
 | Constant-modulus formulation | The same | A rule about the instrument: the error changes only the timing of each pulse, never its strength | Phase gradient and multichannel autofocus shown to be the same kind of constrained problem; a more costly method improved the multichannel ones | [[SA90](#sa90)] |
@@ -777,7 +822,7 @@ sequence in time before it is anything else.
 | The same ground point is seen at different times from different directions, and it has not changed | The pictures from early and late views must agree; their disagreement is used to estimate how the error between two flight tracks varies along the path (this page's summary of the method) | [[SA93](#sa93), [SA94](#sa94)] |
 | Errors of step-by-step tracking accumulate in a known way with the number of steps | Sets how long an aperture can be before the path must be tied down by other means | [[SA29](#sa29)] |
 | The scene is static between two passes | Whatever fails to match between passes is change or noise, not scene | [[SA80](#sa80), [SA95](#sa95)] |
-| Some points stay stable for years | Only points whose signal is steady over time are trusted, and they are measured to millimetres | [[SA76](#sa76)] |
+| Some points stay stable for years | Only points whose signal is steady over time are trusted, and they are measured to millimetres (not scaled: the wavelength is not in the abstract) | [[SA76](#sa76)] |
 
 *Table: radar's uses of time to rule out candidates. A text table, from
 abstracts unless marked.*
@@ -839,21 +884,23 @@ to the instrument in the next table.*
 | Radar mode | Quantity | Original value | Original unit | In wavelengths of that system | Scaled to 405 nm | Scaled unit | Source |
 |---|---|---:|---|---:|---:|---|---|
 | Stripmap, satellite | Resolution | 3 | m | 97 | 39 | µm | [[SA1](#sa1)] |
-| Stripmap, satellite | Swath width | 30 | km | 966 000 | 391 000 | µm | [[SA1](#sa1)] |
+| Stripmap, satellite | Swath width | 30 | km | 970 000 | 390 | mm | [[SA1](#sa1)] |
 | Sliding spotlight, satellite | Resolution | 1.1 | m | 35 | 14 | µm | [[SA50](#sa50)] |
 | Staring spotlight, satellite | Resolution | 0.24 | m | 7.7 | 3.1 | µm | [[SA50](#sa50)] |
-| TOPS, satellite | Resolution | 16 | m | 515 | 209 | µm | [[SA51](#sa51)] |
-| TOPS, satellite | Scene width | 120 | km | 3 860 000 | 1 560 000 | µm | [[SA51](#sa51)] |
-| Circular, terahertz | Resolution | 55 | µm | 0.26 | 0.104 | µm | [[SA57](#sa57)] |
+| TOPS, satellite | Resolution | 16 | m | 510 | 210 | µm | [[SA51](#sa51)] |
+| TOPS, satellite | Scene width | 120 | km | 3 900 000 | 1 600 | mm | [[SA51](#sa51)] |
+| Circular, terahertz | Resolution | 55 | µm | 0.26 | 0.10 | µm | [[SA57](#sa57)] |
 
 *Table: the published figures of the modes table, first in their own
 units and then scaled to the instrument by the
 [scaling rule](#how-radar-sizes-are-scaled-to-the-instrument) (derived
 here). The satellite rows are for TerraSAR-X at a wavelength of 31.1 mm;
 that the stripmap figures of [[SA1](#sa1)] are for this satellite is this
-page's reading of the tutorial. The terahertz row uses 214 µm. For
+page's reading of the tutorial. The terahertz row uses 214 µm. Values
+are rounded to two figures, and the unit of each row is in the column
+beside its value because the rows differ too much for one unit. For
 comparison, one pixel of the instrument's sensor is 1.12 µm and the
-sensor is about 3 700 µm wide.*
+sensor is about 3.7 mm wide.*
 
 The scaled column shows something the original units hide. A satellite
 radar shrunk to the instrument's wavelength would be a microscope that
@@ -1107,13 +1154,25 @@ How far has radar pushed past its nominal resolution by processing?
 |---|---:|---|---|
 | Bandwidth extrapolation by linear prediction | 2 to 3 | Two points; signal 35 dB above noise | [[SA68](#sa68), full text] |
 | The same family, on aircraft | 2 or more | "routinely"; beyond 3 the result depends on how well the model was fitted | [[SA66](#sa66), full text] |
-| Adaptive spectral estimation ("high-definition" imaging) | About 2 | Real pictures: 0.30 m improved to about 0.15 m at a wavelength of 31.2 mm, which is 9.6 improved to 4.8 wavelengths; scaled to 405 nm, 3.9 µm improved to 1.9 µm | [[SA69](#sa69), [SA70](#sa70), full text] |
+| Adaptive spectral estimation ("high-definition" imaging) | About 2 | Real pictures: 0.30 m improved to about 0.15 m | [[SA69](#sa69), [SA70](#sa70), full text] |
 | Super spatially variant apodization | 2 | Synthetic points; signal 33 dB above noise | [[SA71](#sa71), patent, full text] |
 | Sparse reconstruction of two points, radar tomography | 1.5 to 25 | Separating two points half the time; 10 to 100 measurements; signal 0 to 10 dB above noise | [[SA72](#sa72)] |
 | Sparse reconstruction, real satellite data | Half of the detected pairs closer than the nominal limit | City buildings | [[SA73](#sa73)] |
 
 *Table: published gains beyond the nominal resolution by processing alone.
 A gain of 2 means features half the nominal size were separated.*
+
+The one row with a length in it, scaled by the
+[scaling rule](#how-radar-sizes-are-scaled-to-the-instrument) (derived
+here; the radar's frequency of 9.6 GHz is from [[SA70](#sa70)]):
+
+| High-definition imaging | Original (m) | In wavelengths of 31.2 mm | Scaled to 405 nm (µm) |
+|---|---:|---:|---:|
+| Resolution before | 0.30 | 9.6 | 3.9 |
+| Resolution after | 0.15 | 4.8 | 1.9 |
+
+*Table: the resolution gain of high-definition imaging, in the radar's
+own units and scaled to the instrument.*
 
 The numbers agree with the overview's estimate of "about a factor of two
 for strong isolated reflectors", now with sources that state their
@@ -1142,7 +1201,7 @@ its resolution:
 
 | What was measured | Accuracy, original | Resolution of the picture, original | Accuracy scaled to 405 nm | Resolution scaled to 405 nm | Source |
 |---|---|---|---|---|---|
-| Position of a reference reflector, satellite radar at 31.1 mm wavelength | 2.6 cm | Of the order of 1 m (own context, not in the abstract) | 339 nm | Of the order of 13 µm | [[SA33](#sa33)] |
+| Position of a reference reflector, satellite radar at 31.1 mm wavelength | 2.6 cm | Of the order of 1 m (own context, not in the abstract) | 340 nm | Of the order of 13 µm | [[SA33](#sa33)] |
 | Motion of stable ground points over time | Millimetres | Metres | Not scaled: wavelength not in the abstract | Not scaled | [[SA76](#sa76)] |
 | Shift between two pictures | "a small fraction of a resolution cell" | | Not a length | | [[SA77](#sa77)] |
 | Displacement in a scene, noise radar | Below 1 mm | | Not scaled: wavelength not in the abstract | | [[SA78](#sa78)] |

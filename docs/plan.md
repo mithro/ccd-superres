@@ -363,7 +363,8 @@ use the original terms (kilometers, parsecs, etc) and then the virtually
 scaled terms (to nm)."
 
 - **Original first, scaled second, side by side.** In a table the two are
-  neighbouring columns, each with its unit in the header.
+  neighbouring columns, each with its unit in the header, or in a unit
+  column beside the value where the rows differ too much for one unit.
 - **The page states its scaling rule once**, with the numbers it uses,
   and labels the scaled values as derived here. The
   [radar page](research/synthetic-aperture-radar.md#how-radar-sizes-are-scaled-to-the-instrument)

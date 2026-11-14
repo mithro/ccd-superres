@@ -743,7 +743,7 @@ SCALING_SYSTEMS = {
 
 # (what, system, length in metres)
 SCALING_FIGURES = [
-    ("Quarter of a wavelength", "Satellite radar, 9.65 GHz", C_M_S / 9.65e9 / 4),
+    ("Quarter of a wavelength", "Satellite radar, 9.65 GHz", SCALING_SYSTEMS["Satellite radar, 9.65 GHz"] / 4),
     ("Stripmap resolution 3 m", "Satellite radar, 9.65 GHz", 3.0),
     ("Stripmap swath 30 km", "Satellite radar, 9.65 GHz", 30e3),
     ("Sliding spotlight resolution 1.1 m", "Satellite radar, 9.65 GHz", 1.1),
@@ -754,9 +754,9 @@ SCALING_FIGURES = [
     ("Picture resolution 1 m", "Satellite radar, 9.65 GHz", 1.0),
     ("Resolution 0.30 m", "Airborne radar, 9.6 GHz", 0.30),
     ("Resolution 0.15 m", "Airborne radar, 9.6 GHz", 0.15),
-    ("Quadratic limit, 90 degrees", "Airborne radar, 18 mm example", 18e-3 * 90 / 720),
-    ("Cubic limit, 30 degrees", "Airborne radar, 18 mm example", 18e-3 * 30 / 720),
-    ("Ripple or random limit, 1 degree", "Airborne radar, 18 mm example", 18e-3 * 1 / 720),
+    ("Quadratic limit, 90 degrees", "Airborne radar, 18 mm example", SCALING_SYSTEMS["Airborne radar, 18 mm example"] * 90 / 720),
+    ("Cubic limit, 30 degrees", "Airborne radar, 18 mm example", SCALING_SYSTEMS["Airborne radar, 18 mm example"] * 30 / 720),
+    ("Ripple or random limit, 1 degree", "Airborne radar, 18 mm example", SCALING_SYSTEMS["Airborne radar, 18 mm example"] * 1 / 720),
     ("Aperture length 2 000 m", "Low-frequency radar, 55 MHz", 2000.0),
     ("Aperture error 50 m", "Low-frequency radar, 55 MHz", 50.0),
     ("Recovered to 5 cm", "Low-frequency radar, 55 MHz", 0.05),
@@ -783,6 +783,13 @@ def print_scaling():
         lam = SCALING_SYSTEMS[system]
         print(f"  {what:38s} {nice_length(metres):>9s} = {metres / lam:10.3g} wavelengths"
               f" -> {nice_length(metres / lam * WAVELENGTH_NM * 1e-9)}")
+    for share in (0.02, 0.10):
+        print(f"  Holography, {share:.2f} wavelengths rms -> {share * WAVELENGTH_NM:.1f} nm")
+    for mhz in (20.0, 90.0):
+        lam = C_M_S / (mhz * 1e6)
+        print(f"  Low-frequency radar at {mhz:.0f} MHz: wavelength {lam:.1f} m, 5 cm ->"
+              f" {0.05 / lam * WAVELENGTH_NM:.1f} nm")
+    print(f"  1 cm at the satellite wavelength -> {0.01 / SCALING_SYSTEMS['Satellite radar, 9.65 GHz'] * WAVELENGTH_NM:.0f} nm")
 
 
 if __name__ == "__main__":
