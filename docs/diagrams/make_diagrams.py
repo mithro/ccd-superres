@@ -652,10 +652,265 @@ def target_100nm():
     ax.set_axisbelow(True)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
-    ax.set_title("100 nm features need either a gap near 100 nm or light near 200 nm",
+    ax.set_title("Under straight-on light, 100 nm features fade within a few hundred nm of the surface",
                  loc="left", fontsize=11, color=INK)
     fig.tight_layout()
     save(fig, "target-100nm")
+
+
+def _model():
+    import sys
+
+    sys.path.insert(0, str(OUT.parents[1]))
+    import ccdsr.resolution as res
+    import ccdsr.sampling as samp
+
+    return res, samp
+
+
+def _clean(ax):
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.grid(True, which="major", color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+
+
+def motion_blur():
+    """What each exposure pattern does to one reading, and what it lets through."""
+    res, _ = _model()
+    rng = np.random.default_rng(3)
+    fig, (a, b) = plt.subplots(1, 2, figsize=(10.4, 4.4), gridspec_kw={"width_ratios": [1, 1.15]})
+    n = 32
+    code = rng.random(n) < 0.5
+    rows = [("on throughout", np.ones(n, bool), BLUE),
+            ("short pulse", np.arange(n) == 0, AQUA),
+            ("coded: random on-off", code, ORANGE)]
+    for i, (name, pat, c) in enumerate(rows):
+        y = 2 - i
+        a.add_patch(Rectangle((0, y - 0.22), n, 0.44, fc="none", ec=GRID, lw=1))
+        for k in np.flatnonzero(pat):
+            a.add_patch(Rectangle((k, y - 0.22), 1, 0.44, fc=c, ec="none"))
+        a.text(0, y + 0.34, name, fontsize=9.5, color=INK, va="bottom")
+    arrow(a, (0, -0.75), (n, -0.75), color=INK2)
+    a.text(n / 2, -1.05, "track swept by one pixel during one reading (73.5 µm in the example)",
+           ha="center", va="top", fontsize=9, color=INK2)
+    a.text(n / 2, 3.05, "coloured = light on while the pixel is at that place", ha="center",
+           fontsize=9, color=INK2)
+    a.set_xlim(-1, n + 1)
+    a.set_ylim(-1.6, 3.4)
+    a.axis("off")
+    a.set_title("Where along its track a reading collects light", loc="left", fontsize=11)
+
+    period = np.logspace(1.5, 6, 500)
+    blur = 73_500.0
+    b.loglog(period, res.motion_transfer(period, blur), color=BLUE, lw=2, label="on throughout")
+    b.loglog(period, res.motion_transfer(period, blur / 4096), color=AQUA, lw=2,
+             label="short pulse (1/4096 of the frame)")
+    b.loglog(period, res.motion_transfer(period, blur, 4096), color=ORANGE, lw=2,
+             label="coded, 4096 slots")
+    b.axvline(200, color=INK2, lw=0.9, ls=(0, (2, 3)))
+    b.text(215, 2.5e-5, "200 nm:\nthe target", fontsize=9, color=INK2)
+    b.set_xticks([100, 1e3, 1e4, 1e5, 1e6])
+    b.set_xticklabels(["100 nm", "1 µm", "10 µm", "100 µm", "1 mm"])
+    b.minorticks_off()
+    b.set_xlim(30, 1e6)
+    b.set_ylim(1e-5, 1.6)
+    b.set_xlabel("repeat distance of the pattern on the surface")
+    b.set_ylabel("share of contrast that survives the smear")
+    b.legend(frameon=False, fontsize=9, loc="lower right")
+    _clean(b)
+    b.set_title("What each pattern lets through", loc="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "motion-blur")
+
+
+def exposure_comparison():
+    """Smallest recoverable period for each exposure pattern, two light conditions."""
+    res, samp = _model()
+    sensor = samp.Sensor()
+    cases = [("on\nthroughout", 0.1, 0), ("pulse\n0.38 ms", 0.00038, 0),
+             ("pulse\n24 µs", 0.1 / 4096, 0), ("coded\n1024 slots", 0.1, 1024),
+             ("coded\n4096 slots", 0.1, 4096)]
+    bright, limited = [], []
+    for _, exp, chips in cases:
+        scan = samp.Scan(fps=10, fraction_per_s=0.2, exposure_s=exp, tilt_tan=0.0625)
+        bright.append(res.explore(sensor, scan, 100, code_chips=chips).recoverable_nm)
+        limited.append(res.explore(sensor, scan, 100, code_chips=chips, light_limited=True,
+                                   read_noise_e=2).recoverable_nm)
+    x = np.arange(len(cases))
+    fig, ax = plt.subplots(figsize=(8.4, 4.4))
+    w = 0.38
+    ax.bar(x - w / 2, np.array(bright) / 1e3, w, color=BLUE, label="bright source: pixel filled in any exposure")
+    ax.bar(x + w / 2, np.array(limited) / 1e3, w, color=ORANGE,
+           label="light proportional to on-time, read noise 2 electrons")
+    for xi, v in zip(x - w / 2, bright):
+        ax.text(xi, v / 1e3 + 0.04, f"{v / 1e3:.2f}", ha="center", fontsize=8.5, color=INK)
+    for xi, v in zip(x + w / 2, limited):
+        ax.text(xi, v / 1e3 + 0.04, f"{v / 1e3:.2f}", ha="center", fontsize=8.5, color=INK)
+    ax.set_xticks(x)
+    ax.set_xticklabels([c[0] for c in cases])
+    ax.set_ylabel("smallest recoverable repeat distance (µm)\nlower is better")
+    ax.set_ylim(0, 2.6)
+    ax.legend(frameon=False, fontsize=9, loc="upper center")
+    _clean(ax)
+    ax.grid(False, axis="x")
+    ax.set_title("Exposure patterns compared: 735 µm/s, 10 frames/s, 100 nm gap, matt surface",
+                 loc="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "exposure-comparison")
+
+
+def two_regimes():
+    """Side views of the near-field and the far-field slanted-light arrangements."""
+    fig, (a, b) = plt.subplots(1, 2, figsize=(10.4, 4.3))
+    for ax in (a, b):
+        ax.add_patch(Rectangle((0, -0.5), 10, 0.5, fc=SILICON, ec=INK2, lw=0.8))
+        for k in range(20):
+            ax.add_patch(Rectangle((0.25 + k * 0.5, 0), 0.25, 0.12, fc=MASK, ec="none"))
+        ax.text(5, -0.25, "silicon chip with 100 nm lines (not to scale)", ha="center", va="center",
+                fontsize=9, color=INK)
+        ax.set_xlim(-0.3, 10.3)
+        ax.set_ylim(-0.7, 6.2)
+        ax.set_aspect("auto")
+        ax.axis("off")
+    # near field
+    a.add_patch(Rectangle((0.6, 0.55), 7.4, 0.9, fc=BLUE_RAMP[0], ec=INK2, lw=0.8))
+    a.text(4.3, 1.0, "sensor pixels", ha="center", va="center", fontsize=9.5)
+    for k in range(15):
+        x = 0.875 + k * 0.5
+        a.plot([x, x], [0.14, 0.42], color=ORANGE, lw=2.2, alpha=0.75, solid_capstyle="round")
+    a.annotate("", xy=(8.3, 0.55), xytext=(8.3, 0.12), arrowprops=dict(arrowstyle="<->", color=INK))
+    a.text(8.45, 0.4, "gap 100\nto 140 nm", fontsize=9, va="center")
+    a.text(0.2, 2.2, "Fine detail exists only as a field that\nclings to the surface and fades within\n"
+           "tens of nanometres (orange). The sensor\nmust sit inside it.", fontsize=9.5, va="bottom")
+    a.text(0.2, 4.6, "Hardware: very heavy\nComputation: ordinary", fontsize=9.5, color=INK2)
+    a.set_title("Near field", loc="left", fontsize=11)
+    # far field
+    b.add_patch(Rectangle((2.2, 5.0), 7.6, 0.8, fc=BLUE_RAMP[0], ec=INK2, lw=0.8))
+    b.text(6, 5.4, "sensor pixels", ha="center", va="center", fontsize=9.5)
+    arrow(b, (0.2, 2.6), (4.6, 0.25), color=ORANGE, lw=2.2)
+    b.text(0.1, 2.75, "laser light arriving\nat a steep slant", fontsize=9.5, color=INK, va="bottom")
+    for tx, c in [(9.3, INK2), (6.6, BLUE), (4.2, BLUE), (2.9, BLUE)]:
+        arrow(b, (4.9, 0.25), (tx, 4.95), color=c, lw=1.6)
+    b.text(7.1, 2.0, "mirror\nreflection", fontsize=9, color=INK2, ha="left")
+    b.text(2.75, 3.9, "light turned aside\nby the fine detail", fontsize=9, color=BLUE, ha="right", va="bottom")
+    b.annotate("", xy=(10.05, 5.0), xytext=(10.05, 0.12), arrowprops=dict(arrowstyle="<->", color=INK))
+    b.text(9.95, 3.9, "gap\nabout\n1 mm", fontsize=9, va="center", ha="right")
+    b.text(0.1, 0.5, "Hardware: light\nComputation: very large", fontsize=9.5, color=INK2, va="bottom")
+    b.set_title("Far field with slanted laser light", loc="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "two-regimes")
+
+
+def readout_timing():
+    """When each row is exposed, for three readout schemes."""
+    fig, axes = plt.subplots(1, 3, figsize=(10.6, 3.9), sharey=True)
+    rows = 12
+    line = 1.0
+
+    def draw(ax, title, n_rows, exposure, frames, frame_len):
+        for f in range(frames):
+            for r in range(n_rows):
+                t_read = f * frame_len + r * line
+                ax.add_patch(Rectangle((t_read - exposure, r - 0.35), exposure, 0.7, fc=BLUE, ec="none",
+                                       alpha=0.85))
+                ax.plot([t_read, t_read], [r - 0.42, r + 0.42], color=INK, lw=1.2)
+        ax.set_xlim(-frame_len * 0.9, frames * frame_len + 1)
+        ax.set_ylim(rows - 0.4, -0.6)
+        ax.set_xlabel("time")
+        ax.set_xticks([])
+        ax.set_title(title, loc="left", fontsize=10.5)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+
+    draw(axes[0], "Whole array, exposed all frame", rows, 13.0, 2, 14.0)
+    draw(axes[1], "Whole array, one-line exposure", rows, 1.0, 2, 14.0)
+    draw(axes[2], "Strip of 3 rows, repeated", 3, 1.0, 7, 4.0)
+    axes[0].set_ylabel("sensor row")
+    axes[0].set_yticks([0, rows - 1])
+    axes[0].set_yticklabels(["first", "last"])
+    axes[2].text(0.98, 0.04, "blue = row collecting light\nblack tick = row read out\n"
+                 "each row is read 18.9 µs after the one above", transform=axes[2].transAxes,
+                 fontsize=8.5, color=INK2, ha="right", va="bottom")
+    fig.tight_layout()
+    save(fig, "readout-timing")
+
+
+def array_angles():
+    """The range of directions the array collects from one surface point at a 1 mm gap."""
+    fig, ax = plt.subplots(figsize=(8.2, 4.3))
+    gap = 1.0
+    half = 3.674 / 2
+    ax.add_patch(Rectangle((-2.6, -0.12), 5.2, 0.12, fc=SILICON, ec=INK2, lw=0.8))
+    ax.add_patch(Rectangle((-half, gap), 2 * half, 0.14, fc=BLUE_RAMP[0], ec=INK2, lw=0.8))
+    ax.text(0, gap + 0.24, "sensor, 3.67 mm long (3280 pixels)", ha="center", fontsize=9.5)
+    for x in np.linspace(-half, half, 9):
+        ax.plot([0, x], [0, gap], color=BLUE, lw=1.1, alpha=0.8)
+    ax.plot([0, 0], [0, gap], color=INK2, lw=0.9, ls=(0, (2, 3)))
+    ax.plot(0, 0, "o", color=ORANGE, ms=7, zorder=5)
+    ax.text(0.08, -0.3, "one point on the chip", fontsize=9.5, va="top")
+    ax.text(-1.45, 0.42, "61°", fontsize=10, color=INK)
+    ax.text(1.25, 0.42, "61°", fontsize=10, color=INK)
+    ax.annotate("", xy=(2.45, gap), xytext=(2.45, 0), arrowprops=dict(arrowstyle="<->", color=INK))
+    ax.text(2.52, gap / 2, "gap 1 mm", fontsize=9.5, va="center")
+    ax.text(-2.55, 1.55, "Each pixel catches light the point sent in a different direction.\n"
+            "Across the scan the same picture holds with ±54° (2.76 mm, 2464 pixels).\n"
+            "Neighbouring pixels are 1.1 thousandths of a radian apart.", fontsize=9.5, va="bottom")
+    ax.set_xlim(-2.7, 3.4)
+    ax.set_ylim(-0.6, 2.3)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("The whole array as one wide collecting opening", loc="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "array-angles")
+
+
+def plan_status():
+    """Count of plan items in each state, per phase, read from docs/plan.md."""
+    import re
+
+    text = (OUT.parent / "plan.md").read_text()
+    phases, cur = {}, None
+    for ln in text.splitlines():
+        m = re.match(r"^## ([A-H])\. (.*)", ln)
+        if m:
+            cur = m.group(1)
+            phases[cur] = {"Done": 0, "In progress": 0, "Not started": 0}
+            continue
+        if ln.startswith("## "):
+            cur = None
+        if cur and ln.startswith("| ") and not ln.startswith("|---") and "| State |" not in ln \
+                and "| Simulated |" not in ln:
+            last = [c.strip() for c in ln.strip().strip("|").split("|")][-1]
+            if last.startswith("Done"):
+                phases[cur]["Done"] += 1
+            elif last.startswith("In progress"):
+                phases[cur]["In progress"] += 1
+            elif last.startswith("Not started") or last.startswith("Planned"):
+                phases[cur]["Not started"] += 1
+    names = {"A": "A. Foundations", "B": "B. Research and data", "C": "C. Fold into design",
+             "D": "D. Simulation and comparisons", "E": "E. Calibration and tests",
+             "F": "F. Leading candidate, simulated", "G": "G. Gate", "H": "H. Hardware"}
+    keys = [k for k in names if k in phases]
+    fig, ax = plt.subplots(figsize=(8.4, 4.0))
+    y = np.arange(len(keys))[::-1]
+    left = np.zeros(len(keys))
+    for state, c in [("Done", AQUA), ("In progress", YELLOW), ("Not started", GRID)]:
+        v = np.array([phases[k][state] for k in keys], float)
+        ax.barh(y, v, left=left, color=c, label=state.lower(), edgecolor=SURFACE)
+        for yi, li, vi in zip(y, left, v):
+            if vi:
+                ax.text(li + vi / 2, yi, f"{int(vi)}", ha="center", va="center", fontsize=9, color=INK)
+        left += v
+    ax.set_yticks(y)
+    ax.set_yticklabels([names[k] for k in keys])
+    ax.set_xlabel("number of plan items")
+    ax.legend(frameon=False, fontsize=9, loc="lower right")
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.set_title("Plan items by phase and state", loc="left", fontsize=11)
+    fig.tight_layout()
+    save(fig, "plan-status")
 
 
 if __name__ == "__main__":
@@ -669,4 +924,10 @@ if __name__ == "__main__":
     subpixel_coverage()
     level_validity()
     target_100nm()
+    motion_blur()
+    exposure_comparison()
+    two_regimes()
+    readout_timing()
+    array_angles()
+    plan_status()
     print("wrote diagrams to", OUT)

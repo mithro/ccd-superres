@@ -60,6 +60,13 @@ flowchart LR
     G -.->|"fail"| D
 ```
 
+![Number of plan items in each state, by phase](diagrams/plan-status.svg)
+
+*Figure: how many items each phase of the plan has, and how many are done
+(green), in progress (yellow) or not started (grey). It is drawn from the
+tables on this page by the diagram script, so it is redrawn whenever an
+item changes state.*
+
 Deep research comes before the simulation build because each field below has
 already solved a version of this problem, and their answers decide what the
 simulator has to represent and which reconstruction is built first.
@@ -342,12 +349,12 @@ text in cells.
 
 | Page | Plain English | Sources | Diagrams | Tables |
 |---|---|---|---|---|
-| [Project plan](plan.md) | Yes | Not applicable: it states intentions, and quotes Tim's requirements | Phase flow chart. A status chart is to be added. | Item tables are text tables. No data tables. |
-| [Design](design.md) | Summary, equations and captions done. Sections 3.2, 5.3 and 6.3 still to be gone through term by term. | Main claims labelled in section 12. In-text keys still to be added claim by claim. | Audit and missing figures in progress | Not yet done: several data tables mix numbers, units and prose |
+| [Project plan](plan.md) | Yes | Not applicable: it states intentions, and quotes Tim's requirements | Phase flow chart and status chart | Item tables are text tables. No data tables. |
+| [Design](design.md) | Summary, equations and captions done. Sections 3.2, 5.3 and 6.3 still to be gone through term by term. | Main claims labelled in section 12. In-text keys still to be added claim by claim. | Audited. Figures added for the two arrangements, motion blur, exposure comparison, readout timing and the array's collecting angles. Still text only: the reconstruction pipeline's data sizes (6.3) and the approach components (7.1). | Not yet done: several data tables mix numbers, units and prose |
 | [Simulation chain](simulation-chain.md) | Summary and caption done. Tables still to be gone through. | Not yet done | Chain flow chart and validity plot present | Not yet done |
 | [Glossary](glossary.md) | Yes | Not yet done | Not applicable | Text table |
 | [References](references.md) | Yes | Yes | Not applicable | Text tables |
-| [Optical elements](optical-elements.md) | To be checked by its author | Own reference list | To be checked by its author | To be checked by its author |
+| [Optical elements](optical-elements.md) | Yes: summary, terms, equations in words, captions | Yes: every block of claims has a "Sources" line, citations link to the entry and the entry to the source, and unsourced claims are labelled. Sources were checked to exist; figures are from abstracts, not full texts. | Nine scripted figures. Audit for text-only sections in progress. | In progress |
 | [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Five figures and three flow charts. Figures for each field's mapping are being added. | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 

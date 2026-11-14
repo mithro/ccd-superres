@@ -19,6 +19,12 @@ charts are written as Mermaid blocks inside the pages themselves.
 | `resolution-budget` | Contrast passed by the gap and by the pixel area | Analytic model |
 | `gap-requirement` | Smallest recoverable period against gap | Analytic model |
 | `target-100nm` | Contrast of 100 nm lines and spaces against gap, matt and mirror-like surfaces | Analytic model |
+| `two-regimes` | Side views of the near-field and far-field slanted-light arrangements | Illustrative, not to scale |
+| `motion-blur` | Where a reading collects light for three exposure patterns, and what each lets through | Analytic model |
+| `exposure-comparison` | Smallest recoverable period for five exposure options under two light conditions | Analytic model |
+| `readout-timing` | When each row is exposed and read for three readout schemes | Illustrative timing |
+| `array-angles` | Directions collected by the array from one point at a 1 mm gap | Sensor dimensions |
+| `plan-status` | Plan items by phase and state | Read from `docs/plan.md` |
 | `samples-vs-resolution` | Smallest recoverable period against sample count | Analytic model |
 | `subpixel-coverage` | Where the samples of one point fall inside a pixel | Scan calculator |
 | `level-validity` | Range where each simulation level is valid | Indicative, to be replaced by cross-check results |

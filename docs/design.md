@@ -488,6 +488,16 @@ request 2), which analyses the second regime in detail.
 | Hardware | Layers stripped from the sensor, gap and tilt held to tens of nanometres. Very heavy. | A few laser diodes at fixed angles. Light. |
 | Computation | The linear solve of section 6 | Very large: iterative recovery of the light's phase over every frame (ptychography), with positions as unknowns |
 
+![Side views of the near-field and far-field arrangements](diagrams/two-regimes.svg)
+
+*Figure: the two ways to reach 100 nm detail, seen from the side and not to
+scale. Left, near field: the fine detail only exists as a field clinging to
+the chip, so the sensor has to sit about 100 nm above it. Right, far field:
+laser light arriving at a steep slant is turned aside by the fine detail
+into directions that travel freely, so the sensor can sit about a
+millimetre away and a computer works the pattern out from where the light
+lands.*
+
 The two analyses agree. The calculator's "mirror-like" rows are the special
 case of the right-hand column with straight-on light and a sensor that
 collects every angle, which is why they give "period no finer than the
@@ -659,6 +669,15 @@ not as a fixed number:
 - With the light switched in a pattern during the exposure, it is that
   pattern laid along the track.
 
+![What each exposure pattern collects and what it lets through](diagrams/motion-blur.svg)
+
+*Figure: three ways of exposing one reading while the pixel moves. Left: the
+bar is the track the pixel sweeps during the reading, coloured where the
+light is on. Right: for each pattern, the share of a surface pattern's
+contrast that survives, against how fine that pattern is. Light on
+throughout loses fine detail steadily. A short pulse keeps everything. A
+random on-off code loses the same moderate amount at every size.*
+
 **Reversal.** Because the smear is part of the forward operator, the
 reconstruction of section 6 reverses it together with everything else, with
 no separate step. What decides how well this works is how much of each
@@ -681,6 +700,15 @@ differs:
 | Pulse of 24 µs (18 nm smear) | 0.39 µm | 2.1 µm |
 | Coded, 1024 slots | 1.1 µm | 1.1 µm |
 | Coded, 4096 slots | 1.5 µm | 1.5 µm |
+
+![Smallest recoverable repeat distance for each exposure pattern](diagrams/exposure-comparison.svg)
+
+*Figure: the table above as a chart. Each pair of bars is one way of
+exposing, and a shorter bar means finer detail is recovered. Blue assumes a
+light source bright enough to fill the pixel however short the exposure.
+Orange assumes the light collected is proportional to the time it is on.
+With a bright source a short pulse is clearly best. With limited light, a
+moderately short pulse is best and a very short one is worst.*
 
 What this says:
 
@@ -1050,6 +1078,17 @@ list can be simulated and reconstructed without changes elsewhere.
 | Raw output | Readings before any correction, colour processing or compression. Required: the reconstruction needs unprocessed values. |
 | Light pulses tied to row timing | Freezes motion per row, or lays a code along the track (section 4.8) |
 
+![When each row is exposed and read, for three readout schemes](diagrams/readout-timing.svg)
+
+*Figure: three ways of driving the same sensor, drawn for 12 rows. Time runs
+left to right and each line is one row of pixels. A blue bar is the time
+that row spends collecting light, and the black tick is the moment it is
+read. Left: the standard frame, where every row collects light for almost
+the whole frame and rows are read one after another. Middle: the same, with
+the exposure cut to one line time, which freezes the motion. Right: reading
+only a strip of three rows, which lets the strip be read many more times in
+the same period.*
+
 What the IMX219 offers, and what needs another sensor. The first column is
 from the sensor's public Linux driver and Raspberry Pi camera modes, not yet
 checked against the datasheet register by register.
@@ -1157,6 +1196,15 @@ the worked example unless stated.
 | **Each pixel sees a point from a different angle.** This matters in the far-field scheme of section 4.6, where the gap is about a millimetre. | Each pixel records light the surface sent in a different direction. The whole array is a synthetic aperture in both directions at once, where a single line would give fine detail in one direction only. | At a 1 mm gap the array spans about ±61° along the scan and ±54° across it, in steps of 1.1 thousandths of a radian. That is the wide collection angle the limit in section 4.6 assumes, in both directions. |
 | **Scans in more than one direction.** A second pass at right angles, or at a different tilt. | The motion smear and the rolling shutter act along the scan only, so each direction of detail gets one pass in which it is untouched. Position estimates from the two passes check each other. Slanted light meets the pattern from another side. | Removes the smear loss of section 4.8 for one direction per pass. Doubles the scan time. |
 | **Redundancy.** Successive frames show almost the same surface, and every point is read by thousands of different pixels. | Frame positions, pixel gains, row and column noise patterns and bad pixels are all estimated from the data, with no calibration target | Frames overlap by 98% in the worked example. A shift is estimated from about 8 million pixels at once, so its error is a small fraction of a pixel (to be measured at level 1). Each pixel's gain is fixed by comparing it with the thousands of other pixels that read the same points. With tilt a point crosses both rows and columns, so row noise and column noise can be told apart. |
+
+![The range of directions the array collects from one point](diagrams/array-angles.svg)
+
+*Figure: the sensor seen from the side, 1 mm above one point on the chip.
+Each line runs from the point to a different pixel. Because the sensor is
+3.67 mm long, its pixels catch light leaving the point at every angle up to
+61 degrees either side of straight up. Taken together the pixels act as one
+very wide opening, which is what lets fine detail be recovered in the
+far-field arrangement.*
 
 Consequences for the design:
 
