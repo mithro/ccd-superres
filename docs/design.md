@@ -1444,17 +1444,29 @@ way as impossible surfaces.
 
 *Table 6.6. The knowledge used to eliminate candidates. Assumption: which of
 these are known well enough on a real chip is an open question, collected by
-plan items R6, R7 and R11.*
+[plan items R6, R7 and R11](plan.md#data-collection).*
 
 A first version runs in the one-dimensional level 1 simulator and is reported
 on its own page, [reconstruction by elimination](constrained-reconstruction.md).
-There, reflectance limits and two known materials recover bars that the plain
-fit loses, listing all 4,096 layouts of a small region leaves only the true
-one in good light, and requiring a smooth path finds position errors of a
-whole pixel to about 2 nm. Those tests use bars of 0.48 µm and wider, not the
-100 nm target. Radar does the position part under the name autofocus
+Its main results are in Table 6.7.
+
+| Rule tested | Result | Limit found |
+|---|---|---|
+| Reflectance kept between 0 and 1 | No gain in sharpness over a plain fit with the same smoothing | None |
+| Two known materials | Contrast of bars repeating every 0.48 µm rises from 0.39 to 0.67 (true value 0.85) | Offering a third material that is not present lowers it to 0.06 |
+| Listing all 4,096 layouts of a small region | Only the true layout is left in good light; in poor light a set that still contains it | A wrong material value or a lost position gives the answer "nothing fits", and never a wrong layout in these tests |
+| Smooth sensor path | Position error of 2.4 nm against 6.0 nm with each frame free | Worse than no rule when the real motion shakes from frame to frame |
+| All rules together, overall position unknown | 22 of 24 scans solved | The other 2 reported "nothing fits" |
+
+*Table 6.7. Results of the first version of reconstruction by elimination.
+Simulated: every figure is from the level 1 simulator, with the seeds and
+settings given on the
+[reconstruction by elimination](constrained-reconstruction.md) page.*
+
+These tests use bars repeating every 0.48 µm and wider, not the 100 nm
+target. Radar does the position part under the name autofocus
 ([radar study, section 5.4](research/synthetic-aperture-radar.md#54-proposing-candidates-and-eliminating-the-impossible)).
-The work is plan item D2b.
+The work is [plan item D2b](plan.md#d-simulation-chain).
 
 ## 7. Software design
 

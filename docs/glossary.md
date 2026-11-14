@@ -6,15 +6,18 @@ link here the first time they use a term that is not explained on the spot.
 | Term | Meaning |
 |---|---|
 | Acceptance angle | How far from straight ahead light can arrive at a pixel, or at a tube in front of it, and still be detected. The same idea as collection angle. |
+| Achromatic | Not depending on the colour (wavelength) of the light. |
 | Anchor | A quantity that the scan data cannot fix by itself, so that one outside measurement is needed to pin it: an absolute length, an absolute brightness or an absolute height. |
 | Aperture | The opening through which light is collected. A wider opening, or a wider range of angles, lets finer detail through. |
 | Approach | One complete way of building and running the instrument: a choice of light, optical parts, gap, sensor, readout, scan, exposure and reconstruction method. |
+| Array | A set of receivers at known positions whose readings are combined by computation. The sensor's pixels are one. |
 | Artefact | A false feature in a reconstructed picture that comes from the method and not from the surface. |
 | Autofocus | Working out from the recorded data alone how the instrument's assumed path, gap or timing was wrong, and correcting it. The name comes from radar. |
 | Band (cut-off) | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. Detail beyond the cut-off does not reach the sensor. |
 | Bayer filter | The pattern of red, green and blue filters laid over the pixels of a colour sensor, one colour per pixel. |
 | Beam pair | Two beams from the same laser reaching the surface from different sides at the same time. Where they cross they form fringes. |
 | Beam splitter | A part-silvered mirror that divides one beam of light into two. |
+| Beamforming | Combining the readings of an array of receivers so that it responds to waves from one chosen direction or point. |
 | Beat (moiré) | The broad pattern that appears when two fine patterns of nearly the same spacing overlap, as with two net curtains. |
 | Benchmark | A fixed set of test scenes, conditions and scoring rules that every approach is run through, so that their results can be compared fairly. |
 | Birefringent | Said of a crystal that splits a beam of light into two slightly shifted copies. |
@@ -23,6 +26,7 @@ link here the first time they use a term that is not explained on the spot.
 | Bond wires | The fine wires around the edge of a chip that connect it to its package. They stand higher than the chip surface. |
 | Calibration | Measuring a part of the instrument, such as a mask or the light pattern, so that the reconstruction can allow for it. |
 | Candidate | One possible answer that is being tested: a possible surface, layout or set of scan positions. |
+| Co-array | The set of all differences between the positions of an array's receivers, taken in pairs. It decides which detail the array can measure. |
 | Coherence length | The distance over which the waves of a light source stay in step. The purer the colour, the longer it is: wavelength squared divided by the spread of wavelengths. |
 | Coherent light | Light whose waves stay in step with each other, such as laser light. It can form interference patterns. Ordinary lamp light is not coherent. |
 | Collection angle | The widest angle, away from straight ahead, at which a pixel still responds to light. |
@@ -33,19 +37,22 @@ link here the first time they use a term that is not explained on the spot.
 | Convolution | The mathematical name for smearing: every point of a picture is replaced by a copy of the blur kernel, and the copies are added up. |
 | Cramér-Rao bound | The smallest error that any method could reach when estimating a quantity from noisy data. It is worked out from how strongly the data change when the quantity changes. |
 | Deconvolution | Undoing a known blur by computation. |
+| Degeneracy | A change to the unknowns that leaves every measurement unchanged, so that no amount of data can detect it. |
 | Die | The bare piece of silicon that is the sensor chip itself, without its package. |
 | Diffraction | The spreading of light into a fan of directions when it meets fine structure. Finer structure sends light out at steeper angles. |
 | Diffraction pattern (hologram) | The pattern of ripples that coherent light forms on the sensor after leaving the surface. It holds the detail of the surface in scrambled form. |
 | Diffuse (matt) surface | A surface that scatters light in all directions, like paper. The opposite is mirror-like. |
 | Diffuse light | Light travelling in all directions, as from a frosted bulb or from a matt surface. |
 | Diffuser | A layer that scatters light, like frosted glass. |
-| Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. |
+| Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. In astronomy the word also means a small deliberate shift of the camera between exposures, so that the pixel grid lands in a different place each time. |
 | Diversity | Measurements that differ in kind, such as a different gap, lighting direction or light pattern, and not only in position. Phase recovery needs it. |
+| Drizzle | The standard astronomical way of combining shifted frames into a picture on a finer grid: each input pixel is shrunk and laid onto the fine grid at its measured position, and overlaps are averaged. See [multi-frame reconstruction](research/multi-frame-reconstruction.md#3-combining-many-undersampled-frames). |
 | Electromagnetic solver | A program that calculates how light behaves from the basic equations of electricity and magnetism. Slow, and as exact as the description of the materials it is given. |
 | Evanescent wave | Light that carries detail finer than the wavelength. It clings to the surface and fades within a fraction of a wavelength, so it never reaches a distant detector. |
 | Exposure | The time during which a pixel adds up light for one reading. |
 | Far field | Far enough from the surface, many wavelengths, that only ordinary travelling light is left. |
 | Feature | A detail on the surface, such as a line of wiring on a chip. |
+| Fly scan | Recording while the object or sensor moves continuously, in place of stopping for each recording. |
 | Footprint (patch) | The area of surface that one pixel sees, and how strongly it sees each part of it. Another name for the blur kernel seen from the pixel. |
 | Forward model | The calculation that predicts what the sensor would record for a given surface. Reconstruction runs it backwards. |
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
@@ -57,6 +64,7 @@ link here the first time they use a term that is not explained on the spot.
 | Gate | The defined set of conditions a simulated approach must pass before any hardware is built for it. |
 | Global shutter | A sensor in which every pixel is exposed at the same instant. See rolling shutter. |
 | Grating | A plate carrying fine, evenly spaced lines. |
+| Grating lobes | False directions that an array cannot tell from the true one, because its receivers are more than half a wavelength apart. |
 | Held-out data | Readings kept aside and not shown to the reconstruction. A good reconstruction predicts them as well as the readings it was given. |
 | Hologram | A recording of the fringes made when light scattered from an object overlaps with an undisturbed reference beam. It holds the phase in a form a camera can record. |
 | Identifiable | Said of an unknown that the data can pin down. Two unknowns that can change together without changing any reading are not identifiable separately. |
@@ -75,13 +83,15 @@ link here the first time they use a term that is not explained on the spot.
 | Line width | The width of one line of a pattern. With lines and spaces of equal width it is half the period. |
 | Linear | Said of a model in which doubling the cause doubles the reading. Such problems can be solved in one pass. |
 | Map drift | An autofocus method: two pictures are made from two halves of the recording, and the shift between them says how wrong the assumed focus is, and in which direction. |
+| Lucky imaging | Taking thousands of very short exposures through the unsteady atmosphere and keeping, or weighting most heavily, the sharpest ones. |
 | Mask (coded mask) | A layer with a fine pattern of clear and dark, or thick and thin, areas, placed in the light path so that the recorded pattern keeps fine detail. |
 | Maximum likelihood | Fitting that gives each reading the weight it deserves from the known statistics of its noise, instead of treating all readings alike. |
 | Microlens | The tiny lens built on top of each pixel of a sensor to gather light into it. |
 | Micrometre (µm) | A thousandth of a millimetre. A human hair is roughly 80 µm across. |
 | Mirror-like (specular) surface | A smooth surface that reflects light in one direction, like polished silicon. |
-| Misfit | A single number for how badly a candidate disagrees with the measurement: the squared differences between predicted and measured readings, each divided by the noise expected, added up. For the true answer it comes out close to the number of readings. |
+| Misfit | A single number for how badly a candidate disagrees with the measurement: the squared differences between predicted and measured readings, each divided by the noise expected, added up, plus a term that stops a candidate from looking better only because it predicts more noise. Without that term the sum comes out close to the number of readings for the true answer. |
 | Mixed states | A description of light, in ptychography, as a mixture of a few patterns instead of one. It accounts for imperfect coherence and for vibration during an exposure. |
+| Mixed states (modes) | Treating one recording as the sum of a few different patterns added in brightness, to model blur from movement, vibration or impure colour. |
 | Motion blur | Smearing caused by the sensor moving while a pixel is adding up light. |
 | Nanometre (nm) | A thousandth of a micrometre, a millionth of a millimetre. 100 nm is roughly a thousandth of the width of a human hair. |
 | Near field | Within a fraction of a wavelength of the surface, where detail finer than the wavelength can still be picked up. |
@@ -103,10 +113,12 @@ link here the first time they use a term that is not explained on the spot.
 | Probe | The patch or pattern of light that falls on the surface in ptychography. It can be worked out from the data along with the picture. |
 | Ptychography | A method that scans a sample under coherent light, records many overlapping brightness patterns, and computes a sharp picture, including phase, from the overlap. |
 | Pulse | A short flash of light. |
+| Push-broom | A camera with one line of pixels that builds a picture line by line as it is carried over the scene, like a broom pushed across a floor. |
 | Read noise | The noise the sensor's electronics add to every reading, even in the dark. |
 | Readout scheme | The order and timing in which a sensor's pixels are exposed and read. |
 | Reconstruction | Computing the picture of the surface from the recorded readings. |
 | Redundancy | Measuring the same thing many times in different ways. It is what makes self-calibration and phase recovery possible. |
+| Reference beam | A steady, known beam of the same laser light that falls on the sensor together with the light from the chip, so that the two form fringes. |
 | Reference sample | An object whose pattern is already known from an independent measurement, used to check the instrument. |
 | Reflectance | The share of incoming light that a point of the surface sends back. |
 | Refractive index | The factor by which a material slows light. The wavelength inside the material is shorter by the same factor: 1.33 for water. |
@@ -129,6 +141,7 @@ link here the first time they use a term that is not explained on the spot.
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Spectral width | The spread of wavelengths in a light source. A narrow spread means a pure colour and a long coherence length. |
+| Specular reflection | The mirror reflection of a beam: the part that leaves a surface at the same angle it arrived. |
 | Stage | Used in two senses: a step of the staged path (stage 0 to stage 4), and the moving platform that carries a sample or the sensor. |
 | Stepped frequency | Measuring distance by combining measurements at many pure tones or colours, in place of timing a short pulse. |
 | Sub-pixel | Smaller than one pixel. |
@@ -137,6 +150,7 @@ link here the first time they use a term that is not explained on the spot.
 | Talbot effect | The reappearance of a sharp copy of a grating's pattern at set distances behind it when it is lit by a parallel beam of one colour. |
 | Tile (patch) | A small square of the surface that is processed on its own, so that many can be processed at once. |
 | Tilt | The small angle between the direction of the scan and the rows of the pixel grid. |
+| Time-delay integration (TDI) | A sensor with many lines that moves the collected charge from line to line at the speed of the moving image, so one patch of scene is collected many times and read once. "Digital" TDI reads every line and does the lining up and adding in the computer. |
 | Tolerance | How large an error in a quantity can be before the result is noticeably worse. |
 | Transfer (transfer function) | For each size of detail, the share of its contrast that survives a stage of the instrument. 1 means untouched, 0 means lost. |
 | Twin (simulated twin) | A simulation of a measurement procedure, run with known hidden values to show that the procedure recovers them before it is tried on hardware. |

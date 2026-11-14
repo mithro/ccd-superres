@@ -81,9 +81,9 @@ The script is [`docs/diagrams/make_constrained_diagrams.py`](https://github.com/
 
 | Figure | Shows | Source of the numbers |
 |---|---|---|
-| `constrained-materials` | Bar groups reconstructed with no constraint, with reflectance limits and with two known materials | Level 1 simulator, seed 1 |
+| `constrained-materials` | Bar groups reconstructed with no constraint, at two smoothing strengths, with reflectance limits and with two known materials | Level 1 simulator, seed 1 drawn; the table figures use seeds 0 to 14 |
 | `constrained-elimination` | Misfit of all 4,096 candidate layouts, and layouts left against light | Level 1 simulator, seed 2 and seeds 100 to 139 |
-| `constrained-temporal` | A wandering scan path with two estimates, and leftover position error for three methods | Level 1 simulator, seeds 0 to 7 |
+| `constrained-temporal` | A wandering scan path with two estimates, and leftover position error for three methods | Level 1 simulator, seed 0 drawn on the left, seeds 0 to 39 on the right |
 
 ## Reconstruction methods figures
 
@@ -146,6 +146,28 @@ python docs/diagrams/make_calibration_diagrams.py
 | `calib-heldout` | Four ways of holding data back from the fit | Illustrative |
 | `calib-scenes` | The ten benchmark scenes, drawn schematically | Generated scenes |
 
+## Ptychography research figures
+
+The figures on the [ptychography and lensless coherent imaging](research/ptychography.md)
+page come from
+[`docs/diagrams/make_ptychography_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_ptychography_diagrams.py),
+which also prints the derived numbers quoted on that page. The toy
+reconstructions take a few minutes; `--fast` skips them.
+
+```
+python docs/diagrams/make_ptychography_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`ptycho-family`](diagrams/ptycho-family.svg) | Five arrangements of ptychography, side views | Illustrative |
+| [`ptycho-benchmark`](diagrams/ptycho-benchmark.svg) | Finest published line width as a multiple of the wavelength used | Published figures, cited on the page |
+| [`ptycho-pixel-ratio`](diagrams/ptycho-pixel-ratio.svg) | Pixel width over finest line resolved, published and required | Published figures, cited on the page |
+| [`ptycho-toy-overlap-position`](diagrams/ptycho-toy-overlap-position.svg) | Reconstruction error against overlap and against position error | Small far-field reconstruction with photon noise, fixed seeds |
+| [`ptycho-beat-path`](diagrams/ptycho-beat-path.svg) | The rays that meet at one pixel with one beam and with a pair | Straight-ray geometry, to scale |
+| [`ptycho-pulse-timing`](diagrams/ptycho-pulse-timing.svg) | Movement during one pulse against scan speed | Speed times pulse length |
+| [`ptycho-angle-coverage`](diagrams/ptycho-angle-coverage.svg) | Detail covered by rings of lighting directions, and shared area between neighbours | Scalar far-field formula |
+
 ## Radar and synthetic aperture figures
 
 The figures on the
@@ -168,3 +190,49 @@ python docs/diagrams/make_sar_diagrams.py
 | [`sar-rotation-coverage`](diagrams/sar-rotation-coverage.svg) | Surface detail covered by fixed beams and by a turning chip | Scalar far-field formula |
 | [`sar-blind-speeds`](diagrams/sar-blind-speeds.svg) | Sample positions and noise growth against movement per frame, steady and jittered | One-dimensional calculation |
 | [`sar-depth-from-colour`](diagrams/sar-depth-from-colour.svg) | Depth response from four colours, sixteen colours and a sweep | Ideal calculation, no noise |
+
+## Multi-frame reconstruction figures
+
+The figures on the
+[multi-frame reconstruction](research/multi-frame-reconstruction.md) page
+come from
+[`make_multiframe_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_multiframe_diagrams.py),
+which also prints the derived numbers quoted in that page's tables:
+
+```
+python docs/diagrams/make_multiframe_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| `mf-tdi-map` | A satellite's time-delay-integration sensor beside the scanning sensor read row by row | Illustrative |
+| `mf-tdi-mismatch` | Contrast left after summing rows when the scan speed is wrong | Uniform-smear formula, derived on the page |
+| `mf-drizzle-kernel` | Contrast kept by interlacing, drizzle and shift-and-add against detail size | Published drizzle kernel formulas |
+| `mf-random-dither-noise` | Noise cost of filling a finer grid from randomly placed frames | Random simulation, fixed seed |
+| `mf-pixel-cost` | Contrast an ideal pixel keeps, and the noise cost of restoring it, against grid refinement | Ideal sharp-edged pixel formula |
+| `mf-accuracy-chart` | Published shift-measurement accuracies in pixels beside what this instrument needs | Published figures, cited on the page |
+| `mf-shift-bound` | Best possible shift error against the number of pixels used, for three scene contrasts | Standard noise bound with stated assumptions |
+| `mf-lucky-weighting` | Signal to noise from keeping the sharpest frames against weighting all frames | Random simulation, fixed seed |
+| `mf-selfcal-tracks` | Pixel columns crossed by a surface point for straight and tilted scans | Sensor geometry |
+| `mf-candidate-elimination` | Candidate surfaces left against frames used when positions are unknown, follow a steady path, or are known | Toy calculation, fixed seed |
+
+## Beamforming study figures
+
+The figures on the [beamforming and array processing](research/beamforming.md)
+page come from
+[`docs/diagrams/make_beamforming_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_beamforming_diagrams.py).
+It also runs the toy calculations and prints the numbers behind the tables
+and figures of that page:
+
+```
+python docs/diagrams/make_beamforming_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`beam-receiver-map`](diagrams/beam-receiver-map.svg) | What an antenna, a bare pixel and a pixel with a reference beam each record | Illustrative |
+| [`beam-array-factor`](diagrams/beam-array-factor.svg) | Response of a row of pixels used as an array, for one frame and after the scan fills in positions | Scalar plane-wave formula, ideal pixels |
+| [`beam-coarray`](diagrams/beam-coarray.svg) | Surface detail covered by four choices of laser beam directions | Simple band model, one dimension |
+| [`beam-adaptive-demo`](diagrams/beam-adaptive-demo.svg) | Delay and sum, minimum variance and MUSIC on two close scatterers, with independent and identical shots | Random simulation, fixed seed, perfect array model |
+| [`beam-selfcal-demo`](diagrams/beam-selfcal-demo.svg) | Pixel gains solved from the scan alone, for two scan patterns, and gain error against frames | Random simulation of a 12 × 12 toy sensor, fixed seeds |
+| [`beam-positions-demo`](diagrams/beam-positions-demo.svg) | A scene rebuilt from noisy frames whose positions are not given, by four methods | One-dimensional random simulation, mean of four runs, fixed seeds |
