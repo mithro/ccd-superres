@@ -347,7 +347,8 @@ text in cells.
 | [Simulation chain](simulation-chain.md) | Summary and caption done. Tables still to be gone through. | Not yet done | Chain flow chart and validity plot present | Not yet done |
 | [Glossary](glossary.md) | Yes | Not yet done | Not applicable | Text table |
 | [References](references.md) | Yes | Yes | Not applicable | Text tables |
-| [Optical elements](optical-elements.md), [reconstruction methods](reconstruction-methods.md) | To be checked by their authors | Own reference lists | To be checked by their authors | To be checked by their authors |
+| [Optical elements](optical-elements.md) | To be checked by its author | Own reference list | To be checked by its author | To be checked by its author |
+| [Reconstruction methods](reconstruction-methods.md) | Yes | Yes: every citation links to its entry, own results are labelled, and the labels are explained on the page | Five figures and three flow charts. Figures for each field's mapping are being added. | Yes: data tables with units in the headers, kept separate from the text tables |
 | [Calculator](calculator.md), [explorer](explorer.md), [diagrams](diagrams.md) | Not yet checked | Not yet done | Not yet checked | Not yet checked |
 
 ## How the plan is kept
