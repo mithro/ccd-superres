@@ -26,7 +26,7 @@ def test_readings_per_point_counts_pixel_widths_of_surface():
     assert ov.readings_per_point(narrow) == pytest.approx(expected)       # the opening does not change the count
 
 
-def test_whole_pixel_steps_add_no_new_positions():
+def test_a_sensor_held_still_adds_no_new_positions():
     scene = ap.get_scene("random_layout")
     base, noise = l1.Scan1D(), l1.Noise1D()
     few, _ = ov.scan_for("repeat", 4, base, noise)

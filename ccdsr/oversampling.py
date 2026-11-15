@@ -15,9 +15,9 @@ readings per point, in three ways of getting more readings::
     no read noise the total light is the same; the read noise of each
     reading is what the extra frames cost.
 ``repeat``
-    More frames with the same light in each, but the sensor steps by whole
-    pixels, so every frame lands on the same places. This is plain
-    averaging: it lowers noise and adds no new positions.
+    More frames with the same light in each, but the sensor does not move,
+    so every frame lands on the same places. This is plain averaging: it
+    lowers noise and adds no new positions.
 
 See ``docs/oversampling.md``.
 """
@@ -76,7 +76,7 @@ def scan_for(way, n_frames, base: l1.Scan1D, base_noise: l1.Noise1D):
     scan = dataclasses.replace(base, n_frames=int(n_frames))
     noise = base_noise
     if way == "repeat":
-        scan = dataclasses.replace(scan, shift_px=float(max(1, round(base.shift_px))))
+        scan = dataclasses.replace(scan, shift_px=0.0)
     if way == "same-time":
         noise = dataclasses.replace(base_noise, full_e=base_noise.full_e * REFERENCE_FRAMES / n_frames)
     return scan, noise
@@ -242,9 +242,9 @@ def _nm(value):
     return "none" if value is None or math.isinf(value) else f"{value:,.0f}"
 
 
-def tables_markdown(records, seeds):
-    """One table per approach, scene and way of getting more readings."""
-    lines, number = [], 0
+def tables_markdown(records, seeds, first=1):
+    """One table per approach, scene and way of getting more readings, numbered from ``first``."""
+    lines, number = [], first - 1
     keys = []
     for r in records:
         key = (r["approach"], r["scene"], r["way"])

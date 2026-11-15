@@ -105,7 +105,7 @@ it is an Assumption until confirmed, and it is not part of the requirement.
 | REQ-21 | Everything is in this git repository, documented with real diagrams, published on Read the Docs, and independently reviewed. Calibration and test methods are covered. | Requirement | 14 November 2026 | The [plan](plan.md), documentation standard; the [review record](review.md) |
 | REQ-22 | Ways are to be found to keep both super resolution and the absence of special lighting. | Requirement | 15 November 2026 | Answers question 14 of section 11. Interpreted as: neither gives way to the other, and the 100 nm goal of REQ-3 stands. Section 4.11 states what is known so far about how far ordinary light reaches, and the search for routes is plan item B8 |
 | REQ-23 | Computationally expensive options are fully acceptable. Nothing is discarded because of its mathematics or the complexity of its calculations. | Requirement | 15 November 2026 | Interpreted as also ruling out ranking an approach lower for that reason. Approaches are judged on what they can recover and on hardware, never on computing cost. Computing cost is reported as a fact beside each result (section 7.1). An approach may be scheduled later in the order of work, but not dropped, for this reason |
-| REQ-24 | Oversampling trade-offs are a core part of the discussion. | Requirement | 15 November 2026 | Interpreted as: how the number of readings of each point of the surface trades against sharpness, noise and scan time is shown throughout. Every approach, comparison and explorer view states its readings per point and shows the result against that number (sections 4.2 and 5.4; [slot waves](slot-waves.md), Table 6). "Readings per point" is set by speed, frame rate, exposure, sensor rotation, passes and pixel count |
+| REQ-24 | Oversampling trade-offs are a core part of the discussion. | Requirement | 15 November 2026 | Interpreted as: how the number of readings of each point of the surface trades against sharpness, noise and scan time is shown throughout. Every approach, comparison and explorer view states its readings per point and shows the result against that number (sections 4.2 and 5.4; [oversampling](oversampling.md); [slot waves](slot-waves.md), Table 6). "Readings per point" is set by speed, frame rate, exposure, sensor rotation, passes and pixel count |
 
 *Table 1.1. The requirements. "Recorded by" is the date by which the
 requirement was in the documentation. "Assumption given" marks a starting
@@ -404,6 +404,12 @@ instead, and a million-fold increase in samples buys less than a factor of
 two. This agrees with the estimate in section 4.1; it is not a more
 pessimistic or more optimistic result, only the same law plotted against
 sample count.
+
+The same law now shows in reconstructions and not only in the formula. The
+[oversampling](oversampling.md) page runs level 1 at 3 to 11,292 readings of
+each point: at a gap of 300 nm, 256 times more readings sharpen the finest
+line by 1.4 times, and only when the extra readings land on new positions
+(Simulated, level 1, one dimension).
 
 Two things could genuinely move these curves, and both are parameters of the
 simulator rather than assumptions baked into it:

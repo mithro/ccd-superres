@@ -505,7 +505,7 @@ def _respond_oversampling(request):
     return {"ok": True, "scene": scene.name, "curves": curves, "skipped": skipped,
             "ways": {"more-time": "more frames, same light in each (longer scan)",
                      "same-time": f"more frames in the time of {ov.REFERENCE_FRAMES} (less light in each)",
-                     "repeat": "more frames on the same places (plain averaging)"}}
+                     "repeat": "more frames with the sensor held still (plain averaging)"}}
 
 
 # ----------------------------------------------------------- two dimensions
