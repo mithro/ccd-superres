@@ -12,7 +12,7 @@ test = ["pytest"]
 packages = ["ccdsr"]
 
 [tool.setuptools.package-data]
-ccdsr = ["gui_static/*"]
+ccdsr = ["gui_static/*", "data/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

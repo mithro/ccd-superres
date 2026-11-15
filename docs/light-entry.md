@@ -99,7 +99,7 @@ left of a ray at the flattest angle a wave can take.
 |---|--:|---|
 | Distance from the open edge to the middle of the sensor | 1.38 mm | Half the short side of the light-sensitive area, 2.76 mm ([design, section 5.1](design.md#51-sensor)) |
 | Wavelength | 550 nm | Green light. Assumption |
-| Refractive index of silicon | 4.08 + 0.03i | Unverified: a round value from general knowledge. The tabulated values are in [Green2008], not yet checked against the text |
+| Refractive index of silicon | 4.08 + 0.03i | [Green2008] gives 4.077 + 0.028i at 550 nm, as tabulated in the refractiveindex.info database ([`ccdsr/data/silicon_green2008.csv`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/data/silicon_green2008.csv)) |
 | Refractive index of aluminium | 0.96 + 6.7i | Unverified, as above; tabulated in [Rakic1995] |
 | Refractive index of glass (silicon dioxide) | 1.46 | Unverified, as above; tabulated in [Malitson1965] |
 | Chip surface and sensor surface | Bare silicon, flat | Assumption. Real chips carry oxide, metal and steps; real pixels carry layers |
@@ -257,7 +257,7 @@ Whether they count as special lighting is a question for
 
 | Way in | What it would give | Difficulty | Status |
 |---|---|---|---|
-| Through the chip from behind, with plain near-infrared light (light just beyond red, which the eye cannot see and which silicon partly lets through) | Light arriving straight on, as the best case assumes. The picture would be a shadow picture of the chip's metal, which blocks the light. Possibly far more light than from the side | An ordinary sensor responds only weakly to light that silicon lets through; the wavelength is about 1 µm, twice that of green light, so the finest detail is coarser; the chip may need thinning | The most promising candidate. Unverified: no numbers have been worked out |
+| Through the chip from behind, with plain near-infrared light (light just beyond red, which the eye cannot see and which silicon partly lets through). First estimate: [backlight](backlight.md) | Light arriving straight on, as the best case assumes. The picture would be a shadow picture of the chip's metal, which blocks the light. About ten times more light than from the side at a gap of 10 µm ([backlight](backlight.md), Table 4) | An ordinary sensor responds only weakly to light that silicon lets through; the wavelength is about 1 µm, twice that of green light, so the finest detail is coarser; the chip may need thinning | The leading candidate. First estimate done; its open points are in [backlight](backlight.md), Table 8 |
 | From the side, relying on the chip's edges to scatter light upwards | A picture of edges near the lit side | Works only at gaps of several micrometres, where the best case is already coarse; first features shade the rest (Table 5) | Unverified. Needs the wave calculation |
 | From the side, using only the pixels nearest an open edge and scanning the chip past them | More light and a shorter sideways carry | The sensor's border and bond wires keep pixels away from the edge; most of the sensor is unused | Unverified |
 | Through the sensor from behind | Light arriving straight on | The baseline sensor is lit from its back face, which here faces the chip, so the light would have to come through its wiring and the wafer it is mounted on. It would also pass the light-sensitive layer on the way in, so each pixel would mostly read the lamp. A change to the sensor, so hardware work | Unverified |
@@ -298,7 +298,7 @@ print(light_under_sensor(gap_nm=10000))
 | Key | Source | Used for |
 |---|---|---|
 | BornWolf | M. Born and E. Wolf, *Principles of Optics*. In the [shared reference list](references.md) | The Fresnel formulas for reflection at a flat surface |
-| Green2008 | M. A. Green, "Self-consistent optical parameters of intrinsic silicon at 300 K including temperature coefficients", *Solar Energy Materials and Solar Cells* 92, 1305 (2008). [doi:10.1016/j.solmat.2008.06.009](https://doi.org/10.1016/j.solmat.2008.06.009). Existence checked against a bibliographic database; the text was not read | Where the refractive index of silicon is tabulated |
+| Green2008 | M. A. Green, "Self-consistent optical parameters of intrinsic silicon at 300 K including temperature coefficients", *Solar Energy Materials and Solar Cells* 92, 1305 (2008). [doi:10.1016/j.solmat.2008.06.009](https://doi.org/10.1016/j.solmat.2008.06.009). Existence checked against a bibliographic database. The value was taken from the refractiveindex.info database's copy of the paper's table, not from the paper itself | Refractive index of silicon |
 | Rakic1995 | A. D. Rakić, "Algorithm for the determination of intrinsic optical constants of metal films: application to aluminum", *Applied Optics* 34, 4755 (1995). [doi:10.1364/AO.34.004755](https://doi.org/10.1364/AO.34.004755). Existence checked; the text was not read | Where the refractive index of aluminium is tabulated |
 | Malitson1965 | I. H. Malitson, "Interspecimen comparison of the refractive index of fused silica", *Journal of the Optical Society of America* 55, 1205 (1965). [doi:10.1364/JOSA.55.001205](https://doi.org/10.1364/JOSA.55.001205). Existence checked; the text was not read | Where the refractive index of silicon dioxide is tabulated |
 

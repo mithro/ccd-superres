@@ -637,3 +637,37 @@ at 46 gaps from the edge.
 needs a wave simulation: finding 1 rests on a hand estimate. The
 corrections were checked by the tests and a strict build of the pages, not
 by a second review. The refractive indices on the page remain Unverified.*
+
+## Review 13: the estimate for near-infrared light from behind the chip
+
+The [backlight](backlight.md) page, its code
+([`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py)),
+the silicon table, the tests and figures, and the matching changes to the
+design and plan were reviewed on 15 November 2026, before merging. The
+reviewer was given the material and not the author's conclusions. It
+derived each formula again, recomputed every table, compared the silicon
+table with known values, and broke the code on purpose in a copy to see
+whether the tests noticed.
+
+It confirmed all the arithmetic, the silicon table, the formulas and the
+derivation of the smearing through the pixel's depth. Its findings were
+about conclusions stated more strongly than the model supports.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The page said the gap could be large without saying that this needs the back of the chip to be exposed and polished. A ground back face scatters the light and the result is lost; the package blocks it altogether. | Added as the first row of what the estimate leaves out, and the summary, design and plan now state the condition. |
+| 2 | Error | The 280 nm figure treats the metal as a thin screen. Openings that narrow in metal of real thickness pass little light. | Presented as the model's limit, with about half a micrometre as the practical expectation. |
+| 3 | Error | "Crosses any gap" lacked three conditions: the light staying in step with itself across the gap, the steep angles of detail near the wavelength, and the variety the reconstruction needs to unscramble a dense layout. | All three stated; the 30 µm row removed; the last is written into plan item D2f. |
+| 4 | Error | The table of smearing through the pixel's depth gave the upper envelope without saying so. The true value passes through zero. "Floor" was too strong, since a tilted lamp removes the effect for a chosen period. | Labelled, with the caveat. |
+| 5 | Error | A table in the design had a cell moved to the wrong row. | Fixed. |
+| 6 | Gap | "Enough light arrives" was not supported by any lamp power or exposure. | Reworded as far more than from the side, with sufficiency a judgement pending lamp data. The range of exposure factors corrected. |
+| 7 | Gap | Doping was called a possible show-stopper without a size; structures in the silicon were called a weak effect; ripples between bare silicon faces were understated; near-infrared light leaking between pixels was not mentioned. | Each restated with its likely size, labelled Unverified where it rests on general knowledge. |
+| 8 | Gap | The light entry page still described this route as having no numbers. | Updated. |
+| 9 | Gap | Two deliberate breakages were not caught by the tests. | Two tests added. |
+| 10 | Wording | Terms unexplained; one file name not linked; three table cells without a label. | Fixed, and "free carriers" added to the [glossary](glossary.md). |
+
+*Table: findings of review 13. Not checked by the reviewer: the silicon
+table row by row against the paper, the cited microscope papers, the real
+depth and response of the baseline sensor's pixels, and anything that
+needs a wave simulation. The corrections were checked by the tests and a
+strict build of the pages, not by a second review.*

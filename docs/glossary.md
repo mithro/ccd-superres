@@ -59,6 +59,7 @@ link here the first time they use a term that is not explained on the spot.
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
 | Fourier transform | A calculation that splits a picture into regular wave patterns of every size and direction, and says how much of each is present. Blur is simple to describe this way: it weakens the fine patterns. |
 | Frame | One complete readout of the sensor. |
+| Free carriers | The electrons and holes that are free to move in silicon, put there by doping. They absorb near-infrared light, the more so the heavier the doping. |
 | Fresnel formulas | The standard formulas for how much light a flat surface reflects, depending on the material, the angle and the polarisation. |
 | Fringes | The regular bright and dark stripes formed where two coherent beams overlap. |
 | Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow, but accurate for detail smaller than the wavelength. |

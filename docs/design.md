@@ -27,8 +27,10 @@ The main things this document establishes:
   ordinary light gets under the sensor from the side finds that it does
   not reach the middle at gaps under about 5 µm, and at larger gaps gives
   very little light and a blur of 90 µm or more
-  ([light entry](light-entry.md)). How the chip is lit is now the first
-  question to settle. The laser route is kept
+  ([light entry](light-entry.md)). The leading way to light the chip is now
+  plain near-infrared light from behind, which would show the chip's metal
+  wiring at lines of about half a micrometre ([backlight](backlight.md);
+  Estimate, with open points). The laser route is kept
   as a recorded alternative.
 - **Taking more readings helps, but slowly.** A thousand times more data
   buys only a modest gain, so computation has to be spent cleverly, not
@@ -1209,9 +1211,20 @@ uncovered pixel would get, arriving skimming at 82° to 87° from straight
 on. And that light last touched the chip about 90 µm to 200 µm away, so on
 a flat chip lit from the side the blur is that coarse and the best case of
 Table 4.11b is not reached at any gap. Side light is therefore not a
-workable baseline as it stands. The candidates are plain near-infrared
-light through the chip from behind, and the chip's own edges scattering
-skimming light upwards near the lit side; both are Unverified. The bond wires around the
+workable baseline as it stands. The leading candidate is plain
+near-infrared light through the chip from behind. A first estimate
+([backlight](backlight.md); Estimate) finds that a pixel detects about 8
+parts in 10,000 of the lamp's light through a chip 500 µm thick, that the
+picture is a shadow of the chip's metal wiring, and that lines of about
+half a micrometre should be within reach at gaps up to about 10 µm, so
+the gap no longer has to be a fraction of a micrometre. The model's own
+limit of about 280 nm at a gap of 0.3 µm is unlikely to be met in
+practice. All of this needs the back of the chip to be exposed and
+polished. Whether such a lamp counts as special lighting is open (section
+11, item 12), and the chip's doping, how much of it is free of metal, and
+the sensor's behaviour at this wavelength are not checked. The other candidate,
+the chip's own edges scattering skimming light upwards near the lit side,
+is Unverified. The bond wires around the
 sensor also force the chip to be smaller than the sensor or to stand on a
 pedestal (section 5.3). The laser route avoided all this with a gap of
 about a millimetre (Table 4.10a), which ordinary light cannot use without
@@ -1226,8 +1239,8 @@ model the reconstruction has to use.
 | Order | Work | Why now |
 |--:|---|---|
 | 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap. Done: [light entry](light-entry.md) | It showed that side light does not reach the middle of the sensor at gaps under about 5 µm, and does not give the best case of Table 4.11b at any gap |
-| 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and how much of it the chip's edges and steps scatter upwards into the pixel above | It decides the light model that every item below has to use |
-| 1b | A second light model in level 1 beside "matt": light from the side, where a reading is a running total along the direction of the light with a sideways carry | So that the items below can be run under both models until item 1a decides |
+| 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind (done: [backlight](backlight.md)), then its unchecked points: doping of the chip's silicon, how open the metal of real chips is, the sensor's response near 1,050 nm. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and how much of it the chip's edges and steps scatter upwards into the pixel above | It decides the light model that every item below has to use |
+| 1b | Further light models in level 1 beside "matt": directed light from behind the chip, where the metal's shadow crosses the gap as a wave; and light from the side, where a reading is a running total along the direction of the light with a sideways carry | So that the items below can be run under both models until item 1a decides |
 | 2 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
 | 3 | Position solving, rotation, gap and wedge (the gap being larger at one side of the sensor than the other), and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
 | 4 | The pixel's response as an uncertain range, and its recovery from the scan itself | It matters as much as the distance below a micrometre |
@@ -2252,6 +2265,7 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.6 | Lensless imaging in reflection is undemonstrated below about 2 µm | From the optical elements study, section 9.2, and its sources |
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
 | 4.10 | Corrections and additions from the four research studies | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
+| 4.11 | Near-infrared light from behind the chip | **Estimate** from the flat-layer model on the [backlight](backlight.md) page, with silicon data from its cited source. Doping, metal coverage, the state of the chip's back face and the sensor's response are unchecked |
 | 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
 | 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there.  |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
