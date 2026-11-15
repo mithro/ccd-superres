@@ -241,6 +241,33 @@ day, before merging.
 | Several rows stated things from titles or memory without saying so | Marked unverified |
 | One table row mixed two different methods | Split into two rows |
 
+### Third pass: original units and scaled units
+
+On 14 November 2026 the page gained a section that gives satellite and
+telescope figures in their own units and then scaled to nanometres, in
+[pull request 38](https://github.com/mithro/ccd-superres/pull/38). A third
+reviewer checked that change before merging.
+
+| Check | Coverage | Result |
+|---|---|---|
+| Every scaled number and unit conversion recomputed | All | All correct |
+| Original-unit figures compared with the cited source | All with a text available | 1 wrong, 3 resting on unlabelled assumptions |
+| Figure compared with caption and tables | 1 of 1 | Labels and caption corrected |
+| Links, anchors and build | All | Clean |
+
+| Finding | What was done |
+|---|---|
+| SkySat's 50 to 70 cm is the pixel of the operator's enlarged product, not of the camera | Camera pixel reworked to 0.75 m, and every figure built on it corrected |
+| Hubble's position errors were given in thousandths of a second of arc as if published that way. They are published in pixels, and the conversion assumes which of the camera's detectors was used. | Marked as an assumption wherever they appear. One converted figure with no basis was removed. |
+| "Finer than anything the field has done" compared a resolution aim with grid spacings, and counted a simulation as done | Rewritten as a judgement that separates flown systems from simulated ones and grids from measured gains |
+| The reason given for the scaling rule claimed that a bare pixel sees only its own width of surface | Replaced: the rule matches sample spacing only, not blur |
+| Time is not scaled, but two passages read as if it were | Said so plainly |
+| Several passages still gave pixels only | Scaled values added |
+
+Not checked: the full texts of the Hubble position paper (MF31), the
+drizzle paper (MF17) and the SPOT 5 paper (MF8) were not available to the
+reviewer.
+
 ## Review 4: the beamforming and array processing study
 
 The [beamforming and array processing](research/beamforming.md) study was
@@ -444,7 +471,45 @@ linked from step 6, and how the diagram of what runs today is drawn in a
 browser. The corrections were checked by the tests and by a strict build of
 the pages, not by a second review.*
 
-## Review 9: the interactive explorer
+## Review 9: click to enlarge for images and flow charts
+
+The viewer that opens any image or flow chart when it is clicked
+([`docs/_static/image-zoom.js`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.js),
+[`docs/_static/image-zoom.css`](https://github.com/mithro/ccd-superres/blob/main/docs/_static/image-zoom.css),
+loaded from
+[`docs/conf.py`](https://github.com/mithro/ccd-superres/blob/main/docs/conf.py))
+was reviewed on 14 November 2026, before merging, in
+[pull request 37](https://github.com/mithro/ccd-superres/pull/37). The
+reviewer was given the commit and what it was meant to do, and not the
+author's tests or conclusions. It built the pages and drove them in the
+Chromium browser with a mouse, a keyboard and an emulated phone touch screen.
+
+It confirmed that the strict build passes, that all 136 pictures on the site
+(108 images and 28 flow charts) open, show fully, zoom and close, that the
+page returns to where it was, that light and dark themes both work, that
+images which are links to other places still follow their links, and that
+search, printing and the [explorer](explorer.md) are unaffected.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | On a touch screen, tapping beside the picture to close it also tapped whatever lay underneath on the page, which could follow a link or open a different picture. | The viewer now acts on the tap itself and swallows it. Retested on an emulated phone at the two places the reviewer gave. |
+| 2 | Gap | Escape and the zoom keys stopped working once keyboard focus had left the viewer's buttons, for example after a right click. | Keys are listened for on the whole page while the viewer is open. Retested. |
+| 3 | Gap | An image given a set width could not be opened from the keyboard: Enter went to the image file. No page has one today. | Handled. |
+| 4 | Gap | In the fitted view, at a window of 1280 by 720, the caption lay over the edge of 40 of the 136 pictures and the buttons over 35. | The fitted view leaves room for both. Retested on 95 pictures over six pages: none overlap. |
+| 5 | Gap | Five files left behind by installing the package had been committed. | Removed, and ignored by git. |
+| 6 | Minor | Ctrl with + or - was taken by the viewer, blocking the browser's own zoom. | Left to the browser. |
+| 7 | Minor | The flow chart extension's own full-screen view copied our markings, so Enter there opened a second viewer on top. | Our viewer only opens from the page body. Retested. |
+| 8 | Minor | A flow chart caption carried a stray link mark, a figure showed its short description and not its caption, and captions were squeezed on a phone. | Fixed. |
+| 9 | Minor | A two-finger pinch zoomed but did not move the picture; Escape during a drag left the wrong cursor. | Fixed. |
+| 10 | Minor | A drawing written into a page as raw markup, which no page has, would not be covered. | Said in the script's opening comment. |
+| 11 | Minor | A screen reader hears each picture as a button, not an image; the phone Back button leaves the page and does not close the viewer; resizing the window resets the zoom. | Not changed. |
+
+*Table: findings of review 9. Not checked by the reviewer: Firefox, Safari,
+real phones and tablets (touch was emulated in Chromium), a real screen
+reader, and the pages as served by Read the Docs. The corrections were
+checked by the author's browser tests, not by a second review.*
+
+## Review 10: the interactive explorer
 
 The [interactive explorer](interactive-explorer.md), its code
 ([`ccdsr/gui.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/gui.py) and the page in
@@ -481,7 +546,7 @@ code apart from the points below.
 | 15 | Minor | A clipped axis label, a jagged curve, an overlapping axis title, the true path hidden under a solved one, the next-frame outline hidden behind the pixels, a diagram number that disagreed with the table, the approach file's name lost on reload. | All fixed. |
 | 16 | Usability | No first step for a newcomer; the main sliders were pushed down by method options. | Four "things to try first" buttons, and method options folded away until opened. |
 
-*Table: findings of review 9. Not checked by the reviewer: Windows and
+*Table: findings of review 10. Not checked by the reviewer: Windows and
 macOS, browsers other than Chromium, the copy button, an installation that
 is not editable, and the physics inside the simulator, which reviews 5 and 7
 covered. The corrections were checked by the tests and by a strict build of

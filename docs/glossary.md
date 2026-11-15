@@ -12,6 +12,7 @@ link here the first time they use a term that is not explained on the spot.
 | Approach | One complete way of building and running the instrument: a choice of light, optical parts, gap, sensor, readout, scan, exposure and reconstruction method. |
 | Array | A set of receivers at known positions whose readings are combined by computation. The sensor's pixels are one. |
 | Artefact | A false feature in a reconstructed picture that comes from the method and not from the surface. |
+| Astronomical unit (AU) | The distance from the Earth to the Sun, about 150 million km. Used for sizes inside a star system. |
 | Autofocus | Working out from the recorded data alone how the instrument's assumed path, gap or timing was wrong, and correcting it. The name comes from radar. |
 | Band (cut-off) | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. Detail beyond the cut-off does not reach the sensor. |
 | Bayer filter | The pattern of red, green and blue filters laid over the pixels of a colour sensor, one colour per pixel. |
@@ -99,6 +100,7 @@ link here the first time they use a term that is not explained on the spot.
 | Noise floor | The level below which a signal is lost in the noise. |
 | Numerical aperture (NA) | A number that says how steep an angle is: the sine of the angle measured from straight ahead, times the refractive index of the medium. In air it lies between 0 and 1. |
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
+| Parsec | The astronomers' unit of distance to the stars: 3.26 light years, or about 31 million million km. At 1 parsec, an angle of one second of arc spans one astronomical unit. |
 | Period | The distance over which a regular pattern repeats. Lines and spaces each 100 nm wide have a period of 200 nm. |
 | Phase | Where a wave is in its cycle. Sensors record brightness only, so phase has to be worked out by computation. |
 | Phase error | The amount by which the assumed timing of a wave is wrong, as a share of its cycle. It comes from not knowing a distance exactly. |
@@ -128,7 +130,9 @@ link here the first time they use a term that is not explained on the spot.
 | Rms (root mean square) | The usual measure of the typical size of an error or of noise: square every value, average, and take the square root. |
 | Rolling shutter | A sensor that exposes and reads its rows one after another, so each row sees a slightly later moment. |
 | Sample | One reading from one pixel at one moment. |
+| Scaled value | A figure from another field (metres on the ground for a satellite, an angle on the sky for a telescope) shrunk by one factor so that it can be compared with this instrument, and given in nanometres. Each study states its own scaling rule; see [multi-frame reconstruction](research/multi-frame-reconstruction.md#original-units-and-scaled-units). |
 | Scatterometry | Measuring the dimensions of a regular pattern that is too fine to see, by fitting a model to how it reflects light at different colours and angles. |
+| Second of arc (arcsecond) | An angle of 1/3600 of a degree. A thousandth of it is a milliarcsecond (mas). Telescopes give pixel sizes and position errors in these units. |
 | Self-calibration | Calibration done from the ordinary measurement data, with no separate test. |
 | Sensor | The camera chip: a grid of pixels that turn light into electrical readings. |
 | Sharpness (measure) | A single number that is larger for a crisp picture than for a blurred one, such as the sum of the squares of the brightness. Used to choose between trial settings. |

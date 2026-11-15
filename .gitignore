@@ -3,5 +3,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 docs/_build/
+*.egg-info/
 run.png
 results/mine/

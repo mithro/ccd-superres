@@ -619,6 +619,98 @@ def candidate_elimination(cells=12, sigma=1.5, trials=20, seed=5):
     print(f"  true pattern below the cut (frames, case): {truth_out}")
 
 
+# --------------------------------------------------------------------------
+# 11. Original units and the same figures scaled to this instrument
+# --------------------------------------------------------------------------
+AU_M = 1.495978707e11          # one astronomical unit, metres
+PC_M = 3.0856775814913673e16   # one parsec, metres
+MAS_RAD = np.pi / 180 / 3600 / 1000   # one thousandth of a second of arc
+
+# name, pixel footprint, a second length (finest sample or error), what that
+# second length is, distance to the scene; all in metres. For telescopes the
+# footprint is the pixel angle times an example distance of 1000 parsecs.
+STAR_M = 1000 * PC_M
+SCALE_CASES = [
+    ("SPOT 5 (Earth)", 5.0, 2.5, "output grid spacing", None),
+    ("HiRISE (Mars)", 0.25, 0.0625, "pointing drift allowed in 10 ms", 250e3),
+    # SkySat: the 0.6 m standard product is a 1.25 times enlargement, so the
+    # camera pixel is 0.75 m; the measured gain in resolution is 0.10 m.
+    ("SkySat (Earth)", 0.75, 0.10, "measured gain in resolution", None),
+    ("PROBA-V (Earth)", 300.0, 100.0, "grid the result is scored on", 820e3),
+    ("Hubble, star at 1000 parsecs", 100 * MAS_RAD * STAR_M,
+     0.2 * MAS_RAD * STAR_M, "repeating position error left", STAR_M),
+    ("Gaia, star at 1000 parsecs", 58.9 * MAS_RAD * STAR_M,
+     0.3 * MAS_RAD * STAR_M, "position scatter per crossing", STAR_M),
+]
+
+
+def scale_map():
+    """The scaling rule of the page: one pixel of the original instrument,
+    measured on its scene, is set equal to one 1.12 micrometre pixel of this
+    instrument. Every length on the original scene is divided by the same
+    factor. Input figures are those cited in the page's scale tables."""
+    pitch = PITCH_UM * 1e-6
+    fig, ax = plt.subplots(figsize=(10.2, 4.6))
+    print("Scaling: one original pixel on the scene = one 1.12 um pixel")
+    for i, (name, px, other, what, dist) in enumerate(SCALE_CASES):
+        y = len(SCALE_CASES) - 1 - i
+        n = px / pitch
+        ax.plot([pitch, px], [y, y], color=GRID, lw=1.2, zorder=0)
+        ax.plot([other / n, other], [y - 0.28, y - 0.28], color=GRID, lw=1.2,
+                zorder=0)
+        ax.plot(px, y, "s", color=BLUE, ms=8)
+        ax.plot(other, y - 0.28, "^", color=BLUE, ms=7)
+        ax.plot(pitch, y, "s", color=ORANGE, ms=8)
+        ax.plot(other / n, y - 0.28, "^", color=ORANGE, ms=7)
+        ax.text(1e-13, y + 0.02, name, ha="right", va="center", fontsize=9)
+        ax.text(1e-13, y - 0.28, what, ha="right", va="center", fontsize=8,
+                color=INK2)
+        mant, expo = f"{n:.1e}".split("e")
+        ax.text(np.sqrt(pitch * px), y + 0.16,
+                f"divide by {mant} $\\times 10^{{{int(expo)}}}$", fontsize=8,
+                color=INK2, ha="center")
+        nm = other / n * 1e9
+        ax.text(other / n * 0.55, y - 0.28,
+                f"{nm:.0f} nm" if nm >= 10 else f"{nm:.1f} nm",
+                fontsize=8, color=ORANGE, ha="right", va="center")
+        d = "" if dist is None else f", distance {dist:.4g} m -> {dist / n * 1e3:.4g} mm"
+        print(f"  {name}: pixel {px:.4g} m, factor {n:.4g}, {what} "
+              f"{other:.4g} m -> {other / n * 1e9:.4g} nm{d}")
+    ax.set_xscale("log")
+    ax.set_xlim(1e-12, 1e15)
+    ax.set_ylim(-0.8, len(SCALE_CASES) - 0.4)
+    ax.set_yticks([])
+    ax.set_xlabel("length (metres)")
+    ax.axvline(pitch, color=ORANGE, lw=0.8, ls=":")
+    ax.text(pitch * 1.4, len(SCALE_CASES) - 0.55, "this instrument's pixel, "
+            "1120 nm", fontsize=8.5, color=ORANGE)
+    handles = [
+        plt.Line2D([], [], marker="s", ls="", color=BLUE, ms=8,
+                   label="one pixel on the original scene"),
+        plt.Line2D([], [], marker="^", ls="", color=BLUE, ms=7,
+                   label="a result in original units (tables S3, S4)"),
+        plt.Line2D([], [], marker="s", ls="", color=ORANGE, ms=8,
+                   label="the pixel after scaling"),
+        plt.Line2D([], [], marker="^", ls="", color=ORANGE, ms=7,
+                   label="the same result after scaling"),
+    ]
+    ax.legend(handles=handles, frameon=True, framealpha=1.0,
+              facecolor=SURFACE, edgecolor=GRID, fontsize=8.5,
+              loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=2)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.grid(True, axis="x", color=GRID, lw=0.6)
+    save(fig, "scale-map")
+    print(f"  1 mas at 1000 parsecs = {MAS_RAD * STAR_M / AU_M:.4f} AU = "
+          f"{MAS_RAD * STAR_M / 1e3:.4g} km")
+    print(f"  Gaia spin 60 arcsec/s = {60000 / 58.9:.1f} pixels/s = "
+          f"{60000 / 58.9 * PITCH_UM / 1000:.3f} mm/s scaled; 4500 lines = "
+          f"{4500 * 58.9 / 1000:.1f} arcsec = {4500 * PITCH_UM / 1000:.2f} mm")
+    print(f"  Lucky imaging at 40 mas per pixel: 0.63 arcsec = "
+          f"{630 / 40 * PITCH_UM:.1f} um, 0.26 arcsec = "
+          f"{260 / 40 * PITCH_UM:.1f} um")
+
+
 def main():
     tdi_map()
     tdi_mismatch()
@@ -630,6 +722,7 @@ def main():
     lucky_weighting()
     selfcal_tracks()
     candidate_elimination()
+    scale_map()
 
 
 if __name__ == "__main__":
