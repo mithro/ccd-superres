@@ -4,8 +4,7 @@ This page records which parts of the project have been checked by someone
 other than their author, what was checked, and what was found. A page,
 script or figure that is not listed here as reviewed has not been reviewed.
 
-The rule, from Tim on 14 November 2026: "Make sure that all assets are being
-properly reviewed." Every page, figure script, data table and reference list
+The rule ([REQ-21](design.md#requirements)): all assets are properly reviewed. Every page, figure script, data table and reference list
 gets an independent check before or soon after it is merged. The reviewer is
 given the material and its sources, not the author's conclusions.
 
@@ -88,7 +87,7 @@ is the one worth knowing about.
 | 6 | [Diagrams page](diagrams.md) | Gap | The page said all figures come from one script and did not list the twenty optical elements figures. | Section added, wording corrected. |
 | 7 | [Reconstruction methods 2.1](reconstruction-methods.md), and the label of one bar in its ladder figure | Gap | "Resolved 225 nm lines with 1.12 µm pixels" cites a paper whose abstract confirms the line width, the light source and the threefold gain, but not the pixel size. | The pixel size is labelled Unverified in the text. The figure label is unchanged and still to be checked against the full paper. |
 | 8 | [Reconstruction methods 7.2](reconstruction-methods.md) | Inconsistent | Its stages 0 to 5 are steps of the calculation and do not match the instrument stages 0 to 4 of the design, and nothing said so. | A note now maps one numbering onto the other. |
-| 9 | All reviewed pages | Gap | Files were named as bare paths and not linked. Pages carried separate "In plain words" sections, which Tim has since asked to be folded into the main text ("Don't write 'In plain words' sections, just write the text in plain words from the beginning"). | Every bare path to an existing file is now a link ([pull request 27](https://github.com/mithro/ccd-superres/pull/27)). On the design, simulation chain, optical elements, reconstruction methods, calibration and test, and references pages the plain text now opens the page with no separate heading, and the 21 section leads on the optical elements page lost their label and are the first paragraph of their section. The plan page and level 1 are done by their own thread. |
+| 9 | All reviewed pages | Gap | Files were named as bare paths and not linked. Pages carried separate "In plain words" sections, which the documentation standard has since folded into the main text. | Every bare path to an existing file is now a link ([pull request 27](https://github.com/mithro/ccd-superres/pull/27)). On the design, simulation chain, optical elements, reconstruction methods, calibration and test, and references pages the plain text now opens the page with no separate heading, and the 21 section leads on the optical elements page lost their label and are the first paragraph of their section. The plan page and level 1 are done by their own thread. |
 
 ### Smaller observations, not changed
 
@@ -300,7 +299,7 @@ and the sources, and not the author's conclusions.
 | B2-6 | [Section 3.2](research/beamforming.md#32-a-reference-beam-lifts-weak-light-above-the-sensors-own-noise), table | Error | The reference beam was assumed to fill the pixel, leaving no room for the fringes, and the figures were for the best position along a fringe only. | Reference at half the pixel's capacity, and a column for the average position added. |
 | B2-7 | [Section 7.1](research/beamforming.md#71-near-field-acoustic-holography) | Gap | Under slanted light only one of the two directions into which lines send their detail fades slowly, and it needs the opposite beam as its reference. | Both stated. |
 | B2-8 | Sources | Gap | Several statements cited to sources checked only for existence carried no "Unverified" label. One source marked as checked by abstract (BF36) was not supported by its abstract. Four abstract-checked statements went further than the abstract. | A blanket rule added under "How claims are marked", six sources promoted to checked by abstract, BF36 demoted, the four statements reworded. |
-| B2-9 | Whole page | Gap | Ten paragraphs opened with the label "In words:", which Tim has asked not to use. | Labels removed and the text folded in. |
+| B2-9 | Whole page | Gap | Ten paragraphs opened with the label "In words:", which the documentation standard does not allow. | Labels removed and the text folded in. |
 
 | B2-10 | [Section 8.2](research/beamforming.md#82-a-toy-calculation) | Gap | "Contrast" was not defined (it is the typical variation of the scene, about 0.4 of the step between its two levels). Errors above 100 per cent, which are worse than a blank picture, were compared as if they meant something. The text did not say that two methods are told the size of the noise and one is told the stage's average step. | All three stated. Comparisons limited to the noise levels where they mean something. |
 | B2-11 | [Section 8.3](research/beamforming.md#83-eliminating-layouts-a-chip-cannot-have) | Gap | A source on signals of constant strength was cited for a rule about signals with few values, and "the same saving" claimed more than the sources show. | Reworded and marked Unverified. |
@@ -434,16 +433,16 @@ page, link targets and the internals of the reconstructions, which review 5
 covered. The corrections were checked by the tests and by rerunning the
 comparison, not by a further reviewer.*
 
-## Review 8: the getting started page, the one-command run and Tim's answers
+## Review 8: the getting started page, the one-command run and three answered questions
 
 The [getting started page](getting-started.md), the command behind it
 ([`ccdsr/run.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/run.py)),
-its tests, and the places where Tim's answers on the light monitor and on
+its tests, and the places where the answers on the light monitor and on
 chip design rules were written into the [design](design.md) and the
 [plan](plan.md) were reviewed on 14 November 2026, before merging. The
-reviewer was given the commit and Tim's exact words and not the author's
+reviewer was given the commit and the exact wording of the answers and not the author's
 conclusions. It ran every command on the page, tried deliberately bad
-inputs, and compared each quotation with what Tim wrote.
+inputs, and compared each quotation with its original.
 
 It confirmed that every command on the page runs, that the picture on the
 page is exactly the one the command saves, that the example changes of
@@ -456,7 +455,7 @@ resolve.
 | 1 | Error | `False`, `no` or `off` given for a yes-or-no setting was read as a word, which counts as yes. Photon noise stayed on when switched off this way. | The usual spellings of true and false are understood, and a value of the wrong kind is refused with the setting named. Tested. |
 | 2 | Error | The first table gave a sensor tilt of 3.6° as what the two-dimensional code does. It is 0° unless set; 3.6° is the worked example. | Corrected. |
 | 3 | Error | The elimination page said in one table that a minimum-width rule is used and in another that it is not. | The first table now says the tests use none. |
-| 4 | Gap | Our own reading was recorded as Tim's input in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. His question about using pixels was written as a decision. | Each is now labelled "Our reading", and the pixel idea is recorded as his question. |
+| 4 | Gap | The project's own interpretation was recorded as a stated requirement in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. The question about using pixels was written as a decision. | Each is now labelled as the project's interpretation, and the pixel idea is recorded as something to consider. |
 | 5 | Gap | The beamforming study's questions and three places that list layout rules as inputs did not show the answers. | A note on the study's questions, and "optional, also run without" added in the design and plan. |
 | 6 | Gap | One date in the plan was stretched to cover an earlier answer. | Reworded. |
 | 7 | Gap | Impossible values were accepted: a negative gap (which scored better than the default), no frames, no light. | Every setting has an allowed range and is refused outside it, in approach files, changes and conditions. Tested. |
@@ -515,7 +514,7 @@ The [interactive explorer](interactive-explorer.md), its code
 ([`ccdsr/gui.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/gui.py) and the page in
 [`ccdsr/gui_static/`](https://github.com/mithro/ccd-superres/tree/main/ccdsr/gui_static)),
 its tests and its documentation were reviewed on 14 and 15 November 2026,
-before merging. The reviewer was given the code and Tim's request and not the
+before merging. The reviewer was given the code and the request and not the
 author's conclusions. It ran the page in a real browser and tried to break
 it, compared what the page shows with what Python computes, registered a
 made-up method and surface to test that nothing is tied to one approach, and
@@ -553,3 +552,54 @@ covered. The corrections were checked by the tests and by a strict build of
 the pages, not by a second review. Left as they are: the page still shows
 errors only at the top and does not mark the control at fault, and at phone
 width all controls come before the results.*
+
+## Review 11: ordinary light as the main line of work, and requirements stated without names
+
+Two changes were reviewed on 15 November 2026, before merging: the new
+[section 4.11 of the design](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)
+with the matching changes to the [plan](plan.md) and the other pages
+([REQ-6](design.md#requirements)), and the rewording of every page so that
+requirements are stated in their own right and numbered
+([plan, documentation standard](plan.md#requirements-not-attributions)).
+The first reviewer was given the pages, the code and the requirement, and
+not the author's conclusions. It recomputed the tables from
+[`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py)
+and compared every quoted result with the page it came from.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The table of what ordinary light can reach assumed an ideally sharp pixel, while the design's own baseline pixel has edges soft over 0.3 µm. With the baseline pixel 100 nm is out of reach at any distance. | Table 4.11b now gives both, and the conclusions use the baseline pixel. |
+| 2 | Error | The table was presented as what ordinary light gives. The matt model describes a mirror-like chip only when light arrives evenly from all directions, and the sensor blocks most of them. | The table is stated as a best case, with the reason. |
+| 3 | Error | "About two thirds of the distance" was given as a rule. The ratio runs from about 0.6 to 1.5 over the practical range. | Replaced by "roughly the same size as the distance", with the range. |
+| 4 | Error | The text said the pixel response matters much less under ordinary light. Below a micrometre it costs as much as the distance. | Corrected in sections 4.9 and 4.11, and the pixel response stays in the main line of work in the plan. |
+| 5 | Error | The distance was described as the air gap. It also includes the chip's own top layers and the layers on the pixel. | Stated in section 4.11 and in the table heading. |
+| 6 | Error | Simulation level 1 was said to agree with the table. A plain fit shows 800 nm bars at a 300 nm gap; 480 nm needs a narrowed opening or known materials. | The caption and Table 4.11c say exactly what was shown. Position solving losing track in 2 or 3 runs of 10 is now stated as well. |
+| 7 | Error | Side light was said to travel up to 1.8 mm; the half-width is about 1.4 mm, and the slot is 500 to 5,000 times longer than high. Ray tracing was named as the tool, though it is not valid in so shallow a slot. | Numbers corrected. A rough estimate is now the first item of work, with a wave calculation after. |
+| 8 | Error | The answer on lighting was said to settle the questions on liquid in the gap and on lighting constraints. It settles neither. | Section 11 and plan item C3 corrected; liquid in the gap is listed as undecided. |
+| 9 | Gap | Several pages still presented the laser route as the current plan: the design's opening summary and sections 7.1 and 11, [level 1](level1.md), the build order of the [simulation chain](simulation-chain.md), the plan's flow chart and status figure, [reconstruction methods](reconstruction-methods.md), the [index](index.md) and the [glossary](glossary.md). | All changed or given a dated note. "Set aside" is now a defined state in the plan. |
+| 10 | Gap | The order of work left out items the research pages had already identified: gap and wedge from the data, pixel response from the scan, uncertainty maps, rejecting bad readings, comparison with a known-good chip, coarse-to-fine search, the tests against invented detail, colour channels. | Added to Table 4.11d. |
+| 11 | Wording | "Ruled out" was stronger than the requirement, which says special lighting is not assumed. Light pulsed in time was not placed on either side of the line. | Wording changed throughout; pulsed light is in Table 4.11a, with the sensor's own shutter read as ordinary. |
+
+*Table: findings of review 11, first reviewer.*
+
+A second reviewer, again given the pages and not the author's conclusions,
+then checked the corrected text and the rewording of the requirements
+against the wording the pages had before. It recomputed every cell of
+Table 4.11b and found them correct, confirmed that the quoted simulation
+results match their pages, and found no person named anywhere in the pages.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 12 | Error | Three requirements had been made stronger or weaker by the rewording: REQ-6 said special lighting "is not used" where the requirement is an assumption that it is not wanted; REQ-19 had become "a required approach" where it says what should be possible; REQ-5 and REQ-8 had changed "happens" to "may happen" and "should not" to "must not". | Each restored. REQ-6 is now marked as an assumption given. |
+| 13 | Error | Parts of requirements had moved into the interpretation column or been lost: comparing approaches as a deliverable, the deep dive into sensors, and that the lighting for height is undecided. | Moved back into REQ-14, REQ-20 and REQ-2. |
+| 14 | Error | Two conclusions did not follow from Table 4.11b: that soft pixel edges cost as much as the distance up to 1,000 nm (true only below about 150 nm), and that 450 nm lines need the pixel's layers removed (that is the row for the sensor as sold). | Both corrected, and the limits of the "1.2 to 1.8" and "at any distance" statements are stated. |
+| 15 | Gap | The conflict between the 100 nm goal (REQ-3) and ordinary light (REQ-6) was not listed as an open question, nor was height under ordinary light. | Added as item 14 of the design's open questions. |
+| 16 | Gap | Ray tracing was named in the plan and the simulation chain as the first tool for light entry, against the design. Section 4.10 of the design had no note that "leading candidate" means the laser route. The getting started page gave the 140 nm figure without its condition. | All aligned with section 4.11. |
+| 17 | Gap | Quotations of a person's words remained in three research pages, and one pronoun in this record. | Reworded as requirements. |
+| 18 | Minor | The date column claimed the day each requirement was added, which was not checked. Approach files named without links, "wedge" unexplained, three unlabelled claims. | The column is now "Recorded by". The rest fixed. |
+
+*Table: findings of review 11, second reviewer. Not checked by either
+reviewer: the content of the figures, links to other sites, and the bodies
+of the older research pages beyond the lines that changed. The corrections
+to the second reviewer's findings were checked by a strict build of the
+pages and not by a third review.*

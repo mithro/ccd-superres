@@ -1,5 +1,10 @@
 # Radar and synthetic aperture methods, including autofocus
 
+> **Changed on 15 November 2026.** Requirement [REQ-6](../design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This page is the deep study for item B1 of the [project plan](../plan.md). It
 goes further into one field, synthetic aperture radar, than the
 [overview survey of reconstruction methods](../reconstruction-methods.md)
@@ -716,7 +721,7 @@ What the rehearsal shows and does not show:
 
 ### 5.4 Proposing candidates and eliminating the impossible
 
-Tim's suggestion (14 November 2026) is that combining the recordings with
+Requirement [REQ-19](../design.md#requirements) (14 November 2026) is that combining the recordings with
 the simulator should allow recovery without exact position information:
 work out the possible solutions, and eliminate the ones that are
 physically impossible. Radar does this already, under several names, and
@@ -808,7 +813,7 @@ What this says for the instrument (derived here):
 
 ### 5.5 Time as a source of rules
 
-Tim added (14 November 2026) that the temporal properties of the real
+The requirement adds (14 November 2026) that the temporal properties of the real
 world can also be used to eliminate incorrect or impossible solutions.
 Radar leans on time in exactly this way, because a radar recording is a
 sequence in time before it is anything else.
@@ -1050,8 +1055,8 @@ speeds, testing the effective step including the row timing of the
 readout; the frame timing or the scan speed should be made deliberately
 irregular, which costs nothing in hardware; and the existing sensor tilt
 of the design already breaks the coincidence across the scan direction.
-This is a concrete case of Tim's point that randomness and misalignment
-are a resource, and it matches the design's section on
+This is a concrete case of randomness and misalignment
+being a resource ([REQ-11](../design.md#requirements)), and it matches the design's section on
 [natural misalignment](../design.md#55-natural-misalignment-as-a-resource).
 
 ### 6.4 Depth without timing: stepping the colour
@@ -1247,7 +1252,7 @@ mostly wants. It is added to the plan as a candidate.
 
 *Table: radar findings on noise and digitising. A text table.*
 
-The last three rows are radar's contribution to Tim's question about
+The last three rows are radar's contribution to the question of
 deliberate randomness. They support, from an independent field, the
 design's use of dither, a small deliberate noise added before digitising
 ([design, section 5.8](../design.md#58-randomness-as-a-tool)), and they add
@@ -1262,7 +1267,7 @@ waveforms, and nothing found here changes its verdict.
 
 ## 8. Ideas this study adds
 
-Tim asked that the research turn up approaches he had not named. These
+The research has to turn up approaches not already named ([REQ-20](../design.md#requirements)). These
 came out of the radar literature. Each has a verdict (judgement) and, where
 promoted, a row in the [plan](../plan.md).
 

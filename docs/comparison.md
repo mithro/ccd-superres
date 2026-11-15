@@ -1,7 +1,7 @@
 # Comparing approaches
 
-Tim asked for a simulator that can explore many different approaches and not
-one. This page describes the part that does it, and the first comparison it
+The simulator has to explore many different approaches and not one
+([REQ-14](design.md#requirements)). This page describes the part that does it, and the first comparison it
 has run. An approach is one short text file. A comparison runs every approach
 in a list on the same test surfaces, under the same conditions, with the same
 random numbers, and scores every result with the same measures.
@@ -247,7 +247,7 @@ Cautions on reading these.
 
 | Limit | Why it matters | Where it is dealt with |
 |---|---|---|
-| Level 1, one dimension, matt surface | No laser light, slanted beams, phase recovery or two-dimensional layouts, so the leading candidate of the design is not in the comparison | Later levels of the [simulation chain](simulation-chain.md) |
+| Level 1, one dimension, matt surface | No laser light, slanted beams, phase recovery or two-dimensional layouts, so the laser route of the design (a recorded alternative since 15 November 2026) is not in the comparison | Later levels of the [simulation chain](simulation-chain.md) |
 | Stand-in scenes | The ten benchmark scenes and the tests against invented detail are not used yet | [Calibration and test, sections 7 and 8](calibration-and-test.md) |
 | Conditions vary one thing at a time | Real conditions combine, and the uncertain pixel response should be sampled over its whole range | [Design, section 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware) |
 | Cost is not scored | Hardware is listed in each approach file, and computing time is in a side table, but neither is part of the scorecard, and scan time and data volume are not worked out | [Plan](plan.md#d-simulation-chain) item D1a, next step |

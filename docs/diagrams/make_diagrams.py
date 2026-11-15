@@ -893,7 +893,7 @@ def plan_status():
                 phases[cur]["Not started"] += 1
     names = {"A": "A. Foundations", "B": "B. Research and data", "C": "C. Fold into design",
              "D": "D. Simulation and comparisons", "E": "E. Calibration and tests",
-             "F": "F. Leading candidate, simulated", "G": "G. Gate", "H": "H. Hardware"}
+             "F": "F. Main line stages, simulated", "G": "G. Gate", "H": "H. Hardware"}
     keys = [k for k in names if k in phases]
     fig, ax = plt.subplots(figsize=(8.4, 4.0))
     y = np.arange(len(keys))[::-1]

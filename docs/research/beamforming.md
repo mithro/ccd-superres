@@ -1,5 +1,10 @@
 # Beamforming and array processing: what treating the pixels as an array gives
 
+> **Changed on 15 November 2026.** Requirement [REQ-6](../design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This is the write-up of plan item B2, one of the four deep research studies
 of the [project plan](../plan.md). It covers beamforming and array
 processing as practised in acoustics, sonar, medical ultrasound and radio
@@ -20,8 +25,8 @@ A radio telescope, a sonar or an ultrasound scanner is a set of many small
 receivers whose signals are combined by computation. That combining is
 called beamforming, and the set is called an array. The image sensor in
 this project has eight million pixels, so it is natural to ask whether it
-can be treated as a very large array, and what that would give. Tim's
-phrase for the idea was "reverse beamforming".
+can be treated as a very large array, and what that would give. The
+idea is called "reverse beamforming" in this project.
 
 The plan asked three questions. The short answers are these.
 
@@ -75,7 +80,7 @@ usable; borrow the correction that antenna test ranges apply for their
 measuring probe, which is the same problem as the pixel's response; and
 look at sensors whose pixels are built to sense the direction of light.
 
-While the study was being written Tim put two further ideas to it: that
+While the study was being written two further requirements were added ([REQ-19](../design.md#requirements)): that
 the simulator should allow recovery by proposing possible solutions and
 eliminating the impossible ones, even without exact positions, and that
 the way real things change in time can help with the eliminating.
@@ -185,7 +190,7 @@ reading correctly and averaging. With a reference beam, they are an array
 of wave receivers, and nearly all of array processing applies.
 
 The leading candidate of the design
-([section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate))
+([section 4.7](../design.md#47-a-staged-path-with-laser-light-a-recorded-alternative))
 already has a reference beam without having called it one. A silicon chip
 is mirror-like, so most of each laser beam is reflected as from a mirror
 and reaches the sensor as a strong, steady beam. The weak light scattered
@@ -681,8 +686,8 @@ precision.
 | Whole sensor | 8,081,920 | 6.5 × 10¹³ | 523,000 | 1 |
 
 Correlation methods are possible only on small tiles of pixels,
-each processed on its own. That suits the hundreds of processor cores Tim
-has said are available, since tiles are independent jobs. Radio telescopes
+each processed on its own. That suits the hundreds of processor cores
+that are available ([REQ-5](../design.md#requirements)), since tiles are independent jobs. Radio telescopes
 with many antennas do the same, combining antennas into stations first
 (Unverified: general knowledge of such instruments).
 
@@ -1115,14 +1120,13 @@ quantity to pin down, and it is good news for whichever stage does so.
 
 ## 8. Recovery without exact positions, and the use of time
 
-Tim put two ideas to the research studies on 14 November 2026:
+Requirement [REQ-19](../design.md#requirements), added on 14 November 2026, has two parts:
 
-> "Combining the results with simulation should allow recovery based on
-> working out potential possible solutions and eliminating ones which are
-> physically impossible even without exact positioning information."
-
-> "Temporal properties of the real world can also be used to help eliminate
-> incorrect or impossible solution spaces."
+- Combining the readings with simulation should allow recovery without
+  exact position information, by working out possible solutions and
+  eliminating the ones that are physically impossible.
+- The behaviour of the real world in time can also be used to eliminate
+  incorrect or impossible solutions.
 
 Array processing and the fields next to it have worked this way for
 decades, under other names. This section sets out how they do it, what
@@ -1260,7 +1264,7 @@ the spread of the steps have to be found from the data as well.
 
 A chip layer is mostly made of two materials, and its design rules forbid
 features narrower than a minimum width (**Assumption**, which question 4
-of section 11 puts to Tim). Both are rules of the kind in the
+of section 11 raises). Both are rules of the kind in the
 fourth row of table 8.1, and their strength can be counted.
 
 **Table 8.3: number of possible layouts of a row of cells, each of one of
@@ -1336,14 +1340,14 @@ array and time together [[BF102](#bf102)].
   with the truth before scoring for that reason.
 - **The rules have to be written down.** "Physically impossible" needs a
   list: which materials, which minimum widths, which layer heights.
-  Section 11 asks Tim for it.
+  Section 11 asks for it.
 - **The instrument starts from a good position.** Rough positions, one
   position shared by millions of pixels, and smooth motion make this far
   easier than the worst case the mathematics describes.
 
 ## 9. Ideas that were not on the list
 
-Tim asked that the research turn up approaches nobody had named. This text
+The research has to turn up approaches nobody had named ([REQ-20](../design.md#requirements)). This text
 table lists what this study found, each with a verdict in the form the
 plan's scouting uses.
 
@@ -1384,12 +1388,12 @@ Each study ends with the changes it recommends. Text table.
 | Design, reconstruction | Add recovery by weighted candidates as a named approach: weigh every candidate position, rule out jumps in time, and apply the chip's material and width rules inside the fitting. The simulator build owns this change | Section 8 |
 | Simulator parameters | Position knowledge (exact, rough, none); position handling (one best guess, weighed, weighed with a motion rule); scene rules (number of materials, minimum width) | Section 8 |
 
-## 11. Questions for Tim
+## 11. Open questions
 
-Tim answered questions 1, 2 and 4 on 14 November 2026: a two-axis stage is
+Questions 1, 2 and 4 were answered on 14 November 2026 and are now requirements REQ-9, REQ-7 and REQ-8: a two-axis stage is
 acceptable; a light monitor could be added, or some of the sensor's own
-pixels used; design rules "might be known but should not be assumed". His
-words and how they are taken up are in the
+pixels used; design rules might be known but must not be assumed. How
+they are taken up is in the
 [design, section 11, items 8 to 10](../design.md#11-build-stages-and-open-questions).
 Question 3 is still open.
 

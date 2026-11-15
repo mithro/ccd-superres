@@ -9,7 +9,10 @@ surface, with super-resolution reconstruction of the surface from the
 continuously captured pixel data.
 
 The goal is to find features of about 100 nm on silicon chips, spending
-computation rather than hardware wherever possible.
+computation rather than hardware wherever possible. Since 15 November 2026
+the main line of work assumes ordinary light with no special lighting; what
+that can reach against the 100 nm goal is stated in the
+[design, section 4.11](docs/design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
 Status: design stage. The scan sampling calculator and the trade-off explorer
 are implemented, and so is the first simulator with reconstruction (level 1,

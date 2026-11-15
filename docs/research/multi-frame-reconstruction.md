@@ -53,8 +53,8 @@ This page is deep research study B3 of the [project plan](../plan.md#deep-resear
    is shifted, add up over every position a frame could have had, or
    propose whole scenes and discard those the data or physics rule out.
    Knowing that the camera moves smoothly in time cuts the number of
-   frames needed several times over. This is Tim's idea of eliminating
-   impossible solutions, and
+   frames needed several times over. This is the elimination of
+   impossible solutions that [REQ-19](../design.md#requirements) asks for, and
    [section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)
    sets out what the field has shown and where it stops.
 
@@ -883,11 +883,11 @@ signal.
 
 ### 5.3 Doing without measured positions: ruling out what cannot be
 
-Tim proposed that combining the results with simulation "should allow
-recovery based on working out potential possible solutions and eliminating
-ones which are physically impossible even without exact positioning
-information", and that "temporal properties of the real world can also be
-used to help eliminate incorrect or impossible solution spaces". This
+Requirement [REQ-19](../design.md#requirements) is that combining the readings with simulation should allow
+recovery without exact position information, by working out possible
+solutions and eliminating the physically impossible ones, and that the
+behaviour of the real world in time can also be used to eliminate
+incorrect solutions. This
 field has methods of both kinds, some of them decades old. Sections 5.1 and 5.2 treat position as
 something to measure first. The methods below treat it as something that
 never needs to be known exactly.
@@ -989,7 +989,7 @@ What the calculation shows, all **derived here** for this toy only:
   100; the table's steps are coarse).
 - Knowing that the motion is exactly steady, with speed and start both
   unknown, removed that penalty: about 100 frames, the same step of the
-  table as with exact positions. This is Tim's second point. It is the
+  table as with exact positions. This is the second part of the requirement. It is the
   best case. How much of the gain survives when the motion is only nearly
   steady was not tested, and is the first thing the simulator should
   measure.
@@ -1006,7 +1006,7 @@ of **judgements**.
 
 | Point | Reasoning |
 |---|---|
-| It fits the project's resources | The cost is frames and computation. One pass gives about 13 000 readings per pixel-sized patch ([design, section 4.2](../design.md#42-what-a-huge-number-of-samples-buys-and-what-it-does-not)), and the [plan](../plan.md) records Tim's preference for computation over hardware. |
+| It fits the project's resources | The cost is frames and computation. One pass gives about 13 000 readings per pixel-sized patch ([design, section 4.2](../design.md#42-what-a-huge-number-of-samples-buys-and-what-it-does-not)), and the [plan](../plan.md) records the preference for computation over hardware. |
 | Listing candidates only works for small tiles | Twelve two-material cells have 4096 candidates. A patch of 10 by 10 cells has more than 10^30. Real use has to work on small tiles and stitch them, or search with a sampler or a fit that is steered by the same score, as the catalogue methods do. |
 | The simulator is the scoring engine | Each candidate is scored by simulating the frames it would give. A fast simulation level does the bulk and a slower, more exact level re-checks the survivors ([simulation chain](../simulation-chain.md)). |
 | Constraints that are true help, and ones that are slightly false mislead with confidence | A layout rule that the chip does not obey removes the right answer. Each constraint needs a test with a scene that breaks it, as the [tests against invented detail](../calibration-and-test.md#7-tests-that-catch-invented-detail) already require. |
@@ -1018,7 +1018,7 @@ the evidence from one field.
 
 ## 6. Ideas new to the project
 
-Tim asked for ideas beyond the ones he named. These came out of this
+Ideas beyond the ones already named are required ([REQ-20](../design.md#requirements)). These came out of this
 field. Each is given a verdict so it can be taken into the
 [scouting list](../plan.md#scouting-finding-what-nobody-has-named-yet) of
 the plan. All verdicts are **judgements**, and every "for this instrument"
@@ -1032,11 +1032,11 @@ statement is **derived here** and untested.
 | 4 | **Design the scan so the sensor can calibrate itself.** Send each surface point across very different parts of the sensor. | "Do not use a regular, repeated tiling of the sky" [[MF53](#mf53)]. Dither patterns can be scored by how well they encode the detector's gains [[MF54](#mf54)]. The Sloan survey reached 1% calibration over a quarter of the sky from overlaps alone [[MF55](#mf55)]. | A straight scan sends each point down one column (figure 11). A turn of 1° crosses 43 columns. A second pass at right angles ties every column to every row. Radio astronomy's version of this is in study B2. | Promote: scan-pattern option |
 | 5 | **Map where the sampling is weak, before reconstructing.** For each output point, compute the noise amplification and the error in blur shape that the sample positions imply. | The two maps that optimal linear combination returns, used to choose dither patterns for a space telescope [[MF21](#mf21), [MF22](#mf22)] | Extends the calculator's "largest hole" measure ([design, section 5.4](../design.md#54-scan-sampling-calculator)) into a map that predicts stripes from repeating shifts | Promote: calculator output |
 | 6 | **A pixel response that changes with brightness.** Charge already collected pushes later charge towards neighbours, so bright spots come out up to 2% wider than faint ones. | Measured on astronomical CCDs, both thick and thinned [[MF56](#mf56)] | Breaks the assumption that the measurement is linear, most of all for high-contrast fringes. Size in small camera-phone pixels is **unverified**. | Park: optional sensor effect in the simulator, sized by study B5 |
-| 7 | **Match the sampling pattern to where the detail lies.** The number of samples needed depends on the total area of fine-detail space that is occupied, not on the finest detail. | Sampling theory [[MF57](#mf57), [MF58](#mf58)], applied to satellite detector layouts [[MF9](#mf9)] | With beam pairs the detail arrives in separate islands ([design, section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)). Tilt and frame spacing could be chosen so the islands' false copies interleave and do not overlap. | Promote to a research question for B4 and the simulator |
+| 7 | **Match the sampling pattern to where the detail lies.** The number of samples needed depends on the total area of fine-detail space that is occupied, not on the finest detail. | Sampling theory [[MF57](#mf57), [MF58](#mf58)], applied to satellite detector layouts [[MF9](#mf9)] | With beam pairs the detail arrives in separate islands ([design, section 4.7](../design.md#47-a-staged-path-with-laser-light-a-recorded-alternative)). Tilt and frame spacing could be chosen so the islands' false copies interleave and do not overlap. | Promote to a research question for B4 and the simulator |
 | 8 | **Reject bad readings by comparing with a prediction.** Combine, predict each frame from the combination, and mask readings that disagree by more than noise allows. | Drizzle's cosmic-ray step [[MF17](#mf17)] | Dust, hot pixels and mirror-like glints. The forward model already provides the prediction. | Promote: pipeline step |
 | 9 | **Use a known feature in every frame as that frame's blur reference.** | Speckle holography [[MF28](#mf28)] | Gives the gap and tilt of each frame from the data. Needs isolated features. | Park until a scene library exists |
 | 10 | **Track the image on the chip in two directions.** | Orthogonal-transfer CCD [[MF16](#mf16)] | Hardware doing what computation does better here | Reject, by the computation-first rule |
-| 12 | **Recover the picture without measuring positions, by ruling out what cannot be.** Score candidate surfaces against the frames over every position the frames could have had, and use what is known about the materials, the layout rules and the smoothness of the motion to discard candidates. | Speckle masking, registration-free super-resolution, probabilistic catalogues and blind deconvolution ([section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)). Suggested by Tim. | Removes the need for exact position information at the start. Costs more frames and much more computation, both of which this project has. Works tile by tile. | Promote: simulator experiment, owned by the simulator thread |
+| 12 | **Recover the picture without measuring positions, by ruling out what cannot be.** Score candidate surfaces against the frames over every position the frames could have had, and use what is known about the materials, the layout rules and the smoothness of the motion to discard candidates. | Speckle masking, registration-free super-resolution, probabilistic catalogues and blind deconvolution ([section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)). Required by [REQ-19](../design.md#requirements). | Removes the need for exact position information at the start. Costs more frames and much more computation, both of which this project has. Works tile by tile. | Promote: simulator experiment, owned by the simulator thread |
 | 11 | **Control the shifts instead of freezing them.** A camera whose sensor jumps between exposures and is still during them. | The "jitter camera", built because motion blur was shown to limit multi-frame methods strongly [[MF49](#mf49)]. Controlled micro-scanning in infrared cameras [[MF50](#mf50)]. | The same conclusion as the design: short pulses or short exposures. A stepped stage is the hardware alternative. | Park |
 
 ![Tracks of surface points across the pixel grid for three scan patterns](../diagrams/mf-selfcal-tracks.svg)
@@ -1126,7 +1126,7 @@ depend on where in a pixel a feature fell. It fills in stage 0 of the
   the registration accuracy claims of section 5.1 and to the assumed
   signal in table 5.2. Sources marked as abstract or existence only were
   not checked further.
-- **No review by Tim yet.** The verdicts in section 6 are proposals.
+- **The verdicts in section 6 are proposals.** No decision has been taken on them.
 
 ## 9. References
 

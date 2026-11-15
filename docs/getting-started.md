@@ -24,28 +24,35 @@ wide an area of the surface each pixel collects light from (the cone drawn), whi
 
 ![Two side views to scale of a sensor 3.68 mm wide held 1 mm above the chip, lit by steep laser beams from the side](diagrams/ptycho-beat-path.svg)
 
-*Figure 3. The leading candidate for reaching 100 nm, to scale: steep laser
+*Figure 3. The laser route, to scale. It was the leading candidate until 15
+November 2026 and is now a recorded alternative, because special lighting is not assumed
+([REQ-6](design.md#requirements); [design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)): steep laser
 beams enter under the edge of the sensor, and the pixels record the
 reflected light. From the
 [ptychography study, section 7](research/ptychography.md#7-has-beam-pair-mixing-been-done-before).
 Derived there from straight rays.*
 
-There are two configurations to keep apart: the one the simulator runs
-today, and the one the design is heading for.
+There are three configurations to keep apart: the one the simulator runs
+today, the one the design is now heading for under ordinary light, and the
+laser route that was set aside on 15 November 2026. The first two use the
+same model, so what runs today is a small version of where the design is
+heading. Table 1 compares what runs today with the laser route; the figures
+for ordinary light at each distance are in
+[design, Table 4.11b](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
-| Setting | What runs today (level 1) | Leading candidate in the design | Source of the design value |
+| Setting | What runs today (level 1), ordinary light | Laser route (recorded alternative) | Source of the laser-route value |
 |---|---|---|---|
 | Sensor pixel width | 1,120 nm | 1,120 nm | Raspberry Pi Camera Module 2, [design 5.1](design.md#51-sensor) |
 | Pixels | 64 in a line (16 by 16 in two dimensions) | 3,280 by 2,464 | [Design 5.1](design.md#51-sensor) |
 | Gap between sensor and surface | 300 nm | About 1 mm (1,000,000 nm), at least 0.6 mm | [Design, Table 4.10a](design.md#410-what-the-four-research-studies-changed) |
-| Light | Even, undirected glow from a matt surface | 405 nm laser beams at about 72° from several directions. Whether each has partner beams is one of two options to be compared | [Design 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) |
+| Light | Even, undirected glow from a matt surface | 405 nm laser beams at about 72° from several directions. Whether each has partner beams is one of two options to be compared | [Design 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative) |
 | Movement per frame | 0.37 pixel | 0.25 pixel, made slightly irregular | [Design 5.2](design.md#52-scan) |
 | Sensor tilt | None in one dimension. In two dimensions 0° unless set; the [level 1 example](level1.md) uses 3.6° | About 3.6° (1 in 16) | [Design 5.2](design.md#52-scan) |
-| Stage | One direction | Two directions (accepted by Tim) | [Design, section 11](design.md#11-build-stages-and-open-questions) |
+| Stage | One direction | Two directions (acceptable, [REQ-9](design.md#requirements)) | [Design, section 11](design.md#11-build-stages-and-open-questions) |
 | Finest detail | The test bars go down to a 320 nm period. The default run shows 800 nm, and the best approach so far shows 480 nm ([comparison](comparison.md)) | Aim: lines of 100 nm | [Design 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips) |
 | Reconstruction | Shift and add, Wiener filter, least squares, position solving and known materials, all through the commands below. Elimination only from Python ([its page](constrained-reconstruction.md#running-it)) | Recovery of the light's phase with positions solved (ptychography) | [Design 6](design.md#6-reconstruction) |
 
-*Table 1. The two configurations. The middle column is what the code does
+*Table 1. What runs today against the laser route. The middle column is what the code does
 now. The right-hand columns are design values, each an Estimate or
 Assumption on the page linked, and none has been simulated yet: the wave
 levels of the [simulation chain](simulation-chain.md) that can represent
@@ -180,6 +187,6 @@ dimensional version with sensor tilt.
 | Not yet runnable | Why | Where it is planned |
 |---|---|---|
 | Laser light, slanted beams and beam pairs | Level 1 only blurs brightness. It has no interference between beams | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
-| 100 nm features | Level 1 with its built-in blur is trusted only for dimensions of several micrometres or more ([simulation chain, where each level is valid](simulation-chain.md#where-each-level-is-valid)); 100 nm needs the wave levels | The same |
+| 100 nm features | Under ordinary light they would need the silicon within about 140 nm of the chip's features with an ideally sharp pixel, and are out of reach at any distance with the baseline pixel ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). Also, level 1 with its built-in blur is trusted only for dimensions of several micrometres or more ([simulation chain, where each level is valid](simulation-chain.md#where-each-level-is-valid)); 100 nm needs the wave levels | The same |
 | The full sensor of 8 million pixels | The solver is not yet split into tiles | [Plan](plan.md#d-simulation-chain), phase D |
 | Surfaces longer than the sensor | The level 1 surface joins up end to end | [Comparison page, limits](comparison.md#what-this-does-not-cover-yet) |

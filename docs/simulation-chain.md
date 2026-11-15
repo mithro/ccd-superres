@@ -177,14 +177,17 @@ published in the documentation.
 | 10 | Level 4: electromagnetic solver on small patches | Pixel response at nanometre scale |
 | 11 | Checks between levels 3 and 4 | Measured limit of scalar waves, kernels for nanometre gaps |
 
-The build also follows the staged path to a 100 nm picture in
-[section 4.7 of the design](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate): steps
-3 to 5 cover its stage 1, and stages 2 to 4 need levels 3 and 4.
-
-Because the 100 nm target is decided by levels 3 and 4, one option is to
-bring a two-dimensional cross-section at level 4 forward, straight after step
-2, to check the estimates in section 4.6 of the design before the rest is
-built. That is a proposal for Tim, not a decision.
+Since 15 November 2026 the main line of work is ordinary light
+([section 4.11 of the design](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)), and that changes the order.
+Steps 3 to 5 carry most of the work. A rough hand estimate of how ordinary light gets under the sensor comes
+first; level 2 (step 6) refines it at the larger gaps, since ray tracing
+is only indicative in a slot a few micrometres high. Level 4 on
+small patches (step 10) comes before level 3, because it is the level that
+can confirm the blur model and the light entry below a few micrometres.
+Level 3 (step 8), which models slanted coherent light, moves to the end
+with the laser route of
+[section 4.7 of the design](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative).
+The order of the work is Table 4.11d of the design.
 
 All processing is offline and may use graphics cards and hundreds of cores,
 so every level is built to run as many independent jobs: tiles of surface,

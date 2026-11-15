@@ -13,7 +13,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 |---|---|---|
 | [Getting started](getting-started.md) | Diagrams of the current configuration, and how to try the explorer, the simulator and the comparison yourself | Kept current |
 | [Project plan](plan.md) | Every item of work in order, with deep research ahead of the build stages, and the state of each | Kept current |
-| [Design](design.md) | The problem, the measurement model, what limits resolution, noise, the sensor, reconstruction | Draft for review |
+| [Design](design.md) | The requirements, the problem, the measurement model, what limits resolution, what ordinary light can reach, noise, the sensor, reconstruction | Draft for review |
 | [Simulation chain](simulation-chain.md) | The five simulation levels, where each is valid, the shared scene description, the cross-checks, build order | Plan for review |
 | [Filters, gratings and other optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
 | [Reconstruction methods](reconstruction-methods.md) | Survey of methods from radar, astronomy, ptychography and other fields, what each could reach, a ranked shortlist and a staged reconstruction plan | Survey for review |

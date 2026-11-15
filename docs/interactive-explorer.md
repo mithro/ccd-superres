@@ -5,8 +5,9 @@ setting of the simulator. Move a control and the real simulator reruns, and
 the drawing of the setup, the raw readings, the reconstructions and their
 scores all redraw, usually in well under a second (a few seconds with every method ticked).
 
-Tim asked for this on 14 November 2026: "Make an interactive GUI based
-explorer a high priority." It is item D1b of the [plan](plan.md#d-simulation-chain).
+It answers requirement [REQ-18](design.md#requirements), which gives an
+interactive graphical explorer high priority, and is item D1b of the
+[plan](plan.md#d-simulation-chain).
 
 ## Starting it
 
@@ -128,7 +129,8 @@ disappears from the reconstruction. Simulated, level 1, seed 0.*
 | What it computes | Formulas only (level 0) | The simulator: readings with noise, then real reconstructions (level 1) |
 | Answers | "What limits this setting?" | "What would the readings and the picture look like, and which method copes?" |
 | Needs | Nothing; it runs on Read the Docs | Python on your computer |
-| Covers the 100 nm target | Yes, as formulas | No: level 1 has no interference between beams |
+| Covers ordinary light, the main line of work since 15 November 2026 | Yes, as formulas | Yes: level 1 is the ordinary-light model |
+| Covers the laser route (a recorded alternative) | Yes, as formulas | No: level 1 has no interference between beams |
 
 *Table 3. The two explorers.*
 
@@ -136,7 +138,7 @@ disappears from the reconstruction. Simulated, level 1, seed 0.*
 
 | Limit | Why | What would lift it |
 |---|---|---|
-| Level 1 only: no laser beams, beam pairs or 100 nm features | The wave levels of the [simulation chain](simulation-chain.md) are not built | Each new level and method appears here as it is added to the approach layer |
+| Level 1 only: ordinary light, which is the main line of work ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)), but no laser beams or beam pairs, and unconfirmed for detail finer than a few micrometres | The wave levels of the [simulation chain](simulation-chain.md) are not built | Each new level and method appears here as it is added to the approach layer |
 | The two-dimensional tab has two methods and no position solving | Position solving in two dimensions is not built ([plan](plan.md#d-simulation-chain), item D2) | That item |
 | At most 1,000 frames and 256 pixels in one dimension, 600 frames and a sensor 32 pixels square in two; 100 solver steps on the two-dimensional tab | To keep a change from taking minutes. At the largest sizes with every method ticked a change takes about 8 s (measured on the build machine) | The command line has no such limit |
 | Slow and poor when the scan covers only part of the surface | The uncovered part cannot be recovered, and the position-solving methods then take 5 s to 10 s (measured) | Keep "share of the test surface that a pixel passed over" at 100 % |

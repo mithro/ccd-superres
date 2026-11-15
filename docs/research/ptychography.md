@@ -1,5 +1,10 @@
 # Ptychography and lensless coherent imaging
 
+> **Changed on 15 November 2026.** Requirement [REQ-6](../design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This is deep research item B4 of the [project plan](../plan.md). It goes
 further into one field than the overview in
 [reconstruction methods, sections 3.7 and 3.8](../reconstruction-methods.md#37-ptychography-and-fourier-ptychography),
@@ -811,7 +816,7 @@ Consequences, all **Derived here** and to be tested at simulation level 3:
 
 Stage 2 of the leading candidate is the true picture at 150 to 200 nm lines
 with slanted, pulsed 405 nm light
-([design, section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)).
+([design, section 4.7](../design.md#47-a-staged-path-with-laser-light-a-recorded-alternative)).
 The requirements below are **Derived here** from the published rules of
 section 5 and are **Estimates** until the simulator confirms them.
 
@@ -957,10 +962,10 @@ says whether the value is the least or the most allowed.
 
 ## 9. Recovering the picture without exact positions
 
-Tim's direction (14 November 2026): "Combining the results with simulation
-should allow recovery based on working out potential possible solutions and
-eliminating ones which are physically impossible even without exact
-positioning information."
+Requirement [REQ-19](../design.md#requirements) (14 November 2026): combining the readings with
+simulation should allow recovery without exact position information, by
+working out possible solutions and eliminating the physically impossible
+ones.
 
 This is how the field already works, and it is the strongest reason to
 build on it. A ptychographic reconstruction is a search among candidate
@@ -1041,7 +1046,7 @@ table. The last column is a **Judgement**.
 
 Published ptychography uses a fast, simplified model of light inside the
 search. The project's chain of simulators allows a stricter kind of
-elimination, which is what Tim's direction points at (**Judgement**; none
+elimination, which is what the requirement points at (**Judgement**; none
 of this has been run):
 
 - **Eliminate by a more exact simulation than the one used to search.**
@@ -1060,7 +1065,7 @@ of this has been run):
   pass would eliminate one.
 - **Many starts in parallel.** Starting the search from many different
   guesses of position and surface on hundreds of cores, and keeping the
-  answers that agree, is a direct use of the computing Tim has offered and a
+  answers that agree, is a direct use of the computing that is available ([REQ-5](../design.md#requirements)) and a
   standard guard against false solutions.
 
 The safeguard that must go with all of this is the one the calibration page
@@ -1071,9 +1076,9 @@ wrong start, and only the detail that survives counts as seen.
 
 ### 9.4 Using time to eliminate candidates
 
-Tim's addition (14 November 2026): "Temporal properties of the real world
-can also be used to help eliminate incorrect or impossible solution
-spaces."
+The second part of the requirement (14 November 2026): the behaviour of the real
+world in time can also be used to eliminate incorrect or impossible
+solutions.
 
 The field leans on time in several ways, mostly without naming it. The
 whole method rests on one temporal fact: the object is the same in every
@@ -1110,7 +1115,7 @@ checked at the laser powers the project ends up using.
 
 ## 10. Ideas this study turned up
 
-Tim asked that the research find things he had not named. These came out
+The research has to find things not already named ([REQ-20](../design.md#requirements)). These came out
 of the reading. Each is one line here, and the ones marked for the plan
 have been added to it.
 
@@ -1158,7 +1163,7 @@ To the design:
    beside the narrow-strip finding.
 8. **Update the benchmark**: lensless reflection imaging with 405 nm light
    has been shown at about 2 µm line width on wafers [[P17](#p17)].
-9. **Record Tim's elimination principle in the reconstruction section**:
+9. **Record the elimination principle in the reconstruction section**:
    positions are searched for, candidates are tested against simulation,
    physical rules remove the impossible ones, and every instrument unknown
    gets a model in time (section 9). The simulator build thread owns that
