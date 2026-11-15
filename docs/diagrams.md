@@ -217,6 +217,21 @@ python docs/diagrams/make_multiframe_diagrams.py
 | `mf-candidate-elimination` | Candidate surfaces left against frames used when positions are unknown, follow a steady path, or are known | Toy calculation, fixed seed |
 | `mf-scale-map` | Pixel sizes and results of six satellites and telescopes in metres, and the same lengths scaled to this instrument's pixel | Published figures, cited on the page, divided by one factor per instrument |
 
+## Light entry figures
+
+The figures on the [light entry](light-entry.md) page come from
+[`docs/diagrams/make_light_entry_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_light_entry_diagrams.py),
+which also prints the rows of that page's main table:
+
+```
+python docs/diagrams/make_light_entry_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`light-entry-slot`](diagrams/light-entry-slot.svg) | Side view of the slot between sensor and chip with one ray bouncing along it | Illustrative, not to scale |
+| [`light-entry-curves`](diagrams/light-entry-curves.svg) | A pixel's reading, and how far away its light last touched the chip, against distance from the open edge for four gaps | Straight-ray estimate in [`ccdsr/light_entry.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/light_entry.py) |
+
 ## Beamforming study figures
 
 The figures on the [beamforming and array processing](research/beamforming.md)

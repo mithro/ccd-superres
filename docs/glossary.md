@@ -59,6 +59,7 @@ link here the first time they use a term that is not explained on the spot.
 | Fourier ring correlation | A standard test of how fine the trustworthy detail in a reconstruction is, found by checking down to what size it still agrees with the truth or with a second independent reconstruction. |
 | Fourier transform | A calculation that splits a picture into regular wave patterns of every size and direction, and says how much of each is present. Blur is simple to describe this way: it weakens the fine patterns. |
 | Frame | One complete readout of the sensor. |
+| Fresnel formulas | The standard formulas for how much light a flat surface reflects, depending on the material, the angle and the polarisation. |
 | Fringes | The regular bright and dark stripes formed where two coherent beams overlap. |
 | Full electromagnetic model | A simulation of light as it really is, an electric and magnetic wave, with no simplifications. Slow, but accurate for detail smaller than the wavelength. |
 | Gap | The distance between the light-sensitive layer of the sensor and the surface being examined. |
@@ -66,6 +67,7 @@ link here the first time they use a term that is not explained on the spot.
 | Global shutter | A sensor in which every pixel is exposed at the same instant. See rolling shutter. |
 | Grating | A plate carrying fine, evenly spaced lines. |
 | Grating lobes | False directions that an array cannot tell from the true one, because its receivers are more than half a wavelength apart. |
+| Grazing angle | The angle between a ray and the surface it skims along. A small grazing angle means the ray is nearly parallel to the surface. |
 | Held-out data | Readings kept aside and not shown to the reconstruction. A good reconstruction predicts them as well as the readings it was given. |
 | Hologram | A recording of the fringes made when light scattered from an object overlaps with an undisturbed reference beam. It holds the phase in a form a camera can record. |
 | Identifiable | Said of an unknown that the data can pin down. Two unknowns that can change together without changing any reading are not identifiable separately. |
@@ -97,6 +99,7 @@ link here the first time they use a term that is not explained on the spot.
 | Nanometre (nm) | A thousandth of a micrometre, a millionth of a millimetre. 100 nm is roughly a thousandth of the width of a human hair. |
 | Near field | Within a fraction of a wavelength of the surface, where detail finer than the wavelength can still be picked up. |
 | Noise | Random variation in the readings that does not come from the surface. Averaging many readings reduces it. |
+| Near-infrared | Light just beyond red, with a wavelength of about 0.75 µm to 1.4 µm. The eye cannot see it; silicon sensors respond to the shorter part, and silicon lets the longer part through. |
 | Noise floor | The level below which a signal is lost in the noise. |
 | Numerical aperture (NA) | A number that says how steep an angle is: the sine of the angle measured from straight ahead, times the refractive index of the medium. In air it lies between 0 and 1. |
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
@@ -111,6 +114,7 @@ link here the first time they use a term that is not explained on the spot.
 | Pixel | One of the light-sensing squares of a sensor. |
 | Pixel pitch | The distance from the centre of one pixel to the next, 1.12 µm for the IMX219. |
 | Pixel response | How strongly a pixel reacts to light depending on exactly where on the pixel it lands and from what angle it arrives. |
+| Polarisation | The direction in which the electric field of a light wave swings. Light reflecting off a surface behaves differently when the field lies along the surface and when it lies across it. |
 | Polariser | A filter that passes only light vibrating in one direction, as polarising sunglasses do. |
 | Prior | Something assumed to be true about the surface before looking at the data, for example that chips have straight edges. |
 | Probe | The patch or pattern of light that falls on the surface in ptychography. It can be worked out from the data along with the picture. |
