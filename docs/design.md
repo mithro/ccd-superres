@@ -72,6 +72,7 @@ The simulator has two jobs:
 | Hardware | All real hardware work happens at the very end, only once the simulation shows the methods will work (section 4.9). |
 | Computing | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are fine. |
 | Motion | Constant rate, parallel to the surface. |
+| Lighting | No special lighting, and the effort goes into the computational approaches (Tim, 15 November 2026: "Assume we don't want special lighting to be used. Focus on the computational approaches."). Our reading of what counts as special, and what ordinary light can reach, are in section 4.11. |
 | Light level | The lighting changes on human time scales, minutes to hours, not microseconds (Tim, 14 November 2026). He asked whether some of the sensor's own pixels could do the monitoring, and said a separate monitor could be added. Our reading: "lighting conditions" means the brightness of the light source, and monitor pixels are the first option to model. |
 | Chip design rules | They might be known but are not to be assumed (Tim, 14 November 2026). Our reading: approaches that use them are optional and are compared with ones that do not. |
 | Stage | A stage that moves in two directions is acceptable (Tim, 14 November 2026), so a scan may include a second direction or passes shifted sideways (section 6.4). |
@@ -521,7 +522,9 @@ wavelength" and "any gap at 193 nm". Earlier wording in this section, that
 only a 100 nm gap or light near 200 nm would do, held for straight-on light
 only.
 
-What this means for the target:
+What this means for the target (written before special lighting was ruled
+out on 15 November 2026; the recommendation in the first point no longer
+stands, and section 4.11 gives the position for ordinary light):
 
 - **The far-field regime is the one that fits the preference for computation
   over hardware**, and it is the recommended route. With a 405 nm laser diode
@@ -627,7 +630,12 @@ reconstructed, and it may be reached in several stages. The measuring routes
 above therefore become stages on the way to the picture, not alternatives to
 it.
 
-### 4.7 A staged path to the picture: the current leading candidate
+### 4.7 A staged path with laser light: a recorded alternative
+
+Until 15 November 2026 this was the leading candidate. Tim has since ruled
+out special lighting for the main line of work (section 4.11), so this
+section is kept as a recorded alternative. It is left as written, and
+"leading candidate" below means what it meant then.
 
 The simulator is built to explore many approaches, not this one
 (section 7.1). The path below is the candidate that looks strongest from the
@@ -806,7 +814,12 @@ choice of whether light is proportional to on-time, and the read noise.
 ### 4.9 Simulation first: the unknown pixel response and the gate before hardware
 
 Tim's rule is that all real hardware work is done at the very end, only once
-the simulation shows the methods will work. Two things follow.
+the simulation shows the methods will work. Two things follow. Under
+ordinary light (section 4.11) the main unknowns to carry are different from
+the ones described below for the laser route: they are the distance from
+the surface to the light-sensitive silicon, and how much ordinary light
+reaches the surface under the sensor and from which angles. The pixel's
+response to fine stripes matters much less, because no fine stripes arrive.
 
 **The simulation has to carry the main unknown.** How a pixel responds to
 fine light stripes and to light from steep angles was to be measured in
@@ -1003,6 +1016,155 @@ reflection acts as a reference beam. The recommendation sections are
 these exists in the code yet except the constraints; they are built with the
 approach files of [plan item D1a](plan.md#d-simulation-chain) and the wave
 levels.*
+
+### 4.11 No special lighting: what ordinary light can reach, and where the work goes
+
+On 15 November 2026 Tim set a new direction: "Assume we don't want special
+lighting to be used. Focus on the computational approaches." This section
+records what that changes. It replaces section 4.7 as the description of the
+main line of work. The laser route of sections 4.6, 4.7 and 4.10 is kept as
+a recorded alternative: its approach files, studies and settings stay, the
+simulator can still run it once the wave levels exist, and nothing is
+deleted.
+
+**What counts as special lighting.** Tim's words do not draw the line, so
+the reading below is ours and is to be confirmed (section 11, item 12).
+
+| Lighting | Read as | Why |
+|---|---|---|
+| Laser beams, beam pairs, beams from several chosen directions, switched in sequence | Special. Out of the main line | Purpose-built light whose direction and coherence the method depends on |
+| Patterned or structured light, speckle through a diffuser, coded pulses of light | Special. Out of the main line | The light itself carries the code |
+| Several wavelengths switched in turn, ultraviolet, liquid in the gap | Special. Out of the main line | Extra light hardware, or a change to the optical path made for the light's sake |
+| Room light, a lamp or a single plain light-emitting diode, steady, from wherever it can get in | Ordinary. The baseline | No property of the light is relied on beyond being there and being steady |
+| Monitoring the brightness with some of the sensor's own pixels (item 9 of section 11) | Ordinary | It measures the light and does not shape it |
+| A short exposure set by the sensor's own shutter | Ordinary | It is sensor control (section 5.7), not lighting |
+
+*Table 4.11a. Our reading of "special lighting". Assumption, to be
+confirmed.*
+
+**What ordinary light can reach.** Under ordinary light the fine detail of
+the surface reaches the pixels only as a blur that widens with the distance
+between the surface and the light-sensitive silicon (section 4.1). The model
+for this is the "matt" one of the calculator, the [trade-off explorer](explorer.md)
+and simulation level 1, so everything built so far applies directly. A chip
+is mirror-like and not matt, but light arriving from many directions at
+once, with no fixed relation between them, blurs in the same way: each
+direction throws its own shifted shadow and they add up (Estimate; level 2,
+ray tracing, is the check). Table 4.11b gives the finest repeat distance
+that can be recovered, with no knowledge of the chip assumed.
+
+| Distance from surface to silicon | Finest period recovered, baseline scan | Finest period, 1,000 times more readings | Line width that corresponds | What that distance means in practice |
+|--:|--:|--:|--:|---|
+| 50 nm | 106 nm | 57 nm | 53 nm | Not achievable by this project (section 4.6) |
+| 100 nm | 160 nm | 96 nm | 80 nm | Not achievable by this project |
+| 140 nm | 200 nm | 124 nm | 100 nm | The target. Needs the layers stripped from the pixel and the gap and tilt held to tens of nanometres |
+| 300 nm | 339 nm | 225 nm | 170 nm | The setting simulation level 1 has used so far. Layers stripped, sensor almost touching |
+| 1,000 nm | 837 nm | 601 nm | 420 nm | Roughly the thickness of the layers on an unmodified pixel (section 5.3), so the sensor as sold, touching the chip |
+| 3,000 nm | 2,013 nm | 1,521 nm | 1,010 nm | The sensor as sold, held 2 µm clear |
+| 10,000 nm | 5,723 nm | 4,409 nm | 2,860 nm | A comfortable mechanical clearance |
+| 500,000 nm | 212,000 nm | 173,000 nm | 106,000 nm | Cover glass left on |
+
+*Table 4.11b. Finest repeat distance recoverable under ordinary light.
+Estimate from the analytic model (level 0,
+[`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), function
+`recoverable_period`), matt model, full contrast, signal-to-noise of 50 per
+reading, ideally sharp pixels. "Baseline scan" is 13,000 readings per pixel
+area (section 5.2). The line width is half the period of the baseline
+column. The [simulation chain](simulation-chain.md#where-each-level-is-valid)
+trusts this blur model for dimensions of several micrometres or more. The
+rows below that are unconfirmed until ray tracing (level 2) checks them,
+and below about a wavelength of the light (roughly 400 to 700 nm for
+ordinary light) only the electromagnetic level 4 can.
+Simulation level 1 agrees with the 300 nm row as far as its test bars
+allow: with about 200 readings per point it shows the 480 nm bars and not
+the 320 nm ones ([comparison](comparison.md)).*
+
+Three plain conclusions follow.
+
+- **The 100 nm target is out of reach of ordinary light at any distance this
+  project can hold.** It needs the silicon within about 140 nm of the chip.
+  The reasons this is unrealistic are in section 4.6 and are unchanged.
+- **More computation does not close the gap.** A thousand times more
+  readings improves the finest period by a factor of about 1.3 to 1.7
+  (compare the two columns). The blur removes fine detail faster than
+  averaging can recover it (section 4.2).
+- **What the instrument can honestly deliver under ordinary light is a
+  picture at about two thirds of the distance from surface to silicon.**
+  That is lines of about 1 µm for the sensor as sold and held 2 µm clear, and
+  a few hundred nanometres only if the pixel's top layers are removed and
+  the sensor nearly touches the chip. Removing layers is a change to the
+  sensor and not to the lighting, so it stays an option, but it is hardware
+  work and waits for the gate (section 4.9).
+
+**What computation can add beyond that limit.** The limit in Table 4.11b is
+for recovering an arbitrary surface. Knowledge about the surface, and
+careful use of the data, go further for some questions and not for others.
+
+| What computation adds | What it can deliver | Evidence so far (simulated, level 1) | What it cannot do |
+|---|---|---|---|
+| Solving the frame positions from the readings (section 6.4) | The limit of Table 4.11b without a position sensor | A path wandering by one pixel is recovered to a few nanometres ([level 1](level1.md), [comparison](comparison.md)) | It does not go below the limit |
+| Reconstruction by elimination with known materials (section 6.6) | Sharper edges and correct material for features near the limit | At a 300 nm gap, 480 nm bars shown at a contrast of 0.67 with two known materials against 0.39 for a plain fit with the same smoothing (true value 0.85); a 12-cell layout of 240 nm cells identified in 22 scans of 24 ([reconstruction by elimination](constrained-reconstruction.md), tables 3 and 9) | It needs the materials, and the gain disappears if they are wrong by 0.05 in reflectance |
+| Locating isolated edges and lines | Position of an edge, or the width of a lone line, far finer than the blur, because one number is being estimated and not a picture | Not yet measured in the simulator. Expected from estimation theory: precision improves with the square root of the readings (Estimate) | It cannot separate two features closer than the limit unless told there are two |
+| Layout rules, where known (optional, section 11 item 10) | A choice between the few layouts the rules allow | The 12-cell test above used a cell size | Dense patterns whose differences are all finer than the limit give the same readings, so no rule can tell them apart |
+| Narrower pixel openings, tilt, sub-pixel steps, readout timing, added randomness (sections 5.7 to 5.9) | Reaching the limit of Table 4.11b in both directions and at practical scan speeds | Tilt restores detail across the scan; a 300 nm opening shows 480 nm bars where a full pixel shows 800 nm ([comparison](comparison.md)) | None of them moves the gap limit itself |
+
+*Table 4.11c. What the computational approaches add under ordinary light.
+Results quoted are from the pages linked; all are simulated at level 1.*
+
+So the result under ordinary light comes in two grades, and every picture
+must say which it is: a true picture down to the limit of Table 4.11b, and
+below that an inferred picture that holds only as far as the stated
+knowledge of the chip holds.
+
+```mermaid
+flowchart LR
+    A["A. Coarse picture<br/>positions, speed, tilt and<br/>pixel gains from the data"]
+    B["B. True picture<br/>down to about two thirds<br/>of the surface-to-silicon distance"]
+    C["C. Located edges and<br/>measured line widths<br/>below that limit"]
+    D["D. Inferred picture<br/>by elimination, using<br/>materials and optional rules"]
+    X["Recorded alternative:<br/>laser route of section 4.7"]
+    A -->|"calibration"| B
+    B -->|"starting picture"| C
+    C -->|"candidates"| D
+    D -.->|"better start"| B
+    X -.->|"only if special lighting<br/>is allowed again"| B
+```
+
+*Diagram: the stages of the main line of work under ordinary light. Solid
+arrows pass results forward. All of it is simulation until the gate of
+section 4.9.*
+
+**An unsolved problem that now matters more: getting ordinary light under
+the sensor.** The sensor covers the area it is looking at. Light can enter
+only from the side through the gap, through the chip from behind, or through
+the sensor (section 5.3). At a gap of a few micrometres under a sensor
+3.7 mm wide, light from the side has to travel about 1.8 mm along a slot a
+thousand times shallower than it is long, reflecting between chip and
+sensor many times on the way. How much arrives, how evenly, and from which
+angles is not known (Unverified; no calculation has been made). The laser
+route avoided this with a gap of a millimetre, which ordinary light cannot
+use without losing all fine detail. This is the first question for
+simulation level 2 (ray tracing), and it may set a smallest workable gap
+that is larger than the mechanics alone would allow.
+
+**Order of work from here**, all in simulation:
+
+| Order | Work | Why now |
+|--:|---|---|
+| 1 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
+| 2 | Position solving, tilt and pixel-gain calibration in two dimensions, with a second scan direction | The calibration that every later stage needs |
+| 3 | Brightness of the light as a slowly drifting unknown, read from monitor pixels | Ordinary light is not controlled, so it must be measured |
+| 4 | Locating edges and measuring line widths below the limit, with error bars | The first step beyond Table 4.11b |
+| 5 | Elimination in two dimensions, with unknown material values, with and without layout rules | The main computational route beyond the limit |
+| 6 | Readout schemes, pixel openings, steps and added randomness compared on the common benchmark | Reaching the limit at practical speed |
+| 7 | Ray tracing of ordinary light entering the gap (level 2) | Decides the smallest workable gap |
+| 8 | Electromagnetic check of the matt model below a wavelength (level 4, small patches) | Table 4.11b is unconfirmed there |
+| 9 | Tiled solver for the full sensor on many cores | Needed before any full-size run |
+
+*Table 4.11d. Order of work under ordinary light. It replaces the order
+implied by the stages of section 4.7. Scalar wave propagation with slanted
+coherent light (level 3) moves to the end of the queue with the laser
+route.*
 
 ## 5. Baseline parameters
 
@@ -1960,6 +2122,18 @@ Open questions for Tim:
     the rules add is measured (section 6.6). The number of materials in
     the layer and their reflectances are still an open point: the first
     version of reconstruction by elimination is told them.
+11. Answered on 15 November 2026: "Assume we don't want special lighting
+    to be used. Focus on the computational approaches." This settles
+    questions 1 and 4 for the main line of work: no ultraviolet, no liquid
+    in the gap, no laser beams. What it changes is in section 4.11.
+12. Open, raised by item 11: where is the line for "special lighting"?
+    Table 4.11a gives our reading. The cases to confirm are a single plain
+    light-emitting diode placed beside the sensor, a fixed colour filter,
+    and light sent through the chip from behind.
+13. Open, raised by item 11: may the top layers of the pixels (microlenses
+    and colour filter) be removed, and how close may the sensor come to
+    the chip? With ordinary light this distance sets the finest detail
+    (Table 4.11b), and question 5 becomes the most important one.
 
 ## 12. Where each claim comes from
 

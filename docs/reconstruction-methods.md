@@ -1676,7 +1676,7 @@ starts from the low-resolution picture and widens the band outwards.
 
 The stage numbers below are steps of the reconstruction calculation, 0 to
 5. They are not the instrument stages 0 to 4 of the
-[design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+[design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative),
 which count what the instrument delivers. Roughly, reconstruction stages 0
 and 1 here make the design's stage 1 (the coarse picture), stages 2 and 3
 here make the design's stage 2 (the true picture), and stages 4 and 5 here

@@ -1,5 +1,10 @@
 # Beamforming and array processing: what treating the pixels as an array gives
 
+> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
+> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This is the write-up of plan item B2, one of the four deep research studies
 of the [project plan](../plan.md). It covers beamforming and array
 processing as practised in acoustics, sonar, medical ultrasound and radio
@@ -185,7 +190,7 @@ reading correctly and averaging. With a reference beam, they are an array
 of wave receivers, and nearly all of array processing applies.
 
 The leading candidate of the design
-([section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate))
+([section 4.7](../design.md#47-a-staged-path-with-laser-light-a-recorded-alternative))
 already has a reference beam without having called it one. A silicon chip
 is mirror-like, so most of each laser beam is reflected as from a mirror
 and reaches the sensor as a strong, steady beam. The weak light scattered

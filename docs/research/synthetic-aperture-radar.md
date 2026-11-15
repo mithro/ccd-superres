@@ -1,5 +1,10 @@
 # Radar and synthetic aperture methods, including autofocus
 
+> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
+> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This page is the deep study for item B1 of the [project plan](../plan.md). It
 goes further into one field, synthetic aperture radar, than the
 [overview survey of reconstruction methods](../reconstruction-methods.md)

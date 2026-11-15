@@ -203,8 +203,8 @@ a short page under `docs/data/` saying what was found and how good it is.
 |---|---|---|
 | C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 and of every promoted scouting candidate | In progress. The four deep research studies B1 to B4 are folded in: [design, section 4.10](design.md#410-what-the-four-research-studies-changed). B5 to B7 and the scouting candidates are not started, so their part remains. |
 | C1a | Replace assumed numbers in the design, the calculator and the explorer with the collected data of R1 to R17, each with its source | Not started |
-| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) | Not started |
-| C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. Answered on 14 November 2026: a two-axis stage is acceptable; the light may be monitored with some of the sensor's own pixels or a separate monitor, and changes over minutes to hours; chip design rules "might be known but should not be assumed". Still open: where the light is mounted, how many materials may be assumed, whether lighting may be varied on purpose between frames, and the earlier questions 1 to 6 in the design. |
+| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative) | Not started |
+| C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. Answered on 14 November 2026: a two-axis stage is acceptable; the light may be monitored with some of the sensor's own pixels or a separate monitor, and changes over minutes to hours; chip design rules "might be known but should not be assumed". Answered on 15 November 2026: no special lighting, focus on the computational approaches, which settles questions 1 and 4 for the main line of work. Still open: what counts as special lighting at the edges (a plain light-emitting diode beside the sensor, a colour filter, light from behind the chip), whether the pixels' top layers may be removed and how close the sensor may come, where the light is mounted, how many materials may be assumed, whether lighting may be varied on purpose between frames, and the earlier questions 1 to 6 in the design. |
 
 ## D. Simulation chain
 
@@ -220,9 +220,9 @@ method, assumptions, worked examples and cross-check results.
 | D1b | **High priority.** Interactive explorer with a graphical page, asked for by Tim on 14 November 2026: "Make an interactive GUI based explorer a high priority." Change any setting (gap, speed, light, tilt, noise, motion errors, method) and see the setup, the simulated readings and the reconstructions respond | In progress. First version done: `python -m ccdsr.gui` drives level 1 in one dimension with every method side by side, and in two dimensions with sensor tilt: see the [interactive explorer](interactive-explorer.md). Next: a version that runs in the browser from Read the Docs with nothing to install, and each new level, scene and method as it is built. |
 | D2 | Level 1: linear blur model with reconstruction, in one dimension and then two | In progress. One dimension (three reconstruction methods, cross-checks against level 0) and two dimensions with sensor tilt are done: see [level 1](level1.md). Scan position errors and their estimation from the data are done in one dimension. Position estimation in two dimensions, gain correction and the tiled solver for full-size scenes are next. |
 | D2b | Reconstruction by elimination, Tim's idea: use the simulator to test candidate surfaces and positions, and rule out those that contradict the readings or could not physically exist (material limits, layout rules, a surface that does not change, a smooth sensor path). Layout rules are optional and each test is also run without them ([design, section 11, item 10](design.md#11-build-stages-and-open-questions)) | In progress. First version in one dimension is done and independently reviewed, with known materials, layout listing with a "nothing fits" answer, a search over the unknown overall position, and the smooth-path rule: see [reconstruction by elimination](constrained-reconstruction.md). Next: two dimensions, unknown material values, a path model with a smooth part plus frame-to-frame shake, drift and flicker in time, larger regions than can be listed, and a place among the approach files of D1a. |
-| D3 | Level 2: ray tracing | Not started |
-| D4 | Level 3: scalar wave propagation, with the coherent slanted-light scheme | Not started |
-| D5 | Level 4: full electromagnetic solver on small patches | Not started |
+| D3 | Level 2: ray tracing. First use: how much ordinary light gets under the sensor at each gap, and from which angles ([design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)) | Not started |
+| D4 | Level 3: scalar wave propagation, with the coherent slanted-light scheme | Not started. Moved to the end of the queue with the laser route (15 November 2026) |
+| D5 | Level 4: full electromagnetic solver on small patches. First use: confirm the blur model of ordinary light below a wavelength | Not started |
 | D6 | Cross-checks between each pair of neighbouring levels | Not started |
 | D7 | Approach comparisons, repeated as each level arrives: first at level 1 for the approaches it can represent, then at levels 3 and 4 for the coherent ones. Results committed and published. | Not started |
 
@@ -238,23 +238,45 @@ explored as soon as it is modelled.
 | E3 | Honesty tests for results that use prior knowledge: reconstruction from a deliberately wrong starting layout, and each random process switched on and off | Planned in the design, sections 4.7 and 5.8. Not built. |
 | E4 | A page of its own for calibration and test methods | Done as a plan: [calibration and test methods](calibration-and-test.md). It sets out E1 to E3 in detail: the benchmark scenes and measures, what is solved from the data and what needs an outside measurement, and the tests against invented detail. |
 
-## F. Stages of the leading candidate, in simulation
+## F. Stages of the main line of work, in simulation
 
-These stages belong to the approach that looks strongest so far, slanted
-coherent light with phase recovery. It is one candidate among those compared
-in D7, and this section is rewritten if the comparisons favour another. The
-stages are defined in
-[design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)
-and use the same numbers in the [optical elements](optical-elements.md)
-study. All of them are carried out in the simulator only.
+Tim set the direction on 15 November 2026: "Assume we don't want special
+lighting to be used. Focus on the computational approaches." The main line
+of work is therefore ordinary light and computation, as set out in
+[design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes),
+which also states what ordinary light can and cannot reach against the
+100 nm target. It is still one line among those compared in D7. All of it
+is carried out in the simulator only.
 
 | Stage | Result, in simulation | State |
 |---|---|---|
-| 0 | The pixel response to fine light stripes and to angle, as an uncertain range swept in every run and narrowed by the electromagnetic level on a model of the pixel's layers | Not started |
-| 1 | Coarse picture at micrometre scale, with positions and gains estimated from the data | Not started |
-| 2 | True picture to 150 to 200 nm lines, with slanted pulsed 405 nm light | Not started |
-| 3 | Detect, locate and fit: a partly inferred picture at about 100 nm | Not started |
-| 4 | True picture at about 100 nm, with near-ultraviolet light or water in the gap | Not started |
+| A | Coarse picture, with frame positions, speed, tilt, pixel gains and the brightness of the light all worked out from the readings | In progress: positions in one dimension are done ([level 1](level1.md)); two dimensions, gains and brightness are not started |
+| B | True picture down to the limit that the distance from surface to silicon allows, about two thirds of that distance, on surfaces longer than the sensor | In progress: reached on short repeating test surfaces in one dimension ([comparison](comparison.md)) |
+| C | Edges located and lone line widths measured below that limit, each with an error bar | Not started |
+| D | Inferred picture by elimination, using known or fitted materials and, as an option, layout rules, and always labelled as inferred | In progress: first version in one dimension ([reconstruction by elimination](constrained-reconstruction.md)) |
+
+The order of the work behind these stages is Table 4.11d of the design. In
+terms of the items above: D2 and D2b come first, D3 (ray tracing) is needed
+for the question of how ordinary light gets under the sensor, D5 is needed
+on small patches to confirm the blur model below a wavelength, and D4
+(scalar waves with slanted coherent light) moves to the end with the laser
+route.
+
+### Set aside: the laser route
+
+These stages belong to the approach that was the leading candidate until 15
+November 2026: slanted coherent light with phase recovery, defined in
+[design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative)
+and the [optical elements](optical-elements.md) study. It is kept as a
+recorded alternative and is not being worked on.
+
+| Stage | Result, in simulation | State |
+|---|---|---|
+| 0 | The pixel response to fine light stripes and to angle, as an uncertain range swept in every run and narrowed by the electromagnetic level on a model of the pixel's layers | Set aside |
+| 1 | Coarse picture at micrometre scale, with positions and gains estimated from the data | Set aside |
+| 2 | True picture to 150 to 200 nm lines, with slanted pulsed 405 nm light | Set aside |
+| 3 | Detect, locate and fit: a partly inferred picture at about 100 nm | Set aside |
+| 4 | True picture at about 100 nm, with near-ultraviolet light or water in the gap | Set aside |
 
 ## G. The gate before hardware
 

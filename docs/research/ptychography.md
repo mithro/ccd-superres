@@ -1,5 +1,10 @@
 # Ptychography and lensless coherent imaging
 
+> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
+> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 This is deep research item B4 of the [project plan](../plan.md). It goes
 further into one field than the overview in
 [reconstruction methods, sections 3.7 and 3.8](../reconstruction-methods.md#37-ptychography-and-fourier-ptychography),
@@ -811,7 +816,7 @@ Consequences, all **Derived here** and to be tested at simulation level 3:
 
 Stage 2 of the leading candidate is the true picture at 150 to 200 nm lines
 with slanted, pulsed 405 nm light
-([design, section 4.7](../design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate)).
+([design, section 4.7](../design.md#47-a-staged-path-with-laser-light-a-recorded-alternative)).
 The requirements below are **Derived here** from the published rules of
 section 5 and are **Estimates** until the simulator confirms them.
 

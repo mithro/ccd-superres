@@ -1,5 +1,10 @@
 # Filters, gratings and other optical elements
 
+> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
+> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 **What the project does.** A camera chip (an image sensor) has its lens taken
 off and is slid slowly, very close, over a surface. The chip takes thousands
 of pictures as it moves. Each picture is blurry, but every point on the
@@ -247,7 +252,7 @@ the path.
 | 4 | Near ultraviolet light or water in the gap, same reconstruction | The heaviest hardware of the path | A true picture at about 100 nm lines |
 
 The stage numbers match
-[section 4.7 of the design document](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+[section 4.7 of the design document](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative),
 which holds the single definition of the stages. Stage 3 does not replace stage 4. Assumed layout rules cannot show structure
 that breaks them, so a true picture at 100 nm needs the shorter wavelength.
 
@@ -1716,7 +1721,7 @@ until the approach has passed the gate described in
 The path orders the options so that each stage would add as little hardware
 as possible. Each stage produces a usable result and hands something specific
 to the next. The stage numbers are those of
-[section 4.7 of the design document](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate),
+[section 4.7 of the design document](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative),
 which holds the single definition of the stages, and the
 [project plan](plan.md) tracks their state. This section gives the optical
 reasoning behind stages 0, 2, 3 and 4.

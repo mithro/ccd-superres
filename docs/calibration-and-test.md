@@ -1,5 +1,10 @@
 # Calibration and test methods
 
+> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
+> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> now a recorded alternative. The current line of work is in
+> [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 The project is about sliding a bare camera chip over a silicon chip and
 letting a computer turn millions of blurry readings into one sharp picture.
 The target is detail about 100 nanometres wide. For scale, a human hair is
@@ -913,7 +918,7 @@ need no truth are run again on hardware. A text table.
 | Split-data against truth | Compare the two numbers of table 7.1 | They agree within the margin of table 10.1 | Yes | [T30], [T31] |
 | Scene that breaks the prior | A scene with features the prior forbids | The forbidden features appear, at the resolution the linear result gives them | Yes | Assumption |
 | Empty scene | Bare silicon, or pure noise, through the whole pipeline | Nothing is reconstructed above the noise level | No | [T33] |
-| Wrong start | Start the fit from a deliberately wrong layout | Detail counts only if it appears from both starts | No | [design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate) |
+| Wrong start | Start the fit from a deliberately wrong layout | Detail counts only if it appears from both starts | No | [design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative) |
 | Prior weight sweep | Repeat with the prior's weight lowered in steps to zero | Each feature is labelled with the lowest weight at which it survives | No | Assumption |
 | Noise substitution | Replace the data's content finer than a chosen period with noise of the same strength, and reconstruct again | Detail finer than that period disappears | No | [T32] |
 | Held-out data | Section 7.3 | The model predicts readings it was not fitted to | No | [T34] |
@@ -1117,7 +1122,7 @@ cross-checked** along the simulation chain. Levels are those of the
 ## 10. Stage by stage
 
 The five stages are those of
-[design, section 4.7](design.md#47-a-staged-path-to-the-picture-the-current-leading-candidate).
+[design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative).
 They belong to the current leading candidate and are one path through the
 approaches, not the only one. Each stage is passed twice: first in
 simulation, and at the very end on hardware.
