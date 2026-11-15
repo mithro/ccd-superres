@@ -20,6 +20,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Ptychography and lensless coherent imaging](research/ptychography.md) | Deep research item B4: the finest detail anyone has shown without a lens, how coarse pixels have been got round, what the reconstruction needs from the data, and what stage 2 needs | Research study for review |
 | [Radar and synthetic aperture methods](research/synthetic-aperture-radar.md) | Deep study B1: how radar builds a sharp picture from an uncertain path, which autofocus methods work on brightness-only data, how radar modes map onto the instrument, radar's limits on resolution and noise, and the new ideas it suggests | Study for review |
 | [Multi-frame reconstruction in satellites and astronomy](research/multi-frame-reconstruction.md) | Deep research study B3: how scanning cameras handle motion smear, how many shifted frames are combined and at what noise cost, how well shifts are measured, how pictures are recovered without measured positions, and twelve ideas new to the project | Study for review |
+| [Routes to 100 nm that keep ordinary light](research/ordinary-light-routes.md) | Scouting study: every route found that could picture features of about 100 nm without special lighting, what more readings buy on each, what each costs, and a ranked shortlist for the simulator | Study for review |
 | [Calibration and test methods](calibration-and-test.md) | What must be known about the instrument and how well, what is solved from the scan and what needs an outside measurement, how resolution is measured, the tests against invented detail, and the common benchmark for every approach | Plan for review |
 | [Beamforming and array processing](research/beamforming.md) | Deep research study B2: what treating the pixels as an array of receivers gives, which sharper array methods work on brightness-only readings, how beam directions should be chosen, and how far self-calibration carries over to pixel gains and pixel response | Study for review |
 | [Review record](review.md) | Which pages, scripts and figures have been independently checked, what was checked, what was found and what is still unchecked | Kept current |
@@ -52,6 +53,7 @@ reconstruction-methods
 research/ptychography
 research/synthetic-aperture-radar
 research/multi-frame-reconstruction
+research/ordinary-light-routes
 calibration-and-test
 research/beamforming
 calculator

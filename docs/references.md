@@ -60,7 +60,7 @@ unless the entry says so.
 
 ## Reference lists of the other pages
 
-Six pages keep their own numbered lists, which are part of this
+Seven pages keep their own numbered lists, which are part of this
 bibliography:
 
 - [Optical elements, section 14](optical-elements.md#14-references), keys
@@ -74,6 +74,8 @@ bibliography:
   keys SA1 onwards.
 - [Multi-frame reconstruction, section 9](research/multi-frame-reconstruction.md#9-references),
   keys MF1 onwards.
+- [Routes to 100 nm that keep ordinary light, section 12](research/ordinary-light-routes.md#12-references),
+  keys OL1 onwards.
 
 New sources are added here, or to those lists for those pages, in the same
 pull request as the claim that needs them.
