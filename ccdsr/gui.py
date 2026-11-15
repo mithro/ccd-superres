@@ -37,6 +37,7 @@ from scipy.ndimage import maximum_filter
 from . import approaches as ap
 from . import compare as cp
 from . import level1 as l1
+from . import oversampling as ov
 from . import level1_2d as l2
 from .resolution import gap_transfer
 
@@ -126,6 +127,7 @@ METHOD_LABELS = {
 SCENE_LABELS = {
     "bars": "Bar groups",
     "random_layout": "Random two-material layout",
+    "fine_layout": "Random two-material layout, 100 nm cells",
     "isolated_lines": "Isolated narrow lines",
     "soft_ramps": "Smooth waves of many reflectances",
 }
@@ -451,6 +453,61 @@ def _respond(request):
     }
 
 
+# -------------------------------------------------------------- oversampling
+
+SWEEP_FRAMES = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
+SWEEP_SEEDS = (0, 1, 2)
+
+
+def respond_oversampling(request):
+    """Run the ticked methods at a series of numbers of frames, the other settings as on the page.
+
+    The answer holds, for every method and every way of taking more
+    readings (:data:`ccdsr.oversampling.WAYS`), the error and the finest
+    period recovered against the number of readings of each point. The
+    reconstructions are told the true positions and the strength of their
+    smoothing is chosen at every level, as in :func:`ccdsr.oversampling.sweep`.
+    """
+    return _guarded(_respond_oversampling, request, {c[0]: c[1] for c in CONTROLS})
+
+
+def _respond_oversampling(request):
+    if not isinstance(request, dict):
+        raise BadRequest("a request is a group of settings")
+    parts = _clean_parts(request)
+    try:
+        scene = ap.get_scene(request.get("scene", "bars"))
+    except (ValueError, TypeError) as reason:
+        raise BadRequest(str(reason))
+    methods = request.get("methods", [])
+    if not isinstance(methods, list) or not methods:
+        raise BadRequest("tick at least one method")
+    curves, skipped = [], []
+    for entry in methods:
+        approach = _approach(entry, parts, "known")
+        if ap.RECONSTRUCTIONS[approach.method].solves_positions:
+            skipped.append(approach.name)
+            continue
+        approach.check(scene)
+        records = ov.sweep(approach, scene.name, ov.WAYS, SWEEP_FRAMES, SWEEP_SEEDS, tuning_seeds=(1000,))
+        for way in ov.WAYS:
+            mine = [r for r in records if r["way"] == way]
+            curves.append({"method": approach.method, "label": approach.name, "way": way,
+                           "frames": [r["frames"] for r in mine],
+                           "readings_per_point": [r["readings_per_point"] for r in mine],
+                           "positions_per_pixel": [r["distinct_positions_per_pixel"] for r in mine],
+                           "light_per_reading_e": [r["light_per_reading_e"] for r in mine],
+                           "rms_error": [r["rms_error"] for r in mine],
+                           "recovered_period_nm": [r["recovered_period_nm"] for r in mine],
+                           "level0_period_nm": [r["level0_period_nm"] for r in mine]})
+    if not curves:
+        raise BadRequest("the methods that solve positions are left out of this chart; tick another method")
+    return {"ok": True, "scene": scene.name, "curves": curves, "skipped": skipped,
+            "ways": {"more-time": "more frames, same light in each (longer scan)",
+                     "same-time": f"more frames in the time of {ov.REFERENCE_FRAMES} (less light in each)",
+                     "repeat": "more frames on the same places (plain averaging)"}}
+
+
 # ----------------------------------------------------------- two dimensions
 
 def respond_2d(request):
@@ -532,7 +589,7 @@ def _respond_2d(request):
 
 _TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
           ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml"}
-_ROUTES = {"/api/run": respond, "/api/run2d": respond_2d}
+_ROUTES = {"/api/run": respond, "/api/run2d": respond_2d, "/api/oversampling": respond_oversampling}
 
 
 class _Handler(BaseHTTPRequestHandler):
