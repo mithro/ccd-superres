@@ -37,7 +37,8 @@ research and simulation. What "shown to work" means is a defined gate
 
 State marks: **Done** means merged into the main branch. **In progress**
 means work exists on a branch or in another page under review. **Not
-started** means nothing exists yet.
+started** means nothing exists yet. **Set aside** means the item is kept
+on record and is not being worked on.
 
 ## Order of work
 
@@ -48,7 +49,7 @@ flowchart LR
     C["C. Fold research<br/>into the design"]
     D["D. Simulation chain<br/>and approach comparisons"]
     E["E. Calibration and<br/>test methods"]
-    F["F. Leading candidate<br/>stages, simulated"]
+    F["F. Main line of work<br/>stages, simulated"]
     G{"G. Gate:<br/>simulation shows<br/>it works"}
     H["H. Hardware"]
     A --> B --> C --> D --> F --> G
@@ -92,10 +93,10 @@ it comes before the simulation build, and scouting continues through it.
 
 ### Deep research
 
-Tim asked for deep research into the fields he named: reverse or inverse
-beamforming, radar, satellite image reconstruction and similar fields. He also
-asked for a deep dive into potential sensors and how to control them at
-pixel level (B5 to B7). The
+Deep research is required into the neighbouring fields: reverse or inverse
+beamforming, radar, satellite image reconstruction and similar fields
+([REQ-20](design.md#requirements)). A deep dive into potential sensors and how to control them at
+pixel level is required too (B5 to B7). The
 [reconstruction methods](reconstruction-methods.md) page is the overview.
 Each item below goes deeper into one field than that overview does, from the
 primary literature, and must answer stated questions for the design. Each
@@ -117,8 +118,8 @@ simulator parameters and the staged plan.
 
 ### Scouting: finding what nobody has named yet
 
-Tim asked that the project explore things he has not thought of, not only
-the fields he mentioned. Scouting is a standing item with a method, not a
+The project has to explore approaches beyond those already named, not only
+the fields listed above ([REQ-20](design.md#requirements)). Scouting is a standing item with a method, not a
 one-off search, and it runs for the whole project.
 
 | Item | Method | Output | State |
@@ -157,10 +158,10 @@ given.
 | X-B1-1 | Comparison against a known-good chip or the simulated layout, as radar's coherent change detection does between two passes | Can differences far smaller than the resolution be detected and located by comparing the recorded frames with those of a reference chip or of the simulator's prediction from the intended layout? Raised by [study B1, section 7.2](research/synthetic-aperture-radar.md#72-finding-is-easier-than-separating). | To be written as `docs/research/change-detection.md` | Not started |
 | X-B1-2 | Isolated specks, vias and corners as built-in reference points, as radar autofocus uses bright isolated reflectors | Does the smeared image of an isolated feature give the instrument's point response and the per-frame light state for its tile well enough to replace part of the calibration? Raised by [study B1, section 8](research/synthetic-aperture-radar.md#8-ideas-this-study-adds). | To be written as `docs/research/reference-points.md` | Not started |
 | X-B2-1 | Laser beam directions laid out so that no spacing between them repeats, as in sparse antenna arrays | Does the coverage predicted by the simple band model of [beamforming, section 4](research/beamforming.md#4-beam-directions-as-a-sparse-array) hold for a real chip surface at simulation levels 3 and 4, and how many beams are needed in two dimensions? | [beamforming](research/beamforming.md), then a simulator comparison | Raised by B2. Not started |
-| X-B2-2 | Scan plans for streak-free self-calibration: a second scan direction, or passes shifted sideways by a small step and by larger ones | Which scan plan fixes the pixel gains and the light's profile at full size, with blur and sub-pixel steps, and at what cost in scan time? | [beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap), then a simulator comparison | Raised by B2. Not started. Tim has accepted a two-axis stage (14 November 2026), so both scan plans are allowed |
+| X-B2-2 | Scan plans for streak-free self-calibration: a second scan direction, or passes shifted sideways by a small step and by larger ones | Which scan plan fixes the pixel gains and the light's profile at full size, with blur and sub-pixel steps, and at what cost in scan time? | [beamforming, section 6.4](research/beamforming.md#64-a-toy-calculation-and-a-trap), then a simulator comparison | Raised by B2. Not started. A two-axis stage is acceptable ([REQ-9](design.md#requirements)), so both scan plans are allowed |
 | X-B2-3 | Lighting changed on purpose between frames: beam direction, relative timing, or moving speckle | Does it make minimum variance and subspace methods usable on isolated features, and does frame-to-frame variation hold extra detail for a reflecting surface as it does for fluorescence? | [beamforming, section 5](research/beamforming.md#5-sharper-methods-on-a-brightness-only-array), then a simulator comparison | Raised by B2. Not started |
 | X-B2-4 | Methods of near-field antenna test ranges: probe compensation, irregular probe positions, brightness-only measurement on two planes | What do their standards and error analyses say about removing a known probe response and about position errors, read at full text? | `near-field-antenna-ranges.md` (planned) | Raised by B2. Not started |
-| X-B2-5 | Recovery by weighted candidates: weigh every candidate position of every frame, rule out sequences that need a jump in time, and apply the chip's material and minimum-width rules inside the fitting (optional rules: Tim has said design rules are not to be assumed, so each test is also run without them) | At what noise and at what error in the simulator's own model does it stop working, at full size and with sub-pixel positions, and how much do the chip's rules add? | [beamforming, section 8](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time), then a simulator comparison | Raised by Tim on 14 November 2026 and by B2. The design change belongs to the simulator build. Not started |
+| X-B2-5 | Recovery by weighted candidates: weigh every candidate position of every frame, rule out sequences that need a jump in time, and apply the chip's material and minimum-width rules inside the fitting (optional rules: design rules are not to be assumed, [REQ-8](design.md#requirements), so each test is also run without them) | At what noise and at what error in the simulator's own model does it stop working, at full size and with sub-pixel positions, and how much do the chip's rules add? | [beamforming, section 8](research/beamforming.md#8-recovery-without-exact-positions-and-the-use-of-time), then a simulator comparison | Required by [REQ-19](design.md#requirements) and raised by B2. The design change belongs to the simulator build. Not started |
 
 New findings add rows here. An item is never deleted: one that leads nowhere
 is marked "Rejected" with a link to the reason, so the same ground is not
@@ -203,8 +204,8 @@ a short page under `docs/data/` saying what was found and how good it is.
 |---|---|---|
 | C1 | Update the forward model, the reconstruction method and the simulator parameters in the [design](design.md) from the recommendations of B1 to B7 and of every promoted scouting candidate | In progress. The four deep research studies B1 to B4 are folded in: [design, section 4.10](design.md#410-what-the-four-research-studies-changed). B5 to B7 and the scouting candidates are not started, so their part remains. |
 | C1a | Replace assumed numbers in the design, the calculator and the explorer with the collected data of R1 to R17, each with its source | Not started |
-| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) and the staged plan in [design, section 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative) | Not started |
-| C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) with Tim | In progress. Answered so far: the goal is a picture, reached in stages. Answered on 14 November 2026: a two-axis stage is acceptable; the light may be monitored with some of the sensor's own pixels or a separate monitor, and changes over minutes to hours; chip design rules "might be known but should not be assumed". Answered on 15 November 2026: no special lighting, focus on the computational approaches, which settles questions 1 and 4 for the main line of work. Still open: what counts as special lighting at the edges (a plain light-emitting diode beside the sensor, a colour filter, light from behind the chip), whether the pixels' top layers may be removed and how close the sensor may come, where the light is mounted, how many materials may be assumed, whether lighting may be varied on purpose between frames, and the earlier questions 1 to 6 in the design. |
+| C2 | Update the ranked shortlist in [reconstruction methods](reconstruction-methods.md) for ordinary light, and keep the stages in [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes) in step with it | In progress. The stages and the order of work are in the design. The shortlist page carries a dated note and is not yet re-ranked |
+| C3 | Settle the open questions at the end of the [design](design.md#11-build-stages-and-open-questions) and record each answer as a requirement | In progress. Answered so far: the goal is a picture, reached in stages. Answered on 14 November 2026: a two-axis stage is acceptable; the light may be monitored with some of the sensor's own pixels or a separate monitor, and changes over minutes to hours; chip design rules might be known but are not to be assumed. Answered on 15 November 2026: special lighting is not assumed and the effort goes into the computational approaches, which settles the lighting part of question 1 for the main line of work (no ultraviolet, no laser beams). Still open: what counts as special lighting at the edges (a plain light-emitting diode beside the sensor, a colour filter, light from behind the chip, light pulsed in time), whether liquid in the gap is acceptable, any other constraint on lighting (question 4), whether the pixels' top layers may be removed and how close the sensor may come, where the light is mounted, how many materials may be assumed, whether lighting may be varied on purpose between frames, and the earlier questions 1 to 6 in the design. |
 
 ## D. Simulation chain
 
@@ -217,9 +218,9 @@ method, assumptions, worked examples and cross-check results.
 | D0 | Level 0: analytic calculator and explorer | Done |
 | D1 | Shared scene description, raw frame format, readout scheme model, metrics, default scene of patterned silicon | Not started |
 | D1a | Approach files and the comparison runner: an approach as a named configuration, several run against the same scenes, one table and set of figures on the same measures | In progress. The approach files, the runner and a first comparison at level 1 in one dimension are done: see [comparing approaches](comparison.md). Next: the benchmark scenes, the uncertain pixel response sampled over its range, hardware and scan-time cost in the scorecard, and each new level and method as it is built. |
-| D1b | **High priority.** Interactive explorer with a graphical page, asked for by Tim on 14 November 2026: "Make an interactive GUI based explorer a high priority." Change any setting (gap, speed, light, tilt, noise, motion errors, method) and see the setup, the simulated readings and the reconstructions respond | In progress. First version done: `python -m ccdsr.gui` drives level 1 in one dimension with every method side by side, and in two dimensions with sensor tilt: see the [interactive explorer](interactive-explorer.md). Next: a version that runs in the browser from Read the Docs with nothing to install, and each new level, scene and method as it is built. |
+| D1b | **High priority.** Interactive explorer with a graphical page ([REQ-18](design.md#requirements)). Change any setting (gap, speed, light, tilt, noise, motion errors, method) and see the setup, the simulated readings and the reconstructions respond | In progress. First version done: `python -m ccdsr.gui` drives level 1 in one dimension with every method side by side, and in two dimensions with sensor tilt: see the [interactive explorer](interactive-explorer.md). Next: a version that runs in the browser from Read the Docs with nothing to install, and each new level, scene and method as it is built. |
 | D2 | Level 1: linear blur model with reconstruction, in one dimension and then two | In progress. One dimension (three reconstruction methods, cross-checks against level 0) and two dimensions with sensor tilt are done: see [level 1](level1.md). Scan position errors and their estimation from the data are done in one dimension. Position estimation in two dimensions, gain correction and the tiled solver for full-size scenes are next. |
-| D2b | Reconstruction by elimination, Tim's idea: use the simulator to test candidate surfaces and positions, and rule out those that contradict the readings or could not physically exist (material limits, layout rules, a surface that does not change, a smooth sensor path). Layout rules are optional and each test is also run without them ([design, section 11, item 10](design.md#11-build-stages-and-open-questions)) | In progress. First version in one dimension is done and independently reviewed, with known materials, layout listing with a "nothing fits" answer, a search over the unknown overall position, and the smooth-path rule: see [reconstruction by elimination](constrained-reconstruction.md). Next: two dimensions, unknown material values, a path model with a smooth part plus frame-to-frame shake, drift and flicker in time, larger regions than can be listed, and a place among the approach files of D1a. |
+| D2b | Reconstruction by elimination ([REQ-19](design.md#requirements)): use the simulator to test candidate surfaces and positions, and rule out those that contradict the readings or could not physically exist (material limits, layout rules, a surface that does not change, a smooth sensor path). Layout rules are optional and each test is also run without them ([design, section 11, item 10](design.md#11-build-stages-and-open-questions)) | In progress. First version in one dimension is done and independently reviewed, with known materials, layout listing with a "nothing fits" answer, a search over the unknown overall position, and the smooth-path rule: see [reconstruction by elimination](constrained-reconstruction.md). Next: two dimensions, unknown material values, a path model with a smooth part plus frame-to-frame shake, drift and flicker in time, larger regions than can be listed, and a place among the approach files of D1a. |
 | D3 | Level 2: ray tracing. First use: how much ordinary light gets under the sensor at each gap, and from which angles ([design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)) | Not started |
 | D4 | Level 3: scalar wave propagation, with the coherent slanted-light scheme | Not started. Moved to the end of the queue with the laser route (15 November 2026) |
 | D5 | Level 4: full electromagnetic solver on small patches. First use: confirm the blur model of ordinary light below a wavelength | Not started |
@@ -240,8 +241,9 @@ explored as soon as it is modelled.
 
 ## F. Stages of the main line of work, in simulation
 
-Tim set the direction on 15 November 2026: "Assume we don't want special
-lighting to be used. Focus on the computational approaches." The main line
+Since 15 November 2026 the requirement is that no special lighting is
+assumed and that the effort goes into the computational approaches
+([REQ-6](design.md#requirements)). The main line
 of work is therefore ordinary light and computation, as set out in
 [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes),
 which also states what ordinary light can and cannot reach against the
@@ -250,15 +252,19 @@ is carried out in the simulator only.
 
 | Stage | Result, in simulation | State |
 |---|---|---|
-| A | Coarse picture, with frame positions, speed, tilt, pixel gains and the brightness of the light all worked out from the readings | In progress: positions in one dimension are done ([level 1](level1.md)); two dimensions, gains and brightness are not started |
-| B | True picture down to the limit that the distance from surface to silicon allows, about two thirds of that distance, on surfaces longer than the sensor | In progress: reached on short repeating test surfaces in one dimension ([comparison](comparison.md)) |
+| A | Coarse picture, with frame positions, speed, sensor rotation, gap, pixel gains, pixel response and the brightness of the light all worked out from the readings | In progress: positions in one dimension and a known sensor rotation in two dimensions are done ([level 1](level1.md)); solving positions in two dimensions, gap, gains, pixel response and brightness are not started |
+| B | True picture down to the limit that the distance from the chip's features to the light-sensitive silicon allows, a repeat distance of roughly that size (Table 4.11b of the design), on surfaces longer than the sensor, with an uncertainty map | In progress: on short repeating test surfaces in one dimension, bars of 480 nm at a 300 nm gap are shown only with a narrowed pixel opening or known materials, and a plain fit shows 800 nm ([comparison](comparison.md)) |
 | C | Edges located and lone line widths measured below that limit, each with an error bar | Not started |
 | D | Inferred picture by elimination, using known or fitted materials and, as an option, layout rules, and always labelled as inferred | In progress: first version in one dimension ([reconstruction by elimination](constrained-reconstruction.md)) |
 
 The order of the work behind these stages is Table 4.11d of the design. In
-terms of the items above: D2 and D2b come first, D3 (ray tracing) is needed
-for the question of how ordinary light gets under the sensor, D5 is needed
-on small patches to confirm the blur model below a wavelength, and D4
+terms of the items above: a rough estimate of how ordinary light gets
+under the sensor comes first, then D2 and D2b. D3 (ray tracing) refines
+that estimate, although it is only indicative in a slot a few micrometres
+high. D5 is needed on small patches to confirm the blur model and the
+light entry below a few micrometres. The pixel response as an uncertain
+range, which was stage 0 of the laser route, stays in the main line as
+part of stage A. D4
 (scalar waves with slanted coherent light) moves to the end with the laser
 route.
 
@@ -272,7 +278,7 @@ recorded alternative and is not being worked on.
 
 | Stage | Result, in simulation | State |
 |---|---|---|
-| 0 | The pixel response to fine light stripes and to angle, as an uncertain range swept in every run and narrowed by the electromagnetic level on a model of the pixel's layers | Set aside |
+| 0 | The pixel response to fine light stripes, as an uncertain range narrowed by the electromagnetic level on a model of the pixel's layers | Set aside for fine stripes. The pixel's edge softness and acceptance angle stay in the main line (stage A) |
 | 1 | Coarse picture at micrometre scale, with positions and gains estimated from the data | Set aside |
 | 2 | True picture to 150 to 200 nm lines, with slanted pulsed 405 nm light | Set aside |
 | 3 | Detect, locate and fit: a partly inferred picture at about 100 nm | Set aside |
@@ -285,7 +291,7 @@ recorded alternative and is not being worked on.
 | G1 | Fix the targets per stage and the uncertain ranges for pixel response, gap, vibration, source and noise, before the runs | Not started |
 | G2 | Run every candidate approach through the gate of [design, section 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware): agreed scenes and measures, robustness across the uncertain ranges, blind reconstruction, agreement between simulation levels, honesty about priors, repeatability, buildable on paper | Not started |
 | G3 | Gate report per approach: pass or fail on each condition, hardware list, tolerances, first measurements to make | Not started |
-| G4 | Tim's decision on which approaches go to hardware | Not started |
+| G4 | Decision on which approaches go to hardware | Not started |
 
 ## H. Hardware, last
 
@@ -300,8 +306,8 @@ Nothing in this section starts before G4.
 ## Documentation standard
 
 This section is the single place where the documentation standards are
-written down. Tim sets them, and a new one is added here when he gives it.
-There are six so far. Every page in the documentation, and every
+written down. A new one is added here when it is set.
+There are seven so far. Every page in the documentation, and every
 research write-up, follows them, and the table at the end of this section records
 which pages do so far.
 
@@ -309,9 +315,8 @@ which pages do so far.
 
 Everything is explained in plain English that a non-expert can understand.
 
-- **Write the main text in plain words from the first line.** Tim's rule:
-  "Don't write 'In plain words' sections, just write the text in plain words
-  from the beginning." There is no separate plain-language summary. A page
+- **Write the main text in plain words from the first line.** There are no
+  "In plain words" sections and no separate plain-language summary. A page
   opens by saying what it is about and what it concludes, in words a
   non-expert can follow, and carries on the same way.
 - **Explain every technical term** where it first appears on the page, or
@@ -330,7 +335,7 @@ Everything is explained in plain English that a non-expert can understand.
 
 ### Sources
 
-Tim's requirement is that everything is clearly referenced against sources.
+Everything is clearly referenced against sources.
 
 - **Every factual claim, number and formula cites its source** (paper,
   datasheet, standard or code) by a key that links to the shared
@@ -347,7 +352,7 @@ Tim's requirement is that everything is clearly referenced against sources.
 
 ### Diagrams
 
-Tim's requirement is proper, clear diagrams, not only text.
+The documentation has proper, clear diagrams, not only text.
 
 - **Every concept, geometry, signal path, process and comparison that can
   be drawn has a diagram or plot.**
@@ -368,8 +373,8 @@ Tim's requirement is proper, clear diagrams, not only text.
 
 ### Tables
 
-Tim's requirement is that data is displayed in proper tables, not written
-into paragraphs, and that tables show data with proper formatting, not just
+Data is displayed in proper tables, not written
+into paragraphs, and tables show data with proper formatting, not just
 text in cells.
 
 - **Data goes in a table.** Three or more related numbers in a paragraph
@@ -390,9 +395,8 @@ text in cells.
 
 When a page describes a system or a result from another field, it gives
 the figure first in that field's own units, and then scaled to this
-instrument. Tim's rule: "When looking at radar and astronomy, you should
-use the original terms (kilometers, parsecs, etc) and then the virtually
-scaled terms (to nm)."
+instrument: for radar and astronomy, the original terms (kilometres,
+parsecs and so on) and then the scaled terms (in nanometres).
 
 - **Original first, scaled second, side by side.** In a table the two are
   neighbouring columns, each with its unit in the header, or in a unit
@@ -408,8 +412,7 @@ scaled terms (to nm)."
 
 ### Links
 
-Whenever a file is mentioned, the mention is a link to it. Tim's rule:
-"Make sure that files when mentioned are linked too."
+Whenever a file is mentioned, the mention is a link to it.
 
 | Mention of | Is written as |
 |---|---|
@@ -423,11 +426,29 @@ The same holds in messages and pull requests: a file that is named is linked.
 On this plan page, the paths given for research and data write-ups that are
 not started are planned files; each becomes a link when its item is done.
 
+### Requirements, not attributions
+
+The documentation states requirements, constraints and assumptions in their
+own right. It does not say who asked for something or quote what a person
+said.
+
+- **A requirement is written as a requirement** and has a number in the
+  [requirements table of the design](design.md#requirements). Other pages
+  refer to it by that number, for example REQ-6.
+- **The project's own interpretation is kept apart from the requirement.**
+  Where a requirement leaves something open, the reading adopted is
+  labelled "Interpretation" or "Assumption" and is not presented as part of
+  the requirement.
+- **A question that needs a decision is listed as an open question**, and
+  when it is answered the answer becomes a requirement.
+- **No person is named** as the source of a requirement, an idea, an
+  answer or a decision. Authors of cited sources are named as usual.
+
 ### State of each page
 
 | Page | Plain English | Sources | Diagrams | Tables |
 |---|---|---|---|---|
-| [Project plan](plan.md) | Yes | Not applicable: it states intentions, and quotes Tim's requirements | Phase flow chart and status chart | Item tables are text tables. No data tables. |
+| [Project plan](plan.md) | Yes | Not applicable: it states intentions, and refers to the requirements | Phase flow chart and status chart | Item tables are text tables. No data tables. |
 | [Design](design.md) | Summary, equations and captions done. Sections 3.2, 5.3 and 6.3 still to be gone through term by term. | Main claims labelled in section 12. In-text keys still to be added claim by claim. | Audited. Figures added for the two arrangements, motion blur, exposure comparison, readout timing and the array's collecting angles. Still text only: the reconstruction pipeline's data sizes (6.3) and the approach components (7.1). | Data tables in 4.6, 4.8, 5.4 and 5.7 reformatted with units in headers and numbers in their own columns. Still to do: 4.2, 5.1, 6.3. |
 | [Simulation chain](simulation-chain.md) | Summary and caption done. Tables still to be gone through. | Not yet done | Chain flow chart and validity plot present | Not yet done |
 | [Glossary](glossary.md) | Yes | Not yet done | Not applicable | Text table |

@@ -1,7 +1,7 @@
 # Calibration and test methods
 
-> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
-> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> **Changed on 15 November 2026.** Requirement [REQ-6](design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
 > now a recorded alternative. The current line of work is in
 > [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
@@ -69,7 +69,7 @@ here are starting points to be agreed, and are labelled as assumptions.
 
 ## 1. How this page fits the project
 
-Three rules from Tim shape the page.
+Three requirements shape the page ([REQ-15, REQ-14 and REQ-4](design.md#requirements)).
 
 | Rule | What it means here |
 |---|---|
@@ -689,7 +689,7 @@ Status: **Assumption** that it is cheap. It is not built.
 Published resolution claims in computational microscopy are hard to compare
 because they use different definitions, and a review proposed standard
 practice to fix this [T29]. This project adopts the following rules
-(**Assumption**: they are a proposal for Tim to agree).
+(**Assumption**: they are a proposal to be agreed).
 
 | Rule | Reason |
 |---|---|
@@ -855,8 +855,8 @@ transparent oxide and a protective coating (**Unverified**: general
 knowledge of chip construction, the SKY130 documentation read for this page
 does not give the layer thicknesses). An approach that works on a bare
 patterned surface may see them poorly or not at all. Which layer is the
-target, and whether upper layers are removed first, is an open question for
-Tim. Second, the smallest dense period on SKY130 is 280 nm, which tests
+target, and whether upper layers are removed first, is an open
+question. Second, the smallest dense period on SKY130 is 280 nm, which tests
 stage 2 and not the 200 nm of the final target. A chip from a finer process,
 or the custom target, is needed for that.
 
@@ -957,7 +957,7 @@ section 4.1 (**Assumption**: the thresholds are in table 10.1).
 
 ## 8. A common benchmark for comparing approaches
 
-Tim wants to explore many approaches, so they need common ground: the same
+Many approaches are to be explored ([REQ-14](design.md#requirements)), so they need common ground: the same
 scenes, the same measures and the same budgets. A **benchmark** is that
 agreed set. It lives in the repository as scene files and one scoring
 program, and every approach is scored by that program and no other. This
@@ -1059,7 +1059,7 @@ flowchart TD
     E --> F["Scoring program<br/>holds the truth"]
     A -. "truth" .-> F
     F --> G{"All gate<br/>conditions pass?"}
-    G -- "yes" --> H["Gate report committed.<br/>The approach goes to<br/>Tim's decision."]
+    G -- "yes" --> H["Gate report committed.<br/>The approach goes to<br/>the decision on hardware."]
     G -- "no" --> I["Finding: change the approach,<br/>tighten a tolerance, or name<br/>the missing measurement"]
     I --> A
 ```
@@ -1136,7 +1136,7 @@ flowchart LR
         G2 --> G3["Stage 3<br/>detect, locate, fit"]
         G3 --> G4["Stage 4<br/>100 nm lines"]
     end
-    G4 --> GATE{"Gate and<br/>Tim's decision"}
+    G4 --> GATE{"Gate and<br/>decision on hardware"}
     subgraph HW["Hardware phase: last, only for approaches that passed"]
         direction LR
         H0["Measure noise model<br/>and pixel response"] --> H1["Stage 1"]
@@ -1150,7 +1150,7 @@ flowchart LR
 
 *Figure: the two passes through the stages. All five stages are first run in
 simulation for every candidate approach. Hardware starts only after the gate
-and Tim's decision, with the pixel measurement, which can send the work back
+and the decision on hardware, with the pixel measurement, which can send the work back
 to simulation if the real pixels fall outside the range in which the
 approach passed.*
 
@@ -1216,7 +1216,7 @@ truth exists.
 
 ## 11. The hardware phase
 
-When an approach has passed the gate and Tim has decided it goes ahead, the
+When an approach has passed the gate and the decision is that it goes ahead, the
 hardware work is ordered so the cheapest and most decisive measurement comes
 first.
 
@@ -1236,7 +1236,7 @@ levels would be: either a fault or a limit of the model, and recorded either
 way. This is item H3 of the [plan](plan.md): measured behaviour goes back
 into the simulator.
 
-## 12. Open questions for Tim
+## 12. Open questions
 
 1. **Which layer of a finished chip is the target**, and may upper layers be
    removed? This decides which reference chips are useful and whether scene

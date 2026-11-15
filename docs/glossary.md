@@ -100,6 +100,7 @@ link here the first time they use a term that is not explained on the spot.
 | Noise floor | The level below which a signal is lost in the noise. |
 | Numerical aperture (NA) | A number that says how steep an angle is: the sine of the angle measured from straight ahead, times the refractive index of the medium. In air it lies between 0 and 1. |
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
+| Ordinary light | Steady light from a room, a lamp or a plain light-emitting diode, with no property the method relies on beyond being there. The baseline of this project ([design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). The opposite is special lighting. |
 | Parsec | The astronomers' unit of distance to the stars: 3.26 light years, or about 31 million million km. At 1 parsec, an angle of one second of arc spans one astronomical unit. |
 | Period | The distance over which a regular pattern repeats. Lines and spaces each 100 nm wide have a period of 200 nm. |
 | Phase | Where a wave is in its cycle. Sensors record brightness only, so phase has to be worked out by computation. |
@@ -144,9 +145,10 @@ link here the first time they use a term that is not explained on the spot.
 | Sparse | Made of few, well-separated features. |
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
 | Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
+| Special lighting | Light built for the method: laser beams, beam pairs, patterns, speckle, pulses or switched colours. Not assumed in this project; the reading of where the line falls is Table 4.11a of the [design](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes). |
 | Spectral width | The spread of wavelengths in a light source. A narrow spread means a pure colour and a long coherence length. |
 | Specular reflection | The mirror reflection of a beam: the part that leaves a surface at the same angle it arrived. |
-| Stage | Used in two senses: a step of the staged path (stage 0 to stage 4), and the moving platform that carries a sample or the sensor. |
+| Stage | Used in two senses: a step of the staged path (stages A to D of the main line of work, or stage 0 to stage 4 of the laser route), and the moving platform that carries a sample or the sensor. |
 | Stepped frequency | Measuring distance by combining measurements at many pure tones or colours, in place of timing a short pulse. |
 | Sub-pixel | Smaller than one pixel. |
 | Super-resolution | Recovering detail finer than the pixels by combining many readings taken at slightly different positions. |

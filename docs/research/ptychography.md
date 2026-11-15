@@ -1,7 +1,7 @@
 # Ptychography and lensless coherent imaging
 
-> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
-> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> **Changed on 15 November 2026.** Requirement [REQ-6](../design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
 > now a recorded alternative. The current line of work is in
 > [design, section 4.11](../design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
@@ -962,7 +962,7 @@ says whether the value is the least or the most allowed.
 
 ## 9. Recovering the picture without exact positions
 
-Tim's direction (14 November 2026): "Combining the results with simulation
+Requirement [REQ-19](../design.md#requirements) (14 November 2026): "Combining the results with simulation
 should allow recovery based on working out potential possible solutions and
 eliminating ones which are physically impossible even without exact
 positioning information."
@@ -1046,7 +1046,7 @@ table. The last column is a **Judgement**.
 
 Published ptychography uses a fast, simplified model of light inside the
 search. The project's chain of simulators allows a stricter kind of
-elimination, which is what Tim's direction points at (**Judgement**; none
+elimination, which is what the requirement points at (**Judgement**; none
 of this has been run):
 
 - **Eliminate by a more exact simulation than the one used to search.**
@@ -1065,7 +1065,7 @@ of this has been run):
   pass would eliminate one.
 - **Many starts in parallel.** Starting the search from many different
   guesses of position and surface on hundreds of cores, and keeping the
-  answers that agree, is a direct use of the computing Tim has offered and a
+  answers that agree, is a direct use of the computing that is available ([REQ-5](../design.md#requirements)) and a
   standard guard against false solutions.
 
 The safeguard that must go with all of this is the one the calibration page
@@ -1076,7 +1076,7 @@ wrong start, and only the detail that survives counts as seen.
 
 ### 9.4 Using time to eliminate candidates
 
-Tim's addition (14 November 2026): "Temporal properties of the real world
+The second part of the requirement (14 November 2026): "Temporal properties of the real world
 can also be used to help eliminate incorrect or impossible solution
 spaces."
 
@@ -1115,7 +1115,7 @@ checked at the laser powers the project ends up using.
 
 ## 10. Ideas this study turned up
 
-Tim asked that the research find things he had not named. These came out
+The research has to find things not already named ([REQ-20](../design.md#requirements)). These came out
 of the reading. Each is one line here, and the ones marked for the plan
 have been added to it.
 
@@ -1163,7 +1163,7 @@ To the design:
    beside the narrow-strip finding.
 8. **Update the benchmark**: lensless reflection imaging with 405 nm light
    has been shown at about 2 µm line width on wafers [[P17](#p17)].
-9. **Record Tim's elimination principle in the reconstruction section**:
+9. **Record the elimination principle in the reconstruction section**:
    positions are searched for, candidates are tested against simulation,
    physical rules remove the impossible ones, and every instrument unknown
    gets a model in time (section 9). The simulator build thread owns that

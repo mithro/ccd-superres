@@ -1,5 +1,13 @@
 # Reconstruction methods from radar, astronomy and other imaging fields
 
+> **Changed on 15 November 2026.** Requirement [REQ-6](design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. This page was written before that. Its first finding, that the lighting
+> has to change before the computing can help, still stands as physics, and it is why ordinary light cannot reach
+> 100 nm. The ranked shortlist in section 7 puts laser methods first and has not yet been re-ranked for ordinary
+> light ([plan](plan.md#c-fold-the-research-into-the-design), item C2). The methods on this page that need no special
+> light (solving positions, gap and gains from the data, locating lone features, uncertainty maps) are in the current
+> line of work: [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
+
 The instrument is a camera chip with its lens taken off, slid slowly across
 the surface of a silicon chip while it takes thousands of pictures. With no
 lens, each picture is a blur. The plan is for a computer to combine the
@@ -64,7 +72,7 @@ written to be read after the [design document](design.md) and the page on
 a staged reconstruction plan, and says how each item would appear in the
 simulator and the reconstruction.
 
-Three directions from Tim shape the page. The goal is to reconstruct a
+Three requirements shape the page ([REQ-3, REQ-11 and REQ-13](design.md#requirements)). The goal is to reconstruct a
 picture of an unknown layout, and that may be done in several stages (section
 7.2). Deliberately introducing randomness, and modelling the randomness that
 is already there, is in scope (section 3.12). And the two-dimensional nature
@@ -141,7 +149,7 @@ The numbers the rest of the page rests on:
 
 | Quantity | Value (nm) | Status |
 |---|---:|---|
-| Target line width | 100 | Tim's requirement |
+| Target line width | 100 | [REQ-3](design.md#requirements) |
 | Wavelength of the violet laser | 405 | Assumption, the design's starting value |
 | Width of one pixel | 1 120 | [[R1](references.md#the-sensor-and-its-layers)] |
 | Finest period, ordinary light, 30 µm gap | 22 500 | Estimate, design document formula |
@@ -614,8 +622,8 @@ self-calibration, discussed in section 5. Third, the imaging pipeline of the
 Event Horizon Telescope, which had badly corrupted phases and produced
 images by fitting directly to quantities that are immune to per-antenna
 errors, with several independent teams and methods cross-checking each other
-[[M31](#m31)]. That practice of blind cross-checks fits Tim's request for a chain of
-simulations checked against each other.
+[[M31](#m31)]. That practice of blind cross-checks fits the requirement for a chain of
+simulations checked against each other ([REQ-17](design.md#requirements)).
 
 **A useful insight.** The theorem behind radio astronomy says that even
 diffuse light carries fine detail across a gap. It is carried in the
@@ -662,7 +670,7 @@ better than the resolution, and builds an image from millions of positions
 |---|---|
 | Overlapping array sections between pings | Successive frames, which overlap almost completely |
 | Micronavigation | Frame-to-frame registration (design section 6.4) |
-| Record everything, focus offline | Tim's stated preference: keep raw frames, compute later |
+| Record everything, focus offline | The stated preference ([REQ-4](design.md#requirements)): keep raw frames, compute later |
 | Coherent plane-wave compounding | Synthetic aperture from several light directions |
 | Localising isolated bubbles | Locating isolated features and edges (section 4.4) |
 
@@ -722,8 +730,8 @@ also returns the noise and the exact blur of the output image [[M43](#m43)].
 Astronomers also derive the response of a pixel to a point of light from the
 dithered data itself, to an accuracy that supports position measurements of
 0.02 pixels [[M44](#m44)]. Camera phones now do multi-frame super-resolution using
-natural hand tremor as the source of sub-pixel offsets [[M50](#m50)], which is Tim's
-point about using natural misalignment, in a shipped product.
+natural hand tremor as the source of sub-pixel offsets [[M50](#m50)], which is the use
+of natural misalignment that [REQ-11](design.md#requirements) asks for, in a shipped product.
 
 **Known limits.** Registration and reconstruction have to be estimated
 together [[M45](#m45), [M46](#m46)], and their errors are coupled [[M49](#m49)]. The useful
@@ -985,7 +993,7 @@ per light direction. A three-dimensional electromagnetic simulation of a
 patch a few micrometres across at 5 nm cells takes minutes on tens of cores
 (an estimate, to be measured). A hundred iterations on one patch is hours on
 a large machine, and patches are independent. This is exactly the profile
-Tim described: hundreds of cores, no time limit. It is not feasible for a
+of [REQ-5](design.md#requirements): hundreds of cores, no time limit. It is not feasible for a
 whole sensor footprint, which is about 10⁶ such patches (derived here: a
 3.7 mm by 2.8 mm sensor divided into patches 3 µm across), so it is a tool
 for selected regions.
@@ -1092,7 +1100,7 @@ a small fraction of its blurred width when enough photons are collected
 For this instrument it means there are two possible products. One is a
 picture, limited to about half a wavelength in period. The other is a set of
 measured dimensions of structures of known type, which can be good to a few
-nanometres. Tim's goal is the picture of an unknown layout, so the second is
+nanometres. The goal is the picture of an unknown layout ([REQ-3](design.md#requirements)), so the second is
 not a substitute. It has a place as the final stage: once the picture shows
 what kind of structure is at each place, fitting its dimensions with the full
 electromagnetic model sharpens the picture's edges beyond what the band
@@ -1100,8 +1108,8 @@ allows, and the same model checks the picture against the raw data.
 
 ### 3.12 Deliberate randomness, across the fields
 
-Tim has put deliberate randomness, and the modelling of randomness that is
-already present, in scope. Nearly every field above uses randomness on
+Deliberate randomness, and the modelling of randomness that is
+already present, are in scope ([REQ-11](design.md#requirements)). Nearly every field above uses randomness on
 purpose somewhere. The uses fall into five kinds, and they differ a great
 deal in what they buy.
 
@@ -1233,8 +1241,8 @@ the gap, and random noise in the brightness values never adds information.
 
 ### 3.13 What a two-dimensional array adds, across the fields
 
-Tim's direction is to use the two-dimensional nature of the sensor to get
-more detail. Each field has moved from a single receiver, to a line, to a
+The two-dimensional nature of the sensor is to be used to get
+more detail ([REQ-13](design.md#requirements)). Each field has moved from a single receiver, to a line, to a
 two-dimensional array, and what the second dimension bought is well
 documented.
 
@@ -1469,7 +1477,7 @@ capabilities separate into three:
 | Locate or measure an isolated feature or edge | Signal-to-noise and model accuracy | A few nanometres | Estimate, by analogy with [[M97](#m97), [M98](#m98), [M100](#m100)] |
 | Resolve dense features | Half a wavelength in period | 100 to 200 nm lines | Derived here, section 4.1 |
 
-Tim's goal is the third row, a picture of an unknown layout. The first two
+The goal is the third row, a picture of an unknown layout. The first two
 rows still matter to it. They say that a picture made at one stage shows
 every feature in the right place even where it cannot yet separate close
 neighbours, which is what makes it a sound starting point for the next stage
@@ -1585,7 +1593,7 @@ memory: 10⁴ full frames at 10 bits are about 100 gigabytes.
 
 ## 7. Ranked shortlist, stages, and how each enters the simulator
 
-Ranked for the goal Tim has stated: a picture of an unknown layout at about
+Ranked for the stated goal: a picture of an unknown layout at about
 100 nm, built up in stages. Methods that form a picture come first. Within
 that, the order follows what each adds for its cost and how many stages it
 serves.
@@ -1655,14 +1663,14 @@ Two general requirements on the simulator follow from the survey:
   about this. The design document already generates ground truth on a finer
   grid. The chain should go further: data made at one level, reconstructed
   with the level below. That measures the error of the simpler model
-  directly, and it is the cross-check Tim asked for.
+  directly, and it is the cross-check [REQ-17](design.md#requirements) requires.
 - **Blind tests.** Following the radio astronomy practice [[M31](#m31)], keep some
   test surfaces whose truth the reconstruction code and its author never
   see.
 
 ### 7.2 Reconstructing in stages
 
-Tim's direction is that the picture may be reconstructed in several stages.
+The picture may be reconstructed in several stages ([REQ-3](design.md#requirements)).
 The fields surveyed do the same, and for a specific reason. The linear
 methods always converge but stop at a coarse picture. The methods that reach
 fine detail (phase retrieval, joint calibration, full-model fitting) are not
@@ -1726,7 +1734,7 @@ Points that make the staging work:
   all stages, and the stages become a matter of which frames and which rows
   the solver is given. This follows
   the ultrasound practice of recording everything and focusing later
-  [[M37](#m37)], and it suits Tim's preference for computation over hardware.
+  [[M37](#m37)], and it suits the preference for computation over hardware.
 - **Stages are also a build order.** Each stage is a working reconstruction
   with a picture as output, so the simulator and the instrument can be built
   and tested one stage at a time. This matches the levels of the simulation
@@ -1750,9 +1758,9 @@ Collected in one place, because each could mislead a design decision.
 | "X-ray ptychography images chips at 15 nm, so the algorithm can" | The wavelength did that. The algorithm delivered the wavelength's limit. |
 | "Radio telescopes get resolution from baselines, so a wider sensor would help" | They measure correlations of the wave. Pixels do not, unless a mask converts correlation to brightness. |
 
-## 9. Questions for Tim
+## 9. Open questions
 
-Tim has settled two points since the first draft: the goal is a picture of an
+Two points have been settled since the first draft: the goal is a picture of an
 unknown layout, reconstructed in stages, and deliberate randomness is in
 scope. The questions that remain:
 

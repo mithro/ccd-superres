@@ -1,7 +1,7 @@
 # Filters, gratings and other optical elements
 
-> **Changed on 15 November 2026.** Tim: "Assume we don't want special lighting to be used. Focus on the
-> computational approaches." Where this page says "leading candidate" it means the laser route, which is
+> **Changed on 15 November 2026.** Requirement [REQ-6](design.md#requirements): special lighting is not assumed, and the effort
+> goes into the computational approaches. Where this page says "leading candidate" it means the laser route, which is
 > now a recorded alternative. The current line of work is in
 > [design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
@@ -87,8 +87,8 @@ one-dimensional diffraction calculation in
 from the published literature. Each is labelled with which. Section 13 lists
 what these estimates leave out.
 
-Sections 2 to 8 survey the options in general. Tim has since stated the
-target: features of about 100 nm on silicon chips, with a strong preference
+Sections 2 to 8 survey the options in general. The target has since been stated
+([REQ-3](design.md#requirements)): features of about 100 nm on silicon chips, with a strong preference
 for more computation over more hardware, and all processing done offline on
 powerful computers with graphics cards. The goal is to reconstruct the picture, in
 several stages if need be. Section 9 works out what that target takes, and the
@@ -233,7 +233,7 @@ sides at once, which makes fine stripes of light where they cross.
 sourced: the limits in 9.2, the pixels in 9.3, measuring without imaging in
 9.5 and randomness in 9.7.*
 
-Tim's goal is to reconstruct the picture, in stages if need be. The
+The goal is to reconstruct the picture, in stages if need be ([REQ-3](design.md#requirements)). The
 recommendation is therefore a staged path that ends in true imaging at about
 100 nm. It is the current leading candidate, not a settled choice: the
 project explores many approaches in simulation, and this one is the
@@ -384,7 +384,7 @@ same wide opening. A separate small tube over each group of pixels does
 sharpen the picture, about ten-fold, at the price of nearly all the light.
 The wave nature of light stops the tubes being made too narrow.
 
-Tim's suggestion: put the sensor at the bottom of a deep absorbing tube so
+A suggestion to assess: put the sensor at the bottom of a deep absorbing tube so
 that only light travelling nearly straight up reaches it. The idea is sound.
 Whether it works depends entirely on whether there is one tube or many.
 
@@ -969,7 +969,7 @@ fine structure the gap removes.
   lines 308 nm wide resolved, with 240 mm² imaged in 15 seconds [[O22](#ref-o22)]. Both
   used transparent samples.
 
-Three features of that work match Tim's concept directly: the sample moves
+Three features of that work match this project's concept directly: the sample moves
 steadily past the sensor, positions are estimated from the data, and
 continuous motion during the exposure can be modelled instead of avoided
 [[O26](#ref-o26)]. Position refinement is standard practice in this field [[O34](#ref-o34)].
@@ -1182,7 +1182,7 @@ detail, so the detail has to be turned into broad patterns before the pixels
 can read it. A good deal can also be measured about 100 nm features without
 making a picture of them.
 
-Tim's target is features of about 100 nm on silicon chips. This section takes
+The target is features of about 100 nm on silicon chips ([REQ-3](design.md#requirements)). This section takes
 "100 nm features" to mean lines about 100 nm wide. Dense lines and spaces of
 that width repeat every 200 nm. An isolated 100 nm line or dot is a different
 and easier problem (section 9.5).
@@ -1563,11 +1563,11 @@ data, as long as the part stays the same from one frame to the next. So
 randomness is a way to buy with computation what would otherwise need
 precise hardware.
 
-Tim has said that introducing random noise on purpose, and modelling the
-randomness that is already there, are both in scope. Several elements on this
+Introducing random noise on purpose, and modelling the
+randomness that is already there, are both in scope ([REQ-11](design.md#requirements)). Several elements on this
 page are random by nature, and for them randomness is a strength. A random
 element needs no precision to make, because the computation learns what it
-is. That trades hardware for computation, which is the trade Tim prefers.
+is. That trades hardware for computation, which is the preferred trade ([REQ-4](design.md#requirements)).
 
 One limit comes first. Randomness does not move the limit of section 9.2,
 which is set by wavelength and angles. What it does is help the
@@ -1692,8 +1692,8 @@ What each candidate attacks and needs:
 candidate, where they are sourced or labelled. Most are **Derived here** or
 **Estimates**. The second table is a **Judgement**.*
 
-That table is the general comparison. For Tim's target and preferences the
-staged path below replaces a single ranking. What Tim has stated:
+That table is the general comparison. For the stated target and preferences the
+staged path below replaces a single ranking. The requirements that apply:
 
 - The goal is to reconstruct the picture: true imaging of features of about
   100 nm on silicon chips.
@@ -1941,7 +1941,7 @@ sharp images with open pixels in diffuse light is too small to let the light
 in. Tubes, and all the interference methods, resolve this by making larger
 gaps usable.
 
-Questions for Tim. Two are answered: the surfaces are smooth silicon chips,
+Open questions. Two are answered: the surfaces are smooth silicon chips,
 and the goal is a true picture at about 100 nm, reached in stages. Still open:
 
 1. **Are the 100 nm features dense lines and spaces, or isolated?** It sets
@@ -1954,7 +1954,7 @@ and the goal is a true picture at about 100 nm, reached in stages. Still open:
 4. **For stage 4, which is more acceptable: ultraviolet light, possibly with a
    stripped sensor, or water on the chip?**
 
-One open unknown, not a question for Tim: the response of the pixels to fine
+One open unknown, which no decision can settle: the response of the pixels to fine
 fringes (section 9.3). It is swept in simulation and measured when hardware
 starts.
 

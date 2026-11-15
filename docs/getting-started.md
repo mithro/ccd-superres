@@ -25,8 +25,8 @@ wide an area of the surface each pixel collects light from (the cone drawn), whi
 ![Two side views to scale of a sensor 3.68 mm wide held 1 mm above the chip, lit by steep laser beams from the side](diagrams/ptycho-beat-path.svg)
 
 *Figure 3. The laser route, to scale. It was the leading candidate until 15
-November 2026 and is now a recorded alternative, because Tim has ruled out
-special lighting ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)): steep laser
+November 2026 and is now a recorded alternative, because special lighting is not assumed
+([REQ-6](design.md#requirements); [design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)): steep laser
 beams enter under the edge of the sensor, and the pixels record the
 reflected light. From the
 [ptychography study, section 7](research/ptychography.md#7-has-beam-pair-mixing-been-done-before).
@@ -48,7 +48,7 @@ for ordinary light at each distance are in
 | Light | Even, undirected glow from a matt surface | 405 nm laser beams at about 72° from several directions. Whether each has partner beams is one of two options to be compared | [Design 4.7](design.md#47-a-staged-path-with-laser-light-a-recorded-alternative) |
 | Movement per frame | 0.37 pixel | 0.25 pixel, made slightly irregular | [Design 5.2](design.md#52-scan) |
 | Sensor tilt | None in one dimension. In two dimensions 0° unless set; the [level 1 example](level1.md) uses 3.6° | About 3.6° (1 in 16) | [Design 5.2](design.md#52-scan) |
-| Stage | One direction | Two directions (accepted by Tim) | [Design, section 11](design.md#11-build-stages-and-open-questions) |
+| Stage | One direction | Two directions (acceptable, [REQ-9](design.md#requirements)) | [Design, section 11](design.md#11-build-stages-and-open-questions) |
 | Finest detail | The test bars go down to a 320 nm period. The default run shows 800 nm, and the best approach so far shows 480 nm ([comparison](comparison.md)) | Aim: lines of 100 nm | [Design 4.6](design.md#46-the-target-100-nm-features-on-silicon-chips) |
 | Reconstruction | Shift and add, Wiener filter, least squares, position solving and known materials, all through the commands below. Elimination only from Python ([its page](constrained-reconstruction.md#running-it)) | Recovery of the light's phase with positions solved (ptychography) | [Design 6](design.md#6-reconstruction) |
 

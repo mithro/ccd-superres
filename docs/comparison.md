@@ -1,7 +1,7 @@
 # Comparing approaches
 
-Tim asked for a simulator that can explore many different approaches and not
-one. This page describes the part that does it, and the first comparison it
+The simulator has to explore many different approaches and not one
+([REQ-14](design.md#requirements)). This page describes the part that does it, and the first comparison it
 has run. An approach is one short text file. A comparison runs every approach
 in a list on the same test surfaces, under the same conditions, with the same
 random numbers, and scores every result with the same measures.

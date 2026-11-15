@@ -10,11 +10,11 @@ or could not physically exist. If one is left, it is the answer. If several
 are left, the answer is one of them. If none is left, something assumed
 about the instrument or the chip is wrong, and the method says so.
 
-The idea is Tim's: "Combinding the results with simulation should allow
-recovery based on working out potential possible solutions and eliminating
-ones which are physically impossible even without exact positioning
-information", and "Temporal properties of the real world can also be used to
-help eliminate incorrect or impossible solution spaces."
+This is requirement [REQ-19](design.md#requirements): combining the
+readings with simulation is to allow recovery without exact position
+information, by working out possible solutions and eliminating the
+physically impossible ones, including by the behaviour of the real world in
+time.
 
 It is one named approach among those the project compares
 ([design, section 7.1](design.md#71-approaches-as-named-configurations)), not
@@ -401,9 +401,9 @@ noise. The region examined also had plain dark material on both sides.
 | Coarse test bars, matt surface | The target is 100 nm lines under coherent light | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
 | One dimension | Real layouts are two-dimensional, with far more candidates per region | [Plan](plan.md#d-simulation-chain) item D2b |
 | The simulator that tests candidates is the one that made the data | Real pixels will differ from the model. Table 6 shows a 10% error in the gap is mostly tolerated; larger or different errors are untested. | Uncertain pixel response as a swept setting ([design 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)) |
-| Brightness of the light known exactly | Simulated, 6 scans: a brightness assumed 1 % too high still gave the true layout in all 6, and 2 % too high gave "nothing fits" in all 6. A read noise assumed to be 15 electrons when it was 2 still gave the true layout in all 6 | Make the brightness a slowly drifting unknown that is solved for, or read it from monitor pixels on the sensor, which Tim has suggested ([design, section 11, item 9](design.md#11-build-stages-and-open-questions)) |
+| Brightness of the light known exactly | Simulated, 6 scans: a brightness assumed 1 % too high still gave the true layout in all 6, and 2 % too high gave "nothing fits" in all 6. A read noise assumed to be 15 electrons when it was 2 still gave the true layout in all 6 | Make the brightness a slowly drifting unknown that is solved for, or read it from monitor pixels on the sensor, as [REQ-7](design.md#requirements) suggests ([design, section 11, item 9](design.md#11-build-stages-and-open-questions)) |
 | The region stands alone | It has 3 µm of plain dark material on each side, and the code assumes that. Structure right next to the region is untested | Later steps of item D2b |
-| The cell size of the layout is given | Tim (14 November 2026): "The chips design rules might be known but should not be assumed." The listing tests use no minimum-width rule, but they do assume the cell size of the drawing grid | Run every test with and without each rule and report the difference; later steps of item D2b |
+| The cell size of the layout is given | Design rules might be known but must not be assumed ([REQ-8](design.md#requirements)). The listing tests use no minimum-width rule, but they do assume the cell size of the drawing grid | Run every test with and without each rule and report the difference; later steps of item D2b |
 | Materials known exactly | An error of 0.05 in reflectance makes the method return nothing | Add the reflectances to the candidates; [plan](plan.md#data-collection) item R6 |
 | Only two materials, sharp boundaries | Real surfaces have more materials, slopes and films, and an extra material that is offered wrongly destroys the gain | Later steps of item D2b |
 | Smooth wander only, and the rule fails with shake | Real motion has both | A path model with a smooth part and a free part; [plan](plan.md#data-collection) item R11 |

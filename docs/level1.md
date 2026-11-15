@@ -30,8 +30,11 @@ the [two-dimensional part](#two-dimensions-and-sensor-tilt) adds a fourth.
    is restored. See
    [scan position errors](#scan-position-errors-and-finding-them-from-the-data).
 
-Level 1 is **not** a model of the 100 nm target. That target needs coherent
-slanted light, which is level 3 in the [simulation chain](simulation-chain.md).
+Level 1 is the ordinary-light model, which is the main line of work
+([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). It does not reach the 100 nm target, and under
+ordinary light nothing does: that target needs coherent slanted light,
+which is level 3 in the [simulation chain](simulation-chain.md) and is now
+a recorded alternative.
 The example here uses coarse lines so that the method can be checked where
 the answer is known. For scale: a pixel of the baseline sensor is 1.12 µm
 wide, about one sixtieth of the width of a human hair, and the finest bars
@@ -513,7 +516,7 @@ covered yet.
 | Position estimation is one-dimensional | Sideways errors, rotation and changes of gap during the scan also occur, and the capture range is about half a pixel | Next step of [plan item D2](plan.md#d-simulation-chain) |
 | The same blur model simulates and reconstructs | A reconstruction always looks best when it knows the blur perfectly. Real pixels will differ from the model. | Uncertain pixel response as a swept setting ([design 4.9](design.md#49-simulation-first-the-unknown-pixel-response-and-the-gate-before-hardware)); cross-checks against levels 2 to 4 |
 | Pixel gain differences are simulated but not corrected | Uncorrected gain differences leave stripes | [Calibration and test methods](calibration-and-test.md) |
-| Matt or mirror-like surface, no interference | The 100 nm target relies on interference of coherent light | Level 3 |
+| Matt or mirror-like surface, no interference | The blur model is a best case for a mirror-like chip under ordinary light, and it is unconfirmed for detail finer than a few micrometres ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). The laser route, a recorded alternative, relies on interference | Levels 3 and 4 |
 | Grid wraps round | Harmless with margins; would mix the two ends of a real strip | Removed with the tiled solver |
 
 *Table 12. Known limits of this version.*
