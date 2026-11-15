@@ -232,6 +232,22 @@ python docs/diagrams/make_light_entry_diagrams.py
 | [`light-entry-slot`](diagrams/light-entry-slot.svg) | Side view of the slot between sensor and chip with one ray bouncing along it | Illustrative, not to scale |
 | [`light-entry-curves`](diagrams/light-entry-curves.svg) | A pixel's reading, and how far away its light last touched the chip, against distance from the open edge for four gaps | Straight-ray estimate in [`ccdsr/light_entry.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/light_entry.py) |
 
+## Backlight figures
+
+The figures on the [backlight](backlight.md) page come from
+[`docs/diagrams/make_backlight_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_backlight_diagrams.py),
+which also prints the numbers of that page's tables:
+
+```
+python docs/diagrams/make_backlight_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`backlight-layout`](diagrams/backlight-layout.svg) | Side view of a lamp behind the chip, the metal wiring blocking its light, and the sensor above | Illustrative, not to scale |
+| [`backlight-spectrum`](diagrams/backlight-spectrum.svg) | Share of light that crosses the chip and that a pixel catches, and their product, against wavelength | Flat-layer estimate in [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) with the silicon table of Green (2008) |
+| [`backlight-sharpness`](diagrams/backlight-sharpness.svg) | Finest line width against gap for near-infrared light from behind and for the visible best case | Analytic model in [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) with the depth factor of `ccdsr/backlight.py` |
+
 ## Beamforming study figures
 
 The figures on the [beamforming and array processing](research/beamforming.md)

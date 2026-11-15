@@ -26,6 +26,15 @@ See the [light entry page](light-entry.md).
    :members:
 ```
 
+## Light from behind the chip
+
+See the [backlight page](backlight.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.backlight
+   :members:
+```
+
 ## Simulation level 1
 
 See the [level 1 page](level1.md) for the method and results. One dimension:
