@@ -15,11 +15,13 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 from matplotlib.patches import Rectangle
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from ccdsr.light_entry import light_under_sensor  # noqa: E402
+from ccdsr.light_entry import (flattest_wave_angle, light_under_sensor,  # noqa: E402
+                               rays_are_self_consistent, wave_limited_survival)
 
 OUT = Path(__file__).resolve().parent
 
@@ -58,7 +60,7 @@ def slot():
     ax.add_patch(Rectangle((0, 1.0), 10, 0.9, facecolor=SILICON, edgecolor=INK2))
     ax.add_patch(Rectangle((0, -0.9), 10, 0.9, facecolor=SAMPLE, edgecolor=INK2))
     ax.text(5, 1.45, "sensor (pixels face down)", ha="center", va="center")
-    ax.text(5, -0.45, "chip being looked at", ha="center", va="center")
+    ax.text(2.2, -0.45, "chip being looked at", ha="center", va="center")
     # the ray
     xs = np.arange(0, 10.01, 1.25)
     ys = np.where(np.arange(len(xs)) % 2 == 0, 0.0, 1.0)
@@ -78,18 +80,19 @@ def slot():
                 arrowprops=dict(arrowstyle="->", color=INK2), color=INK2, va="bottom")
     ax.annotate("what a pixel absorbs\nhere is its reading", xy=(6.25, 1.0), xytext=(6.6, 2.25),
                 arrowprops=dict(arrowstyle="->", color=INK2), color=INK2, va="bottom")
-    ax.annotate("its light last touched\nthe chip half a hop back", xy=(5.0, 0.0), xytext=(7.2, -1.42),
+    ax.annotate("its light last touched\nthe chip half a hop back", xy=(5.0, 0.0), xytext=(7.6, -1.25),
                 arrowprops=dict(arrowstyle="->", color=AQUA), color=AQUA, va="center")
     save(fig, "slot")
 
 
 def curves():
     """Reading and last-touch distance against distance from the edge."""
-    dist_um = np.logspace(0, np.log10(1380), 40)
-    gaps_um = [0.3, 1.0, 3.0, 10.0]
-    colours = [BLUE, ORANGE, AQUA, YELLOW]
+    gaps_um = [5.0, 10.0, 30.0]
+    colours = [BLUE, ORANGE, AQUA]
     fig, (a, b) = plt.subplots(1, 2, figsize=(10.5, 4.2))
     for gap, c in zip(gaps_um, colours):
+        # The smooth-loss model needs many touches: start 30 gaps in.
+        dist_um = np.logspace(np.log10(30 * gap), np.log10(1380), 40)
         got = [light_under_sensor(gap * 1000, distance_nm=d * 1000) for d in dist_um]
         a.loglog(dist_um, [g.reading for g in got], color=c, lw=1.8, label=f"gap {gap:g} µm")
         b.loglog(dist_um, [g.hop_in_gaps * gap / 2 for g in got], color=c, lw=1.8,
@@ -101,13 +104,16 @@ def curves():
     b.set_xlabel("Distance in from the open edge (µm)")
     b.set_ylabel("Distance to where the light last touched the chip (µm)")
     b.set_title("How far away that light last touched the chip", loc="left", fontsize=11)
-    b.text(1.1, 0.33, "dotted: the gap itself, which is the\nblur in the best case of design Table 4.11b",
-           fontsize=8.5, color=INK2, va="bottom")
+    b.text(0.97, 0.07, "dotted: the gap itself, which is the\nblur in the best case of design Table 4.11b",
+           fontsize=8.5, color=INK2, va="bottom", ha="right", transform=b.transAxes)
     for ax in (a, b):
+        ax.set_xlim(100, 2000)
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.grid(True, which="major", color=GRID, lw=0.6)
         ax.axvline(1380, color=INK2, lw=0.8, ls="--")
         ax.legend(frameon=False, fontsize=9)
-    a.text(1300, a.get_ylim()[1] * 0.5, "middle of\nthe sensor", ha="right", va="top", fontsize=8.5, color=INK2)
+    a.text(1300, a.get_ylim()[1] * 0.25, "middle of\nthe sensor", ha="right", va="top", fontsize=8.5, color=INK2)
     fig.tight_layout()
     save(fig, "curves")
 
@@ -115,7 +121,11 @@ def curves():
 if __name__ == "__main__":
     slot()
     curves()
-    for gap in (300, 1000, 3000, 10000, 30000, 100000, 500000):
+    for gap in (300, 1000, 3000, 5000, 10000, 30000):
         r = light_under_sensor(gap)
-        print(f"gap {gap:>7} nm  ratio {r.ratio:7.0f}  reading {r.reading:.1e}  "
-              f"arrives at {r.arrival_deg:.1f} deg  last touch {r.hop_in_gaps * gap / 2000:.0f} um")
+        flat = np.degrees(flattest_wave_angle(gap))
+        s, p = wave_limited_survival(gap)
+        print(f"gap {gap:>6} nm  ratio {r.ratio:5.0f}  reading {r.reading:.1e}  "
+              f"arrives at {r.arrival_deg:.1f} deg  last touch {r.hop_in_gaps * gap / 2000:.0f} um  "
+              f"typical ray {r.grazing_deg:.1f} deg  flattest wave {flat:.1f} deg  "
+              f"wave left {s:.0e} / {p:.0e}  rays consistent {rays_are_self_consistent(gap)}")

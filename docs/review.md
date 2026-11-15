@@ -603,3 +603,37 @@ reviewer: the content of the figures, links to other sites, and the bodies
 of the older research pages beyond the lines that changed. The corrections
 to the second reviewer's findings were checked by a strict build of the
 pages and not by a third review.*
+
+## Review 12: the estimate of ordinary light entering under the sensor
+
+The [light entry](light-entry.md) page, its code
+([`ccdsr/light_entry.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/light_entry.py)),
+its tests and figures, and the matching changes to the design and plan
+were reviewed on 15 November 2026, before merging. The reviewer was given
+the material and not the author's conclusions. It derived the model again
+from scratch, wrote its own program that follows rays one at a time and
+compared the two, recomputed the tables, and broke the code on purpose in
+a copy to see whether the tests noticed.
+
+It confirmed the derivation, the reflection formulas, the far-in rule and
+its coefficient, and the tables for gaps up to 30 µm. Its own program
+agreed with the code within 1 % to 3 % far from the edge and within 12 %
+at 46 gaps from the edge.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The headline numbers for gaps under about 5 µm were far too high. Light squeezed into a slot cannot travel flatter than a certain angle, and the rays the model relied on at those gaps are flatter than that, so they cannot exist. | The limit is now in the code and on the page (Table 3). The conclusion became stronger: at those gaps side light does not reach the middle of the sensor. The ray model's readings are given only for 5 µm and more. |
+| 2 | Error | The page said scattering by the chip's edges "could restore the best case". It left out that the first features shade the rest, that scattered light bounces again and makes a halo, and that only edges across the light scatter strongly. | Reworded to "might give a picture of edges near the lit side", with the three limits. |
+| 3 | Error | The rows for gaps of 100 µm and 500 µm were wrong by up to a factor of 2, because the model treats the loss as smooth and that needs many touches. | Rows removed; the model is used only beyond 30 gaps from the edge, and the page says so. |
+| 4 | Error | The gain from aiming a lamp along the slot was given as up to 60 times with no change to the blur. It is 4 to 7 times, and the blur gets worse. | Corrected. |
+| 5 | Gap | The table of other ways in undersold near-infrared light through the chip from behind, and did not say that the baseline sensor is lit from its back face or that light through the sensor would pass the light-sensitive layer first. The chip's own glass layers were not mentioned. | Table 6 rewritten with near-infrared first; a first estimate of it is a new plan item (D2e). |
+| 6 | Gap | The page and the plan disagreed on item numbers, the plan still sent the question to ray tracing, and the design kept two statements that the new finding contradicts. | Aligned. |
+| 7 | Gap | The size of the mark a feature leaves was not given, and the reading's definition hid a factor of up to 1.6. | Both stated. |
+| 8 | Gap | The tests did not catch a 4 % scale error or a wrong definition of the typical ray, and the main pinned value was the code's own output. | Tests added against the rule worked out by hand, against a direct calculation of the typical ray, and for the new wave limit. |
+| 9 | Wording | The derivation was in the code only; "Fresnel formulas", "polarisation" and "near-infrared" were not explained; a label in Figure 1 was crossed by an arrow. | Derivation is Table 1a of the page; terms explained and added to the [glossary](glossary.md); figure fixed. |
+
+*Table: findings of review 12. Not checked by the reviewer: the sources
+(none was read), the figures in their published form, and anything that
+needs a wave simulation: finding 1 rests on a hand estimate. The
+corrections were checked by the tests and a strict build of the pages, not
+by a second review. The refractive indices on the page remain Unverified.*

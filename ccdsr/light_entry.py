@@ -122,6 +122,63 @@ def slot_light(ratio, chip=SILICON, sensor=SILICON):
     )
 
 
+def flattest_wave_angle(gap_nm, wavelength_nm=550.0):
+    """Smallest grazing angle a wave confined to the slot can have, radians.
+
+    Light squeezed between two surfaces a distance ``gap`` apart cannot
+    travel flatter than ``asin(wavelength / (2 gap))``: across the slot it
+    must fit at least half a wave. Returns ``nan`` when the gap is under
+    half a wavelength, where no travelling wave of this kind fits at all.
+    This is the textbook result for two mirrors; real walls change the
+    details and not the scale.
+    """
+    x = wavelength_nm / (2.0 * gap_nm)
+    return float(np.arcsin(x)) if x <= 1.0 else float("nan")
+
+
+def wave_limited_survival(gap_nm, distance_nm=1.38e6, wavelength_nm=550.0,
+                          chip=SILICON, sensor=SILICON):
+    """Share of the flattest allowed wave left after ``distance``.
+
+    Applies the ray model's loss per touch to a ray at the flattest angle a
+    wave can take (:func:`flattest_wave_angle`). Rays flatter than that,
+    which carry nearly all the light in :func:`slot_light` when the gap is
+    small, do not exist as waves, so this is the better guide to scale
+    there. Returns ``(s, p)`` for the two polarisations, or ``(0.0, 0.0)``
+    when the gap is under half a wavelength.
+    """
+    phi = flattest_wave_angle(gap_nm, wavelength_nm)
+    if not np.isfinite(phi):
+        return 0.0, 0.0
+    s, p = ray_survival(distance_nm / gap_nm, phi, chip, sensor)
+    return float(s), float(p)
+
+
+def reach_of_flattest_wave(gap_nm, share=0.01, wavelength_nm=550.0,
+                           chip=SILICON, sensor=SILICON):
+    """Distance in at which the flattest allowed wave has fallen to ``share``.
+
+    Returns ``(s, p)`` in nanometres for the two polarisations, or
+    ``(0.0, 0.0)`` when the gap is under half a wavelength.
+    """
+    phi = flattest_wave_angle(gap_nm, wavelength_nm)
+    if not np.isfinite(phi):
+        return 0.0, 0.0
+    out = []
+    for rc, rs in zip(fresnel_reflectance(chip, phi), fresnel_reflectance(sensor, phi)):
+        loss_per_nm = np.tan(phi) / (2.0 * gap_nm) * -(np.log(rc) + np.log(rs))
+        out.append(float(-np.log(share) / loss_per_nm))
+    return tuple(out)
+
+
+def rays_are_self_consistent(gap_nm, distance_nm=1.38e6, wavelength_nm=550.0,
+                             chip=SILICON, sensor=SILICON):
+    """Whether the typical ray of :func:`slot_light` is one a wave could follow."""
+    phi = flattest_wave_angle(gap_nm, wavelength_nm)
+    typical = np.radians(slot_light(distance_nm / gap_nm, chip, sensor).grazing_deg)
+    return bool(np.isfinite(phi) and typical >= phi)
+
+
 def light_under_sensor(gap_nm, distance_nm=1.38e6, chip=SILICON, sensor=SILICON):
     """:func:`slot_light` for a gap and a distance in from the edge.
 

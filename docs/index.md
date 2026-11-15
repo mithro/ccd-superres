@@ -27,7 +27,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Trade-off explorer](explorer.md) | The same model as an interactive page | Implemented |
 | [Interactive explorer](interactive-explorer.md) | A page with a control for every setting that reruns the real simulator: setup, raw readings, reconstructions of several methods side by side, and scores. Started with `python -m ccdsr.gui` | First version, level 1 in one and two dimensions |
 | [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
-| [Light entry](light-entry.md) | A rough estimate of how much ordinary light gets under the sensor from the side, and what that does to the picture | First estimate, straight rays only |
+| [Light entry](light-entry.md) | A rough estimate of how much ordinary light gets under the sensor from the side, and what that does to the picture | First estimate: straight rays with a simple wave limit |
 | [Reconstruction by elimination](constrained-reconstruction.md) | Using the simulator to test candidate surfaces and positions and rule out the physically impossible: material limits, layout rules and a smooth sensor path | First version in one dimension |
 | [Comparing approaches](comparison.md) | How an approach is written as one short file, and the first comparison: 13 approaches on 4 surfaces under 6 conditions, 10 runs each | First version, level 1 in one dimension |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |

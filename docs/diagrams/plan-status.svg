@@ -190,8 +190,8 @@ z
    </g>
    <g id="patch_22">
     <path d="M 217.358832 129.502668 
-L 272.271741 129.502668 
-L 272.271741 108.892761 
+L 280.116442 129.502668 
+L 280.116442 108.892761 
 L 217.358832 108.892761 
 z
 " clip-path="url(#p1682decff6)" style="fill: #dddcd6; stroke: #fcfcfb; stroke-linejoin: miter"/>
@@ -1560,9 +1560,9 @@ z
     </g>
    </g>
    <g id="text_25">
-    <!-- 7 -->
-    <g style="fill: #0b0b0b" transform="translate(241.952162 121.535605) scale(0.09 -0.09)">
-     <use xlink:href="#DejaVuSans-1a"/>
+    <!-- 8 -->
+    <g style="fill: #0b0b0b" transform="translate(245.874512 121.535605) scale(0.09 -0.09)">
+     <use xlink:href="#DejaVuSans-1b"/>
     </g>
    </g>
    <g id="text_26">

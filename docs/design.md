@@ -24,9 +24,11 @@ The main things this document establishes:
   sensor as sold. Computation adds position solving, detection and
   location of lone features, and an inferred picture where the materials
   are known (section 4.11). That is a best case: a first estimate of how
-  ordinary light gets under the sensor from the side finds very little
-  light, arriving at a skimming angle, and a blur of tens of micrometres
-  on a flat chip ([light entry](light-entry.md)). The laser route is kept
+  ordinary light gets under the sensor from the side finds that it does
+  not reach the middle at gaps under about 5 µm, and at larger gaps gives
+  very little light and a blur of 90 µm or more
+  ([light entry](light-entry.md)). How the chip is lit is now the first
+  question to settle. The laser route is kept
   as a recorded alternative.
 - **Taking more readings helps, but slowly.** A thousand times more data
   buys only a modest gain, so computation has to be spent cleverly, not
@@ -1197,33 +1199,34 @@ the sensor (section 5.3). The sensitive area is 3.68 mm by 2.76 mm, so
 light from the side has to travel up to about 1.4 mm to reach the middle,
 along a slot that is 0.3 µm to 3 µm high: between about 500 and 5,000 times
 longer than it is high (Derived here from the dimensions of section 5.1).
-It gets there only by reflecting between chip and sensor hundreds of times
-(Derived here from the same dimensions for light at 45°).
 A first rough estimate with straight rays is on the
 [light entry](light-entry.md) page (Estimate; rays are not to be trusted in
-so shallow a slot). It gives three things. A pixel in the middle gets a
-few millionths of the light an uncovered pixel would get. That light
-arrives skimming, at 88° to 89° from straight on. And it last touched the
-chip 20 µm to 70 µm away, so on a flat chip lit from the side the blur is
-tens of micrometres and the best case of Table 4.11b is not reached. What
-could rescue side light is the chip's own edges and steps scattering the
-skimming light upwards into the pixel above, which would give a picture of
-edges at about the best-case sharpness. Whether that light is bright
-enough is not known (Unverified). The bond wires around the
+so shallow a slot). It gives three things. At gaps under about 5 µm the light
+is absorbed before it reaches the middle, because a wave squeezed into so
+narrow a slot cannot travel flat enough to survive. At gaps of 5 µm and
+more a pixel in the middle gets a few hundred-thousandths of the light an
+uncovered pixel would get, arriving skimming at 82° to 87° from straight
+on. And that light last touched the chip about 90 µm to 200 µm away, so on
+a flat chip lit from the side the blur is that coarse and the best case of
+Table 4.11b is not reached at any gap. Side light is therefore not a
+workable baseline as it stands. The candidates are plain near-infrared
+light through the chip from behind, and the chip's own edges scattering
+skimming light upwards near the lit side; both are Unverified. The bond wires around the
 sensor also force the chip to be smaller than the sensor or to stand on a
 pedestal (section 5.3). The laser route avoided all this with a gap of
 about a millimetre (Table 4.10a), which ordinary light cannot use without
 losing all fine detail. A slot this shallow is too small for ray tracing to
-be trusted, so the next step is a wave calculation of light entry and of
-scattering by edges, and its result decides which light model the
-reconstruction has to use.
+be trusted, so the next step is to settle how the chip is lit: a wave
+calculation of light entry and of scattering by edges, and a first
+estimate for light from behind the chip. The result decides which light
+model the reconstruction has to use.
 
 **Order of work from here**, all in simulation:
 
 | Order | Work | Why now |
 |--:|---|---|
-| 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap. Done: [light entry](light-entry.md) | It showed that side light on a flat chip does not reach the best case of Table 4.11b |
-| 1a | A wave calculation on a small cross-section (level 4, moved up from item 10): how much side light reaches the middle, and how much of it the chip's edges and steps scatter upwards into the pixel above | It decides the light model that every item below has to use |
+| 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap. Done: [light entry](light-entry.md) | It showed that side light does not reach the middle of the sensor at gaps under about 5 µm, and does not give the best case of Table 4.11b at any gap |
+| 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and how much of it the chip's edges and steps scatter upwards into the pixel above | It decides the light model that every item below has to use |
 | 1b | A second light model in level 1 beside "matt": light from the side, where a reading is a running total along the direction of the light with a sideways carry | So that the items below can be run under both models until item 1a decides |
 | 2 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
 | 3 | Position solving, rotation, gap and wedge (the gap being larger at one side of the sensor than the other), and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
@@ -2248,9 +2251,9 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.6 | An ideally sharp 1.12 µm pixel passes about 6% of a 200 nm stripe pattern | **Derived here**: the sinc envelope $\Lambda/(\pi a)$ with $a$ = 1120 nm |
 | 4.6 | Lensless imaging in reflection is undemonstrated below about 2 µm | From the optical elements study, section 9.2, and its sources |
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
-| 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
 | 4.10 | Corrections and additions from the four research studies | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
-| 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there. Light entry under the sensor is **Unverified**. |
+| 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
+| 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there.  |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
 | 4.8 | A coded exposure keeps motion blur reversible | [Raskar2006] |
 | 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), `motion_transfer`). Not taken from a publication. |
