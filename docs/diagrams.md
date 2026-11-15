@@ -246,7 +246,7 @@ python docs/diagrams/make_backlight_diagrams.py
 |---|---|---|
 | [`backlight-layout`](diagrams/backlight-layout.svg) | Side view of a lamp behind the chip, the metal wiring blocking its light, and the sensor above | Illustrative, not to scale |
 | [`backlight-spectrum`](diagrams/backlight-spectrum.svg) | Share of light that crosses the chip and that a pixel catches, and their product, against wavelength | Flat-layer estimate in [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) with the silicon table of Green (2008) |
-| [`backlight-sharpness`](diagrams/backlight-sharpness.svg) | Finest line width against gap for near-infrared light from behind and for the visible best case | Analytic model in [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) with the depth factor of `ccdsr/backlight.py` |
+| [`backlight-sharpness`](diagrams/backlight-sharpness.svg) | Finest line width against gap for near-infrared light from behind and for the visible best case | Analytic model in [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) with the depth factor of [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) |
 
 ## Beamforming study figures
 

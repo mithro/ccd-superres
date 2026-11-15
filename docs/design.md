@@ -29,7 +29,7 @@ The main things this document establishes:
   very little light and a blur of 90 µm or more
   ([light entry](light-entry.md)). The leading way to light the chip is now
   plain near-infrared light from behind, which would show the chip's metal
-  wiring at lines of about 300 nm to 500 nm ([backlight](backlight.md);
+  wiring at lines of about half a micrometre ([backlight](backlight.md);
   Estimate, with open points). The laser route is kept
   as a recorded alternative.
 - **Taking more readings helps, but slowly.** A thousand times more data
@@ -1215,11 +1215,14 @@ workable baseline as it stands. The leading candidate is plain
 near-infrared light through the chip from behind. A first estimate
 ([backlight](backlight.md); Estimate) finds that a pixel detects about 8
 parts in 10,000 of the lamp's light through a chip 500 µm thick, that the
-picture is a shadow of the chip's metal wiring, and that the finest lines
-are about 280 nm at a gap of 0.3 µm and about 520 nm at 10 µm, so the gap
-no longer has to be a fraction of a micrometre. Whether such a lamp counts
-as special lighting is open (section 11, item 12), and the chip's doping
-and how much of it is free of metal are not checked. The other candidate,
+picture is a shadow of the chip's metal wiring, and that lines of about
+half a micrometre should be within reach at gaps up to about 10 µm, so
+the gap no longer has to be a fraction of a micrometre. The model's own
+limit of about 280 nm at a gap of 0.3 µm is unlikely to be met in
+practice. All of this needs the back of the chip to be exposed and
+polished. Whether such a lamp counts as special lighting is open (section
+11, item 12), and the chip's doping, how much of it is free of metal, and
+the sensor's behaviour at this wavelength are not checked. The other candidate,
 the chip's own edges scattering skimming light upwards near the lit side,
 is Unverified. The bond wires around the
 sensor also force the chip to be smaller than the sensor or to stand on a
@@ -2261,8 +2264,8 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.6 | An ideally sharp 1.12 µm pixel passes about 6% of a 200 nm stripe pattern | **Derived here**: the sinc envelope $\Lambda/(\pi a)$ with $a$ = 1120 nm |
 | 4.6 | Lensless imaging in reflection is undemonstrated below about 2 µm | From the optical elements study, section 9.2, and its sources |
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
-| 4.10 | Corrections and additions from the four research studies |
-| 4.11 | Near-infrared light from behind the chip | **Estimate** from the flat-layer model on the [backlight](backlight.md) page, with silicon data from its cited source. Doping, metal coverage and the sensor's response are unchecked | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
+| 4.10 | Corrections and additions from the four research studies | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
+| 4.11 | Near-infrared light from behind the chip | **Estimate** from the flat-layer model on the [backlight](backlight.md) page, with silicon data from its cited source. Doping, metal coverage, the state of the chip's back face and the sensor's response are unchecked |
 | 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
 | 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there.  |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |

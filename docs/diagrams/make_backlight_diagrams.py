@@ -113,7 +113,7 @@ def spectrum():
 
 def sharpness():
     """Finest line width against gap, from behind and the visible best case."""
-    gaps = np.logspace(np.log10(100), np.log10(30000), 40)
+    gaps = np.logspace(np.log10(100), np.log10(10000), 40)
     back = [backlight_period(1.3e4, g, 1050.0, 3.0, edge_sigma_nm=SIGMA) / 2 for g in gaps]
     matt = [recoverable_period(1.3e4, g, edge_sigma_nm=SIGMA) / 2 for g in gaps]
     fig, ax = plt.subplots(figsize=(6.6, 4.2))
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         print(w, f"chip500 {float(chip_transmission(w, 500)):.3f} pixel {float(pixel_absorption(w)):.4f}")
     for p in (400, 500, 700, 1000, 1500, 2000):
         print("washout", p, f"{float(depth_washout(p, 1050)):.2f}")
-    for g in (300, 1000, 3000, 10000, 30000):
+    for g in (300, 1000, 3000, 10000):
         print("gap", g, "behind", round(backlight_period(1.3e4, g, 1050, 3, edge_sigma_nm=SIGMA) / 2),
               "depth 2:", round(backlight_period(1.3e4, g, 1050, 2, edge_sigma_nm=SIGMA) / 2),
               "depth 4:", round(backlight_period(1.3e4, g, 1050, 4, edge_sigma_nm=SIGMA) / 2),

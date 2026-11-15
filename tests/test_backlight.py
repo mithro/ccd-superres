@@ -80,3 +80,21 @@ def test_finest_period_with_light_from_behind():
     assert far < 0.25 * recoverable_period(1.3e4, 10000.0, edge_sigma_nm=127.4)
     # without the washout the result is finer, so the factor is doing something
     assert backlight_period(1.3e4, 300.0, depth_um=0.0, edge_sigma_nm=127.4) < close
+
+
+def test_between_table_rows_k_follows_a_straight_line_on_a_log_scale():
+    # 1045 nm lies half way between rows at 1040 nm (1.8704e-4) and 1050 nm (1.3620e-4).
+    _, k = silicon_nk(1045.0)
+    assert k == pytest.approx(math.sqrt(1.8704e-4 * 1.3620e-4), rel=1e-6)
+    assert k != pytest.approx((1.8704e-4 + 1.3620e-4) / 2, rel=1e-3)
+
+
+def test_depth_washout_is_the_upper_envelope():
+    # At 700 nm the phase slips by 0.95 of a turn over 3 um, where the sinc itself
+    # is close to zero; the envelope 1 / (pi * turns) is returned.
+    n = silicon_nk(1050.0)[0]
+    straight = n / 1050.0
+    turns = (straight - math.sqrt(straight**2 - 1 / 700.0**2)) * 3000.0
+    assert turns == pytest.approx(0.948, abs=0.005)
+    assert depth_washout(700.0, 1050.0) == pytest.approx(1 / (math.pi * turns), rel=1e-6)
+    assert abs(np.sinc(turns)) < depth_washout(700.0, 1050.0)

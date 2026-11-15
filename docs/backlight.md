@@ -11,23 +11,26 @@ the [plan](plan.md#d-simulation-chain).
 
 The answers:
 
-- **Enough light arrives.** Through an unthinned chip 500 µm thick, a
-  pixel detects about 8 parts in 10,000 of the lamp's light at the best
-  wavelength, about 1,045 nm. That is ten times more than side light gave
-  at a gap of 10 µm, and it does not depend on the gap.
-- **The gap can be small again, and need not be.** Light from behind does
-  not have to squeeze along the slot. With a gap of 0.3 µm the estimate
-  gives lines of about 280 nm. With a gap of 10 µm it still gives lines of
-  about 520 nm, because directed light carries detail down to about its own
-  wavelength across any gap.
-- **The picture is of the metal, and the limit is about half a micrometre
-  unless the sensor almost touches.** The wavelength is twice that of
-  green light, and the light is absorbed all the way down through the
-  pixel, which smears fine detail.
-- **Three things could spoil it and are not checked:** heavily doped
-  silicon absorbs much more than the pure silicon assumed here, chips with
-  many metal layers may leave almost no openings, and the sensor's response
-  at this wavelength is assumed and not looked up.
+- **Far more light arrives than from the side.** Through an unthinned
+  chip 500 µm thick, a pixel detects about 8 parts in 10,000 of the lamp's
+  light at the best wavelength, about 1,045 nm. That is ten times more
+  than side light gave at a gap of 10 µm, and it does not depend on the
+  gap. Whether it is enough for a practical exposure has not been worked
+  out; it probably is (Judgement).
+- **The gap need not be a fraction of a micrometre.** Light from behind
+  does not have to squeeze along the slot, and directed light carries
+  detail down to about its own wavelength across a gap. The model gives
+  lines of about half a micrometre at gaps up to about 10 µm. This holds
+  only if the back of the chip is exposed and polished and the lamp is
+  small or far away.
+- **The picture is of the metal, at about half a micrometre.** The
+  wavelength is twice that of green light. The model gives finer lines,
+  down to about 280 nm, when the sensor almost touches, but several
+  effects it leaves out make that unlikely in practice (section 4).
+- **Several things could spoil it and are not checked:** the chip's back
+  face and packaging, heavily doped silicon, chips with so many metal
+  layers that no openings are left, and the sensor's behaviour at this
+  wavelength.
 
 Whether a plain near-infrared lamp counts as special lighting is an open
 question ([design, section 11](design.md#11-build-stages-and-open-questions),
@@ -61,7 +64,7 @@ light-sensitive layer as well, without being caught.
 
 | Step | Formula | Source |
 |--:|---|---|
-| 1. Enters the back of the chip | 1 − reflection at air to silicon | Fresnel formula for light arriving straight on [BornWolf] |
+| 1. Enters the back of the chip | 1 − reflection at air to silicon | The standard formula for reflection of light arriving straight on a flat surface (a Fresnel formula) [BornWolf] |
 | 2. Crosses the chip's silicon | exp(−rate × thickness), with rate = 4π k ÷ wavelength | k from [Green2008] |
 | 3. Leaves through the glass on the chip's face | (1 − reflection at silicon to glass) × (1 − reflection at glass to air) | As step 1; glass index 1.45, Unverified round value |
 | 4. Enters the pixel | 1 − reflection at air to silicon | As step 1 |
@@ -108,23 +111,25 @@ the lamp's light. Estimate. For comparison, side light gave 0.000 078 at a
 gap of 10 µm and nothing useful under 5 µm
 ([light entry](light-entry.md), Tables 3 and 3c).*
 
-So the exposure has to be one to two thousand times longer than for a
-pixel that caught all the lamp's light, or the lamp that much brighter.
+So the exposure has to be about 250 times (thinned chip) to 2,000 times
+(full wafer) longer than for a pixel that caught all the lamp's light, or
+the lamp that much brighter. No lamp power or exposure time has been
+worked out; that needs the lamp data of plan item R10.
 Light-emitting diodes are sold at 940 nm to 1,050 nm (Unverified; their
 power and price are for [plan](plan.md#data-collection) item R10). A
 thinned chip gets more light and can use the common 940 nm to 950 nm type.
 
 ## 3. How sharp the picture can be
 
-Light from behind is directed: it all travels nearly the same way. That
+Light from behind is directed (collimated): it all travels nearly the same way. That
 changes how detail crosses the gap, compared with the matt model behind
 the [design, Table 4.11b](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes).
 
 | Effect | What it does | Model |
 |---|---|---|
-| Crossing the gap | Detail coarser than the wavelength crosses any gap, though scrambled, and has to be unscrambled by computation as in lensless on-chip microscopes. Detail finer than the wavelength fades within a fraction of a wavelength | The "collimated" gap model of [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) [Goodman] |
-| The pixel's size and soft edges | As for visible light | The same factors as design Table 4.11b |
-| Absorption all the way down the pixel | A fine pattern of light changes as it travels down through the pixel's silicon: its bright lines drift and swap with its dark ones. The pixel adds up what it absorbs at every depth, so fine patterns are smeared | Derived here: the pattern's phase grows with depth by 2π × depth × (n ÷ wavelength − square root of (n² ÷ wavelength² − 1 ÷ period²)), and the average of its cosine over the depth is taken |
+| Crossing the gap | Detail coarser than the wavelength crosses the gap, though scrambled, and has to be unscrambled by computation as in lensless on-chip microscopes. Detail finer than the wavelength fades within a fraction of a wavelength. Three conditions are not in the model: the light must stay in step with itself across the gap, which for a light-emitting diode holds up to roughly 10 µm to 20 µm (Estimate, from a spread of colour of 50 nm); detail close to the wavelength leaves the chip at steep angles, which a pixel accepts poorly; and unscrambling a dense layout needs more variety in the readings than sliding the sensor sideways gives | The "collimated" gap model of [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) [Goodman] |
+| The pixel's size and soft edges | Taken as for visible light. That is optimistic: most near-infrared light passes through the sensitive layer, reflects off the wiring behind it and can end up in a neighbouring pixel (Unverified) | The same factors as design Table 4.11b |
+| Absorption all the way down the pixel | A fine pattern of light changes as it travels down through the pixel's silicon: its bright lines drift and swap with its dark ones. The pixel adds up what it absorbs at every depth, so fine patterns are smeared | Derived here: the pattern's phase grows with depth by 2π × depth × (n ÷ wavelength − square root of (n² ÷ wavelength² − 1 ÷ period²)), and the average of its cosine over the depth is taken. The upper envelope of the result is used, as for the other factors. It applies to a weak pattern on a bright background |
 
 *Table 5. What limits the sharpness with light from behind.*
 
@@ -137,8 +142,11 @@ the [design, Table 4.11b](design.md#411-no-special-lighting-what-ordinary-light-
 | 1,500 | 0.94 |
 | 2,000 | 0.98 |
 
-*Table 6. Smearing by absorption through a pixel 3 µm deep at 1,050 nm.
-Estimate. In green light, which is absorbed near the surface, the same
+*Table 6. Smearing by absorption through a pixel 3 µm deep at 1,050 nm:
+the upper envelope. The true value swings between plus and minus this and
+passes through zero at some periods (for example it is close to zero at
+500 nm and 700 nm). Estimate. A lamp tilted to suit one period removes the
+smearing for that period, so this is not a hard limit. In green light, which is absorbed near the surface, the same
 effect is much smaller and the design has not modelled it.*
 
 | Gap (µm) | Finest lines, near-infrared from behind (nm) | The same for a pixel 2 µm deep (nm) | The same for a pixel 4 µm deep (nm) | Finest lines, visible best case of design Table 4.11b (nm) |
@@ -147,7 +155,6 @@ effect is much smaller and the design has not modelled it.*
 | 1 | 406 | 397 | 413 | 439 |
 | 3 | 499 | 497 | 501 | 1,014 |
 | 10 | 522 | 522 | 523 | 2,864 |
-| 30 | 525 | 525 | 525 | 7,801 |
 
 *Table 7. Finest line width (half the finest period) at 1,050 nm.
 Estimate from the analytic model with the settings of design Table 4.11b:
@@ -155,30 +162,38 @@ baseline pixel with edges soft over 0.3 µm, signal-to-noise of 50 per
 reading, 13,000 readings per pixel area. The last column has no known way
 of being lit. "Gap" here is the distance from the metal being looked at to
 the pixel's silicon, so it includes any glass and upper metal layers above
-that metal.*
+that metal and any layers left on the pixel. The figures at 3 µm and 10 µm
+are the model's cut-off at one wavelength; allowing for the steep angles
+at which such detail arrives, lines of about 700 nm are a safer
+expectation there (Judgement). The figure at 0.3 µm treats the metal as a
+thin screen, which it is not (Table 8).*
 
 ![Finest line width against gap: the near-infrared curve flattens at about 520 nm while the visible best case keeps rising](diagrams/backlight-sharpness.svg)
 
 *Figure 3. Table 7 as a chart. Estimate.*
 
 Two things follow. The instrument no longer needs a gap of a fraction of
-a micrometre: a gap of 10 µm, which is ordinary mechanics, gives lines of
-about half a micrometre. And getting much below that needs both a very
-small gap and a shallower pixel, so about 300 nm lines is the practical
-floor for this route (Judgement from Table 7).
+a micrometre: a gap of up to about 10 µm, which is ordinary mechanics,
+should give lines of about half a micrometre to 700 nm. And going much
+finer needs a very small gap, a shallow pixel, and openings in the metal
+that still let the light through, so about half a micrometre is the
+practical expectation for this route until a wave calculation says
+otherwise (Judgement from Table 7 and Table 8).
 
 ## 4. What the estimate leaves out
 
 | Left out | Likely effect | How to find out |
 |---|---|---|
-| **Doping of the chip's silicon.** The table is for pure silicon. Free electrons and holes in doped silicon absorb near-infrared light as well | Small for lightly doped wafers. Heavily doped wafers, used under some chips, could absorb most of the light (Unverified; from general knowledge) | A sourced formula for free-carrier absorption; [plan](plan.md#data-collection), new item R19 |
+| **The back of the chip.** The estimate assumes a bare, polished back face. Chips are usually ground on the back, and are glued to a metal pad inside their package | A rough back scatters the light in all directions, and the shadow then blurs by about the gap, as in the matt model: the result for a 10 µm gap is lost. A metal pad blocks the light altogether (Judgement) | The chip has to be taken out of its package and its back polished. That is sample preparation, and belongs with the hardware work |
+| **Openings narrower than the light can pass.** The metal is 0.3 µm to 1 µm thick, not a thin screen. A slot narrower than about half a wavelength in glass, about 360 nm, passes little of the light that is polarised along it (Unverified; from the general behaviour of narrow slots in metal) | The 280 nm figure of Table 7 is a limit of the model. Lines and spaces of 400 nm to 500 nm are a safer floor | Level 4 |
+| **Doping of the chip's silicon.** The table is for pure silicon. Free electrons and holes in doped silicon absorb near-infrared light as well | Negligible for lightly doped wafers. For a heavily doped wafer a common rule of thumb gives about a fifth of the light through 500 µm (Unverified; from general knowledge, not sourced). A moderate loss, which also moves the best wavelength shorter | A sourced formula for free-carrier absorption; [plan](plan.md#data-collection), new item R19 |
 | **How much of the chip is open.** Light passes only where no metal layer is in the way. Chips with many metal layers, and with filler metal added to even out the layers, may have few openings | The picture is of the openings. Where metal covers everything there is no picture. Older and simpler chips, with one to three metal layers, are the natural first targets (Judgement) | Published layouts; a simulated layout in level 1 |
 | **The sensor's real response.** The 3 µm depth is assumed. Real pixels also have wiring and a mounting wafer behind the sensitive layer that reflect light back through it | Could be a few times better or worse | Data item R2; the sensor's published response curve |
-| Several metal layers at different heights | Each layer's shadow crosses a different distance. The computation has to treat the chip as a stack, as in the multi-layer methods of the [ptychography study](research/ptychography.md) | Level 3 or 4 |
-| Light bent by the transistors and the silicon's own structures | A weak extra pattern on top of the metal's shadow, which carries information about them | Level 4 |
-| Reflections back and forth inside the chip, the gap and the pixel | Ripples in brightness of some tens of per cent that vary with thickness and gap. With a light-emitting diode, whose colour is not pure, those from the thick chip average out and those from the thin gap do not (Estimate, from a coherence length of about 20 µm for a diode 50 nm wide in colour) | Level 3 |
-| The lamp not being a point | A wide lamp close to the chip blurs the shadow by about the gap times the angle the lamp spans. A small or distant lamp avoids it | Simple geometry, to add |
-| Warming of the chip and sensor by the lamp | Silicon absorbs more as it warms | Not needed yet |
+| Several metal layers at different heights | Each layer's shadow crosses a different distance (Derived here). The computation has to treat the chip as a stack, as in the multi-layer methods of the [ptychography study](research/ptychography.md) | Level 3 or 4 |
+| Light bent by the transistors and the silicon's own structures | An extra pattern on top of the metal's shadow, which may be strong: the oxide-filled trenches between transistors delay the light by a large part of a wave, and contacts are opaque (Unverified). It carries information about those structures and complicates the reconstruction | Level 4 |
+| Reflections back and forth inside the chip, the gap and the pixel | Ripples in brightness that vary with thickness and gap: some tens of per cent with glass on the chip's face, and up to a factor of three between bare silicon faces (Estimate, from the reflectances of Table 1). With a light-emitting diode, whose colour is not pure, those from the thick chip average out and those from the thin gap do not (Estimate, from a coherence length of about 20 µm for a diode 50 nm wide in colour) | Level 3 |
+| The lamp not being a point | A wide lamp close to the chip blurs the shadow by about the gap times the angle the lamp spans (Derived here from straight rays). A small or distant lamp avoids it, at a cost in light | Simple geometry, to add |
+| Warming of the chip and sensor by the lamp | Silicon absorbs more as it warms (Unverified) | Not needed yet |
 
 *Table 8. What the estimate leaves out, most important first.*
 
@@ -187,7 +202,7 @@ floor for this route (Judgement from Table 7).
 | Change | Where |
 |---|---|
 | Near-infrared light from behind the chip is the leading way to light the chip under ordinary light, subject to the open question of whether it counts as special lighting | [Design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes) |
-| The target under ordinary light becomes the chip's metal wiring at lines of about 300 nm to 500 nm | Design, section 4.11 |
+| The target under ordinary light becomes the chip's metal wiring at lines of about half a micrometre | Design, section 4.11 |
 | Simulation level 1 needs a light model for directed light from behind: a shadow carried across the gap as a wave | [Plan](plan.md#d-simulation-chain), item D2f |
 | New data to collect: free-carrier absorption in doped silicon, and how open the metal of real chips is | [Plan](plan.md#data-collection), items R19 and R20 |
 
