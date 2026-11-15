@@ -259,6 +259,16 @@ minute; `--fast` skips the two simulations:
 
 ```
 python docs/diagrams/make_ordinary_light_diagrams.py
+
+## Slot wave figures
+
+The figures on the [slot waves](slot-waves.md) page come from
+[`docs/diagrams/make_slot_wave_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_slot_wave_diagrams.py).
+With `--rerun` it repeats the wave runs behind the second figure, which
+takes about four minutes:
+
+```
+python docs/diagrams/make_slot_wave_diagrams.py
 ```
 
 | Figure | Shows | Source of the numbers |
@@ -274,6 +284,9 @@ python docs/diagrams/make_ordinary_light_diagrams.py
 | [`olr-contact-zone`](diagrams/olr-contact-zone.svg) | Air gap across the sensor for domed and tilted sensor faces | Geometry of a sphere on a flat |
 | [`olr-light-paths`](diagrams/olr-light-paths.svg) | Three ways to light a chip in near contact | Illustrative |
 | [`olr-ranking`](diagrams/olr-ranking.svg) | Line width each shortlisted route could reach | Ranges from the tables of the page; estimates |
+
+| [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
+| [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
 
 ## Beamforming study figures
 
