@@ -962,10 +962,10 @@ says whether the value is the least or the most allowed.
 
 ## 9. Recovering the picture without exact positions
 
-Requirement [REQ-19](../design.md#requirements) (14 November 2026): "Combining the results with simulation
-should allow recovery based on working out potential possible solutions and
-eliminating ones which are physically impossible even without exact
-positioning information."
+Requirement [REQ-19](../design.md#requirements) (14 November 2026): combining the readings with
+simulation should allow recovery without exact position information, by
+working out possible solutions and eliminating the physically impossible
+ones.
 
 This is how the field already works, and it is the strongest reason to
 build on it. A ptychographic reconstruction is a search among candidate
@@ -1076,9 +1076,9 @@ wrong start, and only the detail that survives counts as seen.
 
 ### 9.4 Using time to eliminate candidates
 
-The second part of the requirement (14 November 2026): "Temporal properties of the real world
-can also be used to help eliminate incorrect or impossible solution
-spaces."
+The second part of the requirement (14 November 2026): the behaviour of the real
+world in time can also be used to eliminate incorrect or impossible
+solutions.
 
 The field leans on time in several ways, mostly without naming it. The
 whole method rests on one temporal fact: the object is the same in every

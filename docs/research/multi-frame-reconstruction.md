@@ -54,7 +54,7 @@ This page is deep research study B3 of the [project plan](../plan.md#deep-resear
    propose whole scenes and discard those the data or physics rule out.
    Knowing that the camera moves smoothly in time cuts the number of
    frames needed several times over. This is the elimination of
-   impossible solutions that [REQ-19](../design.md#requirements) requires, and
+   impossible solutions that [REQ-19](../design.md#requirements) asks for, and
    [section 5.3](#53-doing-without-measured-positions-ruling-out-what-cannot-be)
    sets out what the field has shown and where it stops.
 
@@ -883,11 +883,11 @@ signal.
 
 ### 5.3 Doing without measured positions: ruling out what cannot be
 
-Requirement [REQ-19](../design.md#requirements) is that combining the results with simulation "should allow
-recovery based on working out potential possible solutions and eliminating
-ones which are physically impossible even without exact positioning
-information", and that "temporal properties of the real world can also be
-used to help eliminate incorrect or impossible solution spaces". This
+Requirement [REQ-19](../design.md#requirements) is that combining the readings with simulation should allow
+recovery without exact position information, by working out possible
+solutions and eliminating the physically impossible ones, and that the
+behaviour of the real world in time can also be used to eliminate
+incorrect solutions. This
 field has methods of both kinds, some of them decades old. Sections 5.1 and 5.2 treat position as
 something to measure first. The methods below treat it as something that
 never needs to be known exactly.

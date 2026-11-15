@@ -187,6 +187,6 @@ dimensional version with sensor tilt.
 | Not yet runnable | Why | Where it is planned |
 |---|---|---|
 | Laser light, slanted beams and beam pairs | Level 1 only blurs brightness. It has no interference between beams | Levels 3 and 4 of the [simulation chain](simulation-chain.md) |
-| 100 nm features | Under ordinary light they need the silicon within about 140 nm of the chip ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). Also, level 1 with its built-in blur is trusted only for dimensions of several micrometres or more ([simulation chain, where each level is valid](simulation-chain.md#where-each-level-is-valid)); 100 nm needs the wave levels | The same |
+| 100 nm features | Under ordinary light they would need the silicon within about 140 nm of the chip's features with an ideally sharp pixel, and are out of reach at any distance with the baseline pixel ([design 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). Also, level 1 with its built-in blur is trusted only for dimensions of several micrometres or more ([simulation chain, where each level is valid](simulation-chain.md#where-each-level-is-valid)); 100 nm needs the wave levels | The same |
 | The full sensor of 8 million pixels | The solver is not yet split into tiles | [Plan](plan.md#d-simulation-chain), phase D |
 | Surfaces longer than the sensor | The level 1 surface joins up end to end | [Comparison page, limits](comparison.md#what-this-does-not-cover-yet) |

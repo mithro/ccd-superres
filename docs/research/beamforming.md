@@ -26,7 +26,7 @@ receivers whose signals are combined by computation. That combining is
 called beamforming, and the set is called an array. The image sensor in
 this project has eight million pixels, so it is natural to ask whether it
 can be treated as a very large array, and what that would give. The
-idea is also called "reverse beamforming".
+idea is called "reverse beamforming" in this project.
 
 The plan asked three questions. The short answers are these.
 
@@ -1122,12 +1122,11 @@ quantity to pin down, and it is good news for whichever stage does so.
 
 Requirement [REQ-19](../design.md#requirements), added on 14 November 2026, has two parts:
 
-> "Combining the results with simulation should allow recovery based on
-> working out potential possible solutions and eliminating ones which are
-> physically impossible even without exact positioning information."
-
-> "Temporal properties of the real world can also be used to help eliminate
-> incorrect or impossible solution spaces."
+- Combining the readings with simulation should allow recovery without
+  exact position information, by working out possible solutions and
+  eliminating the ones that are physically impossible.
+- The behaviour of the real world in time can also be used to eliminate
+  incorrect or impossible solutions.
 
 Array processing and the fields next to it have worked this way for
 decades, under other names. This section sets out how they do it, what

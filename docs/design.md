@@ -73,31 +73,32 @@ that the rest of the documentation can refer to it. The last column is the
 project's own interpretation where the requirement leaves something open;
 it is an Assumption until confirmed, and it is not part of the requirement.
 
-| No. | Requirement | Kind | Added | Interpretation adopted, and where it is applied |
+| No. | Requirement | Kind | Recorded by | Interpretation adopted, and where it is applied |
 |---|---|---|---|---|
 | REQ-1 | The instrument is lensless. The lenses on top of the sensor are removed. | Requirement | 14 November 2026 | Which lenses is open (section 5.3; question 3 of section 11) |
-| REQ-2 | Surface reflectance is reconstructed first. Height is wanted too. Features are at nanometre scale both laterally and in height. | Requirement | 14 November 2026 | Section 4.5 |
+| REQ-2 | Surface reflectance is reconstructed first. Height is wanted too. How the surface is lit for height is undecided. Features are at nanometre scale both laterally and in height. | Requirement | 14 November 2026 | Section 4.5 |
 | REQ-3 | The goal is a reconstructed picture of features of about 100 nm on silicon chips. It may be reached in stages. | Requirement | 14 November 2026 | Sections 4.6 and 4.11 |
 | REQ-4 | Significantly more computation is preferred over more hardware. | Preference | 14 November 2026 | The design principle below |
-| REQ-5 | All processing may happen offline, on powerful computers with graphics cards. Hundreds of cores in parallel are acceptable. | Constraint | 14 November 2026 | Section 6.5 |
-| REQ-6 | No special lighting is used. The effort goes into the computational approaches. | Requirement | 15 November 2026 | What counts as special lighting is interpreted in Table 4.11a. What ordinary light can reach is in section 4.11 |
+| REQ-5 | All processing happens offline, on powerful computers with graphics cards. Hundreds of cores in parallel are acceptable. | Constraint | 14 November 2026 | Section 6.5 |
+| REQ-6 | Special lighting is assumed not to be wanted. The effort goes into the computational approaches. | Assumption given | 15 November 2026 | What counts as special lighting is interpreted in Table 4.11a. What ordinary light can reach is in section 4.11 |
 | REQ-7 | The lighting changes on human time scales, minutes to hours, not microseconds. A light monitor may be added, and using some of the sensor's own pixels as the monitor is to be considered. | Constraint | 14 November 2026 | "Lighting" is read as the brightness of the light source. Monitor pixels are the first option to model (section 11, item 9) |
-| REQ-8 | The design rules of the chip might be known but must not be assumed. | Constraint | 14 November 2026 | Approaches that use design rules are optional and are compared with the same approach without them (section 6.6) |
+| REQ-8 | The design rules of the chip might be known but should not be assumed. | Constraint | 14 November 2026 | Approaches that use design rules are optional and are compared with the same approach without them (section 6.6) |
 | REQ-9 | A stage that moves in two directions is acceptable. | Constraint | 14 November 2026 | A scan may include a second direction or passes shifted sideways (section 6.4) |
 | REQ-10 | The sensor moves at a constant rate, parallel to the surface. Noise is present in the motion rate, the pixel data and similar quantities, and is to be modelled. | Assumption given | 14 November 2026 | Section 3.2 |
 | REQ-11 | Deliberately adding random noise, modelling the randomness already present, and using the natural misalignment of samples to improve the reconstruction are in scope. | Requirement | 14 November 2026 | Sections 5.5 and 5.8 |
 | REQ-12 | The sensor's control functions are expected to be pulled apart and driven differently from the stock camera. | Assumption given | 14 November 2026 | The readout scheme is a replaceable model (section 5.7) |
 | REQ-13 | The two-dimensional nature of the sensor is used to get more detail. | Requirement | 14 November 2026 | Section 5.9 |
-| REQ-14 | The simulator is for exploring many different approaches, not one specific approach. | Requirement | 14 November 2026 | Comparing approaches is a deliverable (section 7.1) |
+| REQ-14 | The simulator is for exploring many different approaches, not one specific approach. Comparing approaches is a deliverable. | Requirement | 14 November 2026 | Section 7.1 |
 | REQ-15 | All real hardware work happens at the very end, only once the simulation shows the methods will work. | Requirement | 14 November 2026 | Section 4.9 |
 | REQ-16 | The first hardware is something like a Raspberry Pi camera sensor. The work starts as a model and ends as a real instrument. | Assumption given | 14 November 2026 | Section 5.1 |
 | REQ-17 | The simulations form a chain of increasing accuracy whose levels are cross-checked against each other, ending with ray tracing and a full electromagnetic solver. | Requirement | 14 November 2026 | Section 10 |
 | REQ-18 | The trade-offs between speed, frame rate, exposure, gap and resolution can be explored easily and quickly, including the number of samples each surface point gets for given scan settings. An interactive graphical explorer has high priority. | Requirement | 14 November 2026 | Sections 5.4 and 5.6; the [interactive explorer](interactive-explorer.md) |
-| REQ-19 | Combining the readings with simulation is to allow recovery without exact position information, by working out possible solutions and eliminating the physically impossible ones, including by the behaviour of the real world in time. | Requirement | 14 November 2026 | Section 6.6 |
-| REQ-20 | The research covers the neighbouring fields (radar, beamforming, satellite and astronomical imaging and similar) and looks for approaches beyond those already named. | Requirement | 14 November 2026 | The [plan](plan.md), phase B |
+| REQ-19 | Combining the readings with simulation should allow recovery without exact position information, by working out possible solutions and eliminating the physically impossible ones, including by the behaviour of the real world in time. | Requirement | 14 November 2026 | Taken up as a named approach to explore and compare (section 6.6) |
+| REQ-20 | The research covers the neighbouring fields (radar, beamforming, satellite and astronomical imaging and similar), looks for approaches beyond those already named, and includes a deep dive into candidate sensors and how to control them at pixel level. | Requirement | 14 November 2026 | The [plan](plan.md), phase B |
 | REQ-21 | Everything is in this git repository, documented with real diagrams, published on Read the Docs, and independently reviewed. Calibration and test methods are covered. | Requirement | 14 November 2026 | The [plan](plan.md), documentation standard; the [review record](review.md) |
 
-*Table 1.1. The requirements. "Assumption given" marks a starting
+*Table 1.1. The requirements. "Recorded by" is the date by which the
+requirement was in the documentation. "Assumption given" marks a starting
 assumption stated with the requirements, as distinct from an assumption
 made by the project, which is listed below.*
 
@@ -284,7 +285,7 @@ last column says whether the reconstruction is told the true value.
 | Pixel | Dead and hot pixels | Fixed mask | Optional |
 | Pixel | Quantisation and clipping | 10 or 12 bit, full well | Yes |
 | Light | Brightness of the light | A slow drift over minutes to hours (REQ-7), with a random value $E_n$ per frame kept as an optional worse case | No, estimated, or read from monitor pixels |
-| Light | Stripe position of each beam pair | One value per frame and pair, a slow drift plus a random part | No, estimated. Needed to about 3 nm (section 4.10) |
+| Light (laser route only) | Stripe position of each beam pair | One value per frame and pair, a slow drift plus a random part | No, estimated. Needed to about 3 nm (section 4.10) |
 | Motion, slow | Speed error | Constant scale error on $v$ | No, estimated |
 | Motion, slow and fast | Speed fluctuation | Random walk plus periodic term along the scan | No, estimated |
 | Motion, slow | Cross-scan wobble | Slow random drift across the scan | No, estimated |
@@ -448,8 +449,8 @@ effort:
    model rather than the diffuse model above.
 
 The plan is to build reflectance first, then add option 1 because it reuses
-the same model, and treat option 3 as a separate study once the lighting is
-decided.
+the same model, and treat option 3 as a separate study, which under ordinary light
+(REQ-6) is not in the main line of work.
 
 ### 4.6 The target: 100 nm features on silicon chips
 
@@ -542,8 +543,8 @@ wavelength" and "any gap at 193 nm". Earlier wording in this section, that
 only a 100 nm gap or light near 200 nm would do, held for straight-on light
 only.
 
-What this means for the target (written before special lighting was ruled
-out on 15 November 2026; the recommendation in the first point no longer
+What this means for the target (written before special lighting was set
+aside on 15 November 2026; the recommendation in the first point no longer
 stands, and section 4.11 gives the position for ordinary light):
 
 - **The far-field regime is the one that fits the preference for computation
@@ -893,6 +894,9 @@ source may later change the answer.
 
 ### 4.10 What the four research studies changed
 
+In this section "the leading candidate" means the laser route, which
+since 15 November 2026 is a recorded alternative (REQ-6, section 4.11).
+
 Four deep research studies were finished after the sections above were
 written: [radar and synthetic aperture](research/synthetic-aperture-radar.md),
 [beamforming and array processing](research/beamforming.md),
@@ -1055,7 +1059,7 @@ confirmed (section 11, item 12).
 |---|---|---|
 | Laser beams, beam pairs, beams from several chosen directions, switched in sequence | Special. Out of the main line | Purpose-built light whose direction and coherence the method depends on |
 | Patterned or structured light, speckle through a diffuser | Special. Out of the main line | The light itself carries the code |
-| Light pulsed or coded in time by switching the source | Special. Out of the main line. The same effect from the sensor's own shutter is ordinary | The approach files `fast-scan-short-pulse` and `fast-scan-coded-light` of the [comparison](comparison.md) stay, read as shutter timing. Whether the sensor's rolling shutter can provide it is a question for section 5.7 |
+| Light pulsed or coded in time by switching the source | Special. Out of the main line. The same effect from the sensor's own shutter is ordinary | The approach files [`fast-scan-short-pulse`](https://github.com/mithro/ccd-superres/blob/main/approaches/fast-scan-short-pulse.toml) and [`fast-scan-coded-light`](https://github.com/mithro/ccd-superres/blob/main/approaches/fast-scan-coded-light.toml) of the [comparison](comparison.md) stay, read as shutter timing. Whether the sensor's rolling shutter can provide it is a question for section 5.7 |
 | Several wavelengths switched in turn, ultraviolet | Special. Out of the main line | Extra light hardware |
 | Liquid in the gap | Not lighting. Undecided (section 11, item 12) | It changes the optical path, not the light |
 | Room light, a lamp or a single plain light-emitting diode, steady, from wherever it can get in | Ordinary. The baseline | No property of the light is relied on beyond being there and being steady |
@@ -1082,7 +1086,8 @@ from straight rays: a ray at angle θ lands gap × tan θ to the side). That
 case is the best one. The sensor itself blocks most directions, so real
 ordinary light arrives mostly at shallow angles from the side, where the
 copies are shifted by much more than the gap and the materials all reflect
-almost equally. Table 4.11b is therefore a best case. Real results will be
+almost equally (from the Fresnel reflection formulas, not computed here).
+Table 4.11b is therefore a best case. Real results will be
 worse, by an amount that is not yet known.
 
 | Distance from features to silicon (nm) | Finest period, ideally sharp pixel (nm) | The same with 1,000 times more readings (nm) | Finest period, baseline pixel (nm) | Line width for the baseline pixel (nm) | What that distance means in practice |
@@ -1110,8 +1115,8 @@ measured. The line width is half the period. The
 this blur model for dimensions of several micrometres or more. Ray tracing
 (level 2) is itself only indicative below 10 µm, so the rows from 300 nm to
 3,000 nm stay unconfirmed until a wave level checks them. Simulation level
-1 is consistent with the 300 nm row: with about 170 readings per pixel area
-the analytic model gives 478 nm, and level 1 shows 800 nm bars with a plain
+1 is consistent with the 300 nm row: with the roughly 170 to 200 readings per pixel area
+of those runs the analytic model gives about 475 nm, and level 1 shows 800 nm bars with a plain
 fit, 480 nm bars with a narrowed pixel opening or known materials, and
 320 nm bars with no approach ([comparison](comparison.md)).*
 
@@ -1121,24 +1126,25 @@ These conclusions are Derived from Table 4.11b.
   sharp pixel it would need the silicon within about 140 nm of the
   features. With the baseline pixel it is out of reach at any distance,
   because the pixel's own soft edges stop it at lines of about 140 nm even
-  at zero distance. Finished chips also carry protective layers thicker
+  at zero distance (about 110 nm with a thousand times more readings). Finished chips also carry protective layers thicker
   than 100 nm (section 4.6), and features on lower layers lie deeper still.
 - **More computation does not close the gap.** A thousand times more
   readings improves the finest period by a factor of about 1.2 to 1.8
-  (compare the second and third columns). The blur removes fine detail
+  at every distance that can be built (compare the second and third
+  columns from 50 nm down the table). The blur removes fine detail
   faster than averaging can recover it (section 4.2).
 - **What the instrument can deliver as a true picture is a repeat distance
   of roughly the same size as the distance from features to silicon:**
   between about 0.6 and 1.5 times it over the range of practical interest.
   That is lines of about 1 µm for the sensor as sold and held 2 µm clear,
-  and lines of about 200 to 450 nm only if the pixel's top layers are
-  removed and the sensor nearly touches a chip whose features are at its
-  surface. Removing layers is a change to the sensor and not to the
+  lines of about 450 nm for the sensor as sold touching a chip whose
+  features are at its surface, and lines of about 200 nm only if the
+  pixel's top layers are also removed. Removing layers is a change to the sensor and not to the
   lighting, so it stays an option, but it is hardware work and waits for
   the gate (section 4.9).
-- **The pixel's own response matters again below a micrometre.** In the
-  rows up to 1,000 nm the soft edges of the pixel cost as much as the
-  distance does, and how a pixel accepts light from shallow angles decides
+- **The pixel's own response matters again below a micrometre.** At
+  300 nm the soft edges of the pixel make the result about 30 % coarser,
+  below about 150 nm they cost as much as the distance does, and how a pixel accepts light from shallow angles decides
   how much of the side light it sees at all. Level 1 shows the same: edges
   soft over 150 nm take the best result from 480 nm bars to 800 nm
   ([comparison](comparison.md), "soft pixels").
@@ -1174,7 +1180,7 @@ flowchart LR
     B -->|"starting picture"| C
     C -->|"candidates"| D
     D -.->|"better start"| B
-    X -.->|"only if special lighting<br/>is allowed again"| B
+    X -.->|"only if special lighting<br/>is wanted after all"| B
 ```
 
 *Diagram: the stages of the main line of work under ordinary light. Solid
@@ -1188,7 +1194,8 @@ the sensor (section 5.3). The sensitive area is 3.68 mm by 2.76 mm, so
 light from the side has to travel up to about 1.4 mm to reach the middle,
 along a slot that is 0.3 µm to 3 µm high: between about 500 and 5,000 times
 longer than it is high (Derived here from the dimensions of section 5.1).
-It gets there only by reflecting between chip and sensor hundreds of times.
+It gets there only by reflecting between chip and sensor hundreds of times
+(Derived here from the same dimensions for light at 45°).
 How much arrives, how evenly, and from which angles is not known
 (Unverified; no calculation has been made). The bond wires around the
 sensor also force the chip to be smaller than the sensor or to stand on a
@@ -1205,7 +1212,7 @@ than the mechanics alone would allow.
 |--:|---|---|
 | 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap | It may rule out the small gaps that everything below assumes |
 | 2 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
-| 3 | Position solving, rotation, gap and wedge, and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
+| 3 | Position solving, rotation, gap and wedge (the gap being larger at one side of the sensor than the other), and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
 | 4 | The pixel's response as an uncertain range, and its recovery from the scan itself | It matters as much as the distance below a micrometre |
 | 5 | Brightness of the light as a slowly drifting unknown, read from monitor pixels; rejection of readings that disagree with the prediction | Ordinary light is not controlled, so it must be measured |
 | 6 | An uncertainty map delivered with every true picture, and the tests against invented detail ([plan](plan.md), item E3) | Stages C and D are only as good as these |
@@ -1722,7 +1729,7 @@ detail.
 
 ### 6.3 Solving the large inverse problem
 
-This is expected to need a large amount of matrix inversion. Formally it does, but
+A natural expectation is that this needs a large amount of matrix inversion. Formally it does, but
 no matrix is ever inverted or even stored. The sizes rule it out: one full
 IMX219 frame is 8 million samples, a scan is thousands of frames, and a fine
 grid over the sensor's footprint is tens of millions of unknowns. A dense
@@ -1852,7 +1859,7 @@ way on a laptop with one worker as on a cluster.
 
 ### 6.6 Reconstruction by elimination
 
-A required approach (REQ-19), taken up as a named approach to compare with the others: use the
+An approach asked for by REQ-19, taken up as a named approach to compare with the others: use the
 simulator inside the reconstruction. Candidate surfaces and candidate scan
 positions are proposed, the simulator predicts what each would have measured,
 and a candidate is thrown away if its prediction contradicts the readings or
@@ -2194,6 +2201,14 @@ Open questions, each for a decision on the requirements:
     and colour filter) be removed, and how close may the sensor come to
     the chip? With ordinary light this distance sets the finest detail
     (Table 4.11b), and question 5 becomes the most important one.
+14. Open, raised by item 11: REQ-3 asks for a picture of 100 nm features
+    and section 4.11 concludes that ordinary light cannot give a true
+    picture at that scale. Which gives way: is a true picture at about
+    1 µm down to a few hundred nanometres, with detection, location and an
+    inferred picture below that, an acceptable result, or does the 100 nm
+    target stand and bring special lighting back? Height (REQ-2) is in
+    the same position: under ordinary light at these distances no height
+    mechanism of section 4.5 has been shown to work (Unverified).
 
 ## 12. Where each claim comes from
 
@@ -2219,8 +2234,8 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.6 | An ideally sharp 1.12 µm pixel passes about 6% of a 200 nm stripe pattern | **Derived here**: the sinc envelope $\Lambda/(\pi a)$ with $a$ = 1120 nm |
 | 4.6 | Lensless imaging in reflection is undemonstrated below about 2 µm | From the optical elements study, section 9.2, and its sources |
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
-| 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there. Light entry under the sensor is **Unverified**. |
 | 4.10 | Corrections and additions from the four research studies | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
+| 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there. Light entry under the sensor is **Unverified**. |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
 | 4.8 | A coded exposure keeps motion blur reversible | [Raskar2006] |
 | 4.8 | Typical transfer of a random on-off code is $\sqrt{(1-\text{duty})/\text{open slots}}$ | **Derived here** as the expected magnitude over random codes ([`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py), `motion_transfer`). Not taken from a publication. |

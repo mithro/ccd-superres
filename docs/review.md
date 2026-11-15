@@ -455,7 +455,7 @@ resolve.
 | 1 | Error | `False`, `no` or `off` given for a yes-or-no setting was read as a word, which counts as yes. Photon noise stayed on when switched off this way. | The usual spellings of true and false are understood, and a value of the wrong kind is refused with the setting named. Tested. |
 | 2 | Error | The first table gave a sensor tilt of 3.6° as what the two-dimensional code does. It is 0° unless set; 3.6° is the worked example. | Corrected. |
 | 3 | Error | The elimination page said in one table that a minimum-width rule is used and in another that it is not. | The first table now says the tests use none. |
-| 4 | Gap | The project's own interpretation was recorded as a stated requirement in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. His question about using pixels was written as a decision. | Each is now labelled "Our reading", and the pixel idea is recorded as his question. |
+| 4 | Gap | The project's own interpretation was recorded as a stated requirement in four places: that rule-based approaches are optional and compared, that no approach may depend on design rules, that brightness is modelled as a slow drift, and that "lighting conditions" means the brightness of the light source. The question about using pixels was written as a decision. | Each is now labelled as the project's interpretation, and the pixel idea is recorded as something to consider. |
 | 5 | Gap | The beamforming study's questions and three places that list layout rules as inputs did not show the answers. | A note on the study's questions, and "optional, also run without" added in the design and plan. |
 | 6 | Gap | One date in the plan was stretched to cover an earlier answer. | Reworded. |
 | 7 | Gap | Impossible values were accepted: a negative gap (which scored better than the default), no frames, no light. | Every setting has an allowed range and is refused outside it, in approach files, changes and conditions. Tested. |
@@ -581,3 +581,25 @@ and compared every quoted result with the page it came from.
 | 11 | Wording | "Ruled out" was stronger than the requirement, which says special lighting is not assumed. Light pulsed in time was not placed on either side of the line. | Wording changed throughout; pulsed light is in Table 4.11a, with the sensor's own shutter read as ordinary. |
 
 *Table: findings of review 11, first reviewer.*
+
+A second reviewer, again given the pages and not the author's conclusions,
+then checked the corrected text and the rewording of the requirements
+against the wording the pages had before. It recomputed every cell of
+Table 4.11b and found them correct, confirmed that the quoted simulation
+results match their pages, and found no person named anywhere in the pages.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 12 | Error | Three requirements had been made stronger or weaker by the rewording: REQ-6 said special lighting "is not used" where the requirement is an assumption that it is not wanted; REQ-19 had become "a required approach" where it says what should be possible; REQ-5 and REQ-8 had changed "happens" to "may happen" and "should not" to "must not". | Each restored. REQ-6 is now marked as an assumption given. |
+| 13 | Error | Parts of requirements had moved into the interpretation column or been lost: comparing approaches as a deliverable, the deep dive into sensors, and that the lighting for height is undecided. | Moved back into REQ-14, REQ-20 and REQ-2. |
+| 14 | Error | Two conclusions did not follow from Table 4.11b: that soft pixel edges cost as much as the distance up to 1,000 nm (true only below about 150 nm), and that 450 nm lines need the pixel's layers removed (that is the row for the sensor as sold). | Both corrected, and the limits of the "1.2 to 1.8" and "at any distance" statements are stated. |
+| 15 | Gap | The conflict between the 100 nm goal (REQ-3) and ordinary light (REQ-6) was not listed as an open question, nor was height under ordinary light. | Added as item 14 of the design's open questions. |
+| 16 | Gap | Ray tracing was named in the plan and the simulation chain as the first tool for light entry, against the design. Section 4.10 of the design had no note that "leading candidate" means the laser route. The getting started page gave the 140 nm figure without its condition. | All aligned with section 4.11. |
+| 17 | Gap | Quotations of a person's words remained in three research pages, and one pronoun in this record. | Reworded as requirements. |
+| 18 | Minor | The date column claimed the day each requirement was added, which was not checked. Approach files named without links, "wedge" unexplained, three unlabelled claims. | The column is now "Recorded by". The rest fixed. |
+
+*Table: findings of review 11, second reviewer. Not checked by either
+reviewer: the content of the figures, links to other sites, and the bodies
+of the older research pages beyond the lines that changed. The corrections
+to the second reviewer's findings were checked by a strict build of the
+pages and not by a third review.*

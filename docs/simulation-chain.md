@@ -179,9 +179,9 @@ published in the documentation.
 
 Since 15 November 2026 the main line of work is ordinary light
 ([section 4.11 of the design](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)), and that changes the order.
-Steps 3 to 5 carry most of the work. Level 2 (step 6) is needed for a
-first estimate of how ordinary light gets under the sensor, although ray
-tracing is only indicative in a slot a few micrometres high. Level 4 on
+Steps 3 to 5 carry most of the work. A rough hand estimate of how ordinary light gets under the sensor comes
+first; level 2 (step 6) refines it at the larger gaps, since ray tracing
+is only indicative in a slot a few micrometres high. Level 4 on
 small patches (step 10) comes before level 3, because it is the level that
 can confirm the blur model and the light entry below a few micrometres.
 Level 3 (step 8), which models slanted coherent light, moves to the end
