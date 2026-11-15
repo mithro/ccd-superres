@@ -35,6 +35,21 @@ See the [backlight page](backlight.md).
    :members:
 ```
 
+## Waves in the slot, and a small wave solver
+
+See the [slot waves page](slot-waves.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.slot_modes
+   :members:
+
+.. automodule:: ccdsr.fdfd
+   :members:
+
+.. automodule:: ccdsr.edge_scatter
+   :members:
+```
+
 ## Simulation level 1
 
 See the [level 1 page](level1.md) for the method and results. One dimension:

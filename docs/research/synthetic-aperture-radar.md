@@ -1284,7 +1284,7 @@ promoted, a row in the [plan](../plan.md).
 | Use isolated specks, vias and corners as built-in reference points whose smeared image is the instrument's point response for that tile | Prominent-point processing behind phase gradient autofocus [[SA13](#sa13)]; reference reflectors in optical synthetic aperture work [[SA83](#sa83)] | Computation only | Promote as a new candidate (X-B1-2) |
 | Report the ratio of scattered to mirror-reflected light per tile, and use the fast linear method only where it is small | Migration without phases [[SA45](#sa45)] | Computation only | Promote: a simulator diagnostic |
 | Suppress sidelobes without losing resolution by spatially variant apodization | [[SA67](#sa67)] | Computation only | Test in simulation at the linear stages |
-| Use bare silicon between structures as the "known empty region" of multichannel autofocus | [[SA21](#sa21)] | Computation only | Park until the simpler methods are tested |
+| Use bare silicon between structures as the "known empty region" of multichannel autofocus | [[SA21](#sa21)] | Computation only | Keep. It comes after the simpler methods in the order of work; that is a matter of order only |
 
 *Table: ideas from radar that were not on the project's list. A text
 table. All mappings to the instrument are derived here and untested.*

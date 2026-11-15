@@ -29,6 +29,7 @@ increasing accuracy that are checked against each other; the rest are planned.
 | [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
 | [Light entry](light-entry.md) | A rough estimate of how much ordinary light gets under the sensor from the side, and what that does to the picture | First estimate: straight rays with a simple wave limit |
 | [Backlight](backlight.md) | A rough estimate for lighting the chip from behind with plain near-infrared light: how much light is detected and how sharp the shadow of the metal can be | First estimate, flat layers only |
+| [Slot waves](slot-waves.md) | Side light worked out with waves, what a feature on the chip does to it, and the two ways of lighting compared, including how more readings trade against sharpness | Simulated, two dimensions |
 | [Reconstruction by elimination](constrained-reconstruction.md) | Using the simulator to test candidate surfaces and positions and rule out the physically impossible: material limits, layout rules and a smooth sensor path | First version in one dimension |
 | [Comparing approaches](comparison.md) | How an approach is written as one short file, and the first comparison: 13 approaches on 4 surfaces under 6 conditions, 10 runs each | First version, level 1 in one dimension |
 | [Diagrams](diagrams.md) | How the figures are generated | Implemented |
@@ -60,6 +61,7 @@ interactive-explorer
 level1
 light-entry
 backlight
+slot-waves
 constrained-reconstruction
 comparison
 diagrams
