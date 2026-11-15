@@ -508,3 +508,48 @@ search, printing and the [explorer](explorer.md) are unaffected.
 real phones and tablets (touch was emulated in Chromium), a real screen
 reader, and the pages as served by Read the Docs. The corrections were
 checked by the author's browser tests, not by a second review.*
+
+## Review 10: the interactive explorer
+
+The [interactive explorer](interactive-explorer.md), its code
+([`ccdsr/gui.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/gui.py) and the page in
+[`ccdsr/gui_static/`](https://github.com/mithro/ccd-superres/tree/main/ccdsr/gui_static)),
+its tests and its documentation were reviewed on 14 and 15 November 2026,
+before merging. The reviewer was given the code and Tim's request and not the
+author's conclusions. It ran the page in a real browser and tried to break
+it, compared what the page shows with what Python computes, registered a
+made-up method and surface to test that nothing is tied to one approach, and
+made 34 deliberate breakages in a copy to see whether the tests would notice.
+
+It confirmed that the explorer's scores equal those of the command line and
+the comparison runner, that no method is given the truth, that answers are
+never shown out of order, that the server listens on the local computer
+only, and that the documentation's ranges, limits and captions match the
+code apart from the points below.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | "Spacing of sample positions" showed the movement per frame (414 nm), not the spacing of samples (about 11 nm once all frames and pixels are put together). A reader would wrongly conclude the surface was under-sampled. | Renamed "Movement between frames", and the real largest gap between sample positions is computed and shown beside it. |
+| 2 | Error | In two dimensions, a small sensor or few frames left most of the picture unscanned, and the scores were then meaningless (shares of -0.8 and 46.9). | Only scanned parts are scored; unscanned parts are drawn in blue and reported as "not scanned". The slider minimums were raised. |
+| 3 | Error | "Reset all" and loading an approach file did not reset the options of unticked methods. | They do now. Tested in the browser. |
+| 4 | Error | A hand-edited or damaged page address gave a blank, dead page. | Saved settings are checked against the defaults piece by piece, and anything unusable falls back. Tested with four damaged addresses. |
+| 5 | Error | One method raising an unexpected error took the whole answer down, and the page then wrongly said the simulator was not running. Numbers too large to send had the same effect. | Every method is guarded on its own, the server always answers, and missing numbers are shown as "no number". Tested with a method that fails on purpose. |
+| 6 | Error | Two requests at once could lose a solver warning. | Requests are handled one at a time. |
+| 7 | Error | The pixel-opening slider went past the pixel spacing, against the documentation. | The slider stops at the current spacing. |
+| 8 | Gap | 30 of 34 deliberate breakages survived the tests: almost nothing that is drawn was checked. | Tests now compare the facts with hand-worked values, the drawn reconstruction, path, readings and blurred surface with the simulator's own, and table cells and diagram text in the browser with what Python sent. The explorer now has 31 Python test cases and a browser run of about 45 checks. |
+| 9 | Gap | The page did not say that reconstructions are slid sideways to best match the truth before scoring, nor that the two-dimensional view is told exact positions. | Both are said on the page and in the documentation. |
+| 10 | Gap | "Different lines across the scan" was the same number for a useful tilt and a useless one. | Replaced by the largest gap, across the scan, between the lines the pixels trace. |
+| 11 | Gap | Some settings inside the slider ranges took 6 s to 40 s; a very long wander or light pattern could exhaust memory. | Smaller size limits, limits on the wander length and pattern length, a limit of 100 solver steps in two dimensions, a running clock while working, and a new fact, the share of the surface a pixel passed over, with the slow case explained. |
+| 12 | Gap | Another web page open in the same browser could make the local server do work; a stalled request held a thread for ever. | Requests from other sites are refused, and stalled requests time out. Tested. |
+| 13 | Gap | Colours repeated after six methods; surface labels repeated facts that could go stale; the repeating surface's flattering effect on sample counts was not stated. | Further colours are generated, surface descriptions are worked out from the surfaces themselves, and the effect is stated under Limits. |
+| 14 | Wording | Error messages used code names and raw Python text; the scores table did not explain "finest period shown" or shares below 0 and above 1; fixed counts in the documentation would go stale. | Messages name the control as labelled on the page, the table is explained beneath it, and the counts are removed. |
+| 15 | Minor | A clipped axis label, a jagged curve, an overlapping axis title, the true path hidden under a solved one, the next-frame outline hidden behind the pixels, a diagram number that disagreed with the table, the approach file's name lost on reload. | All fixed. |
+| 16 | Usability | No first step for a newcomer; the main sliders were pushed down by method options. | Four "things to try first" buttons, and method options folded away until opened. |
+
+*Table: findings of review 10. Not checked by the reviewer: Windows and
+macOS, browsers other than Chromium, the copy button, an installation that
+is not editable, and the physics inside the simulator, which reviews 5 and 7
+covered. The corrections were checked by the tests and by a strict build of
+the pages, not by a second review. Left as they are: the page still shows
+errors only at the top and does not mark the control at fault, and at phone
+width all controls come before the results.*

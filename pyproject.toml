@@ -11,6 +11,9 @@ test = ["pytest"]
 [tool.setuptools]
 packages = ["ccdsr"]
 
+[tool.setuptools.package-data]
+ccdsr = ["gui_static/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
