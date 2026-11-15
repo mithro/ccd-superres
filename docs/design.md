@@ -103,9 +103,9 @@ it is an Assumption until confirmed, and it is not part of the requirement.
 | REQ-19 | Combining the readings with simulation should allow recovery without exact position information, by working out possible solutions and eliminating the physically impossible ones, including by the behaviour of the real world in time. | Requirement | 14 November 2026 | Taken up as a named approach to explore and compare (section 6.6) |
 | REQ-20 | The research covers the neighbouring fields (radar, beamforming, satellite and astronomical imaging and similar), looks for approaches beyond those already named, and includes a deep dive into candidate sensors and how to control them at pixel level. | Requirement | 14 November 2026 | The [plan](plan.md), phase B |
 | REQ-21 | Everything is in this git repository, documented with real diagrams, published on Read the Docs, and independently reviewed. Calibration and test methods are covered. | Requirement | 14 November 2026 | The [plan](plan.md), documentation standard; the [review record](review.md) |
-| REQ-22 | Super resolution and the absence of special lighting are both kept. Ways are to be found to have both; neither gives way to the other. | Requirement | 15 November 2026 | Answers question 14 of section 11. The 100 nm goal of REQ-3 stands. Section 4.11 states what is known so far about how far ordinary light reaches, and the search for routes is plan item B8 |
-| REQ-23 | Computationally expensive options are fully acceptable. Nothing is discarded, or ranked lower, because of its mathematics or the complexity of its calculations. | Requirement | 15 November 2026 | Approaches are judged on what they can recover and on hardware, never on computing cost. Computing cost is reported as a fact beside each result (section 7.1). An approach may be scheduled later in the order of work, but not dropped, for this reason |
-| REQ-24 | Oversampling trade-offs are a core part of the work: how the number of readings of each point of the surface trades against sharpness, noise and scan time. | Requirement | 15 November 2026 | Every approach, comparison and explorer view states its readings per point and shows the result against that number (sections 4.2 and 5.4; [slot waves](slot-waves.md), Table 6). "Readings per point" is set by speed, frame rate, exposure, sensor rotation, passes and pixel count |
+| REQ-22 | Ways are to be found to keep both super resolution and the absence of special lighting. | Requirement | 15 November 2026 | Answers question 14 of section 11. Interpreted as: neither gives way to the other, and the 100 nm goal of REQ-3 stands. Section 4.11 states what is known so far about how far ordinary light reaches, and the search for routes is plan item B8 |
+| REQ-23 | Computationally expensive options are fully acceptable. Nothing is discarded because of its mathematics or the complexity of its calculations. | Requirement | 15 November 2026 | Interpreted as also ruling out ranking an approach lower for that reason. Approaches are judged on what they can recover and on hardware, never on computing cost. Computing cost is reported as a fact beside each result (section 7.1). An approach may be scheduled later in the order of work, but not dropped, for this reason |
+| REQ-24 | Oversampling trade-offs are a core part of the discussion. | Requirement | 15 November 2026 | Interpreted as: how the number of readings of each point of the surface trades against sharpness, noise and scan time is shown throughout. Every approach, comparison and explorer view states its readings per point and shows the result against that number (sections 4.2 and 5.4; [slot waves](slot-waves.md), Table 6). "Readings per point" is set by speed, frame rate, exposure, sensor rotation, passes and pixel count |
 
 *Table 1.1. The requirements. "Recorded by" is the date by which the
 requirement was in the documentation. "Assumption given" marks a starting
@@ -2244,8 +2244,8 @@ Open questions, each for a decision on the requirements:
     question was which gives way, the 100 nm goal of REQ-3 or the absence
     of special lighting of REQ-6, given that section 4.11 finds no true
     picture at that scale under ordinary light with the methods looked at
-    so far. The answer is that neither gives way and that ways to have
-    both are to be found. Taken up as follows: section 4.11 is a statement
+    so far. The answer is that ways to keep both are to be found,
+    which is read as neither giving way. Taken up as follows: section 4.11 is a statement
     of what has been examined so far and not a final limit; routes that
     have not been examined (changes to the sensor, masks, contact,
     knowledge of the chip, readout control, heavier computation) are being

@@ -3,7 +3,7 @@
 Run from the repository root:
 
     python docs/diagrams/make_slot_wave_diagrams.py            # figures from saved runs
-    python docs/diagrams/make_slot_wave_diagrams.py --rerun    # redo the wave runs (about 6 minutes)
+    python docs/diagrams/make_slot_wave_diagrams.py --rerun    # redo the wave runs (about 4 minutes)
 
 Writes SVG and PNG figures next to this file with the prefix ``slot-waves-``,
 and with ``--rerun`` the file ``results/edge-scatter/runs.json`` that the

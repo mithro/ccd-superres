@@ -457,8 +457,9 @@ said.
 Computationally expensive options are fully acceptable
 ([REQ-23](design.md#requirements)).
 
-- **No approach is discarded, parked or ranked lower** because its
-  mathematics is hard or its calculations are heavy.
+- **No approach is discarded** because its mathematics is hard or its
+  calculations are heavy. The project reads this as also ruling out
+  parking an approach or ranking it lower for that reason.
 - **Computing cost is reported as a fact** beside a result: time, cores,
   memory. It is never a criterion in a ranking or a verdict.
 - **An approach may come later in the order of work** for other reasons,

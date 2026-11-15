@@ -14,12 +14,12 @@ The answers:
 
 - **The wave calculation confirms the estimate.** Side light reaches the
   middle of the sensor only when the gap is about 3 µm or more. At 10 µm
-  and above, waves and rays agree to within 15 %. At 1 µm nothing arrives.
+  to 30 µm, waves and rays agree to within 15 %. At 1 µm nothing arrives.
 - **A feature does not light up the pixel above it.** Under skimming
   light, a line on the chip changes the readings of pixels over tens of
   micrometres, mostly further in than the line, as a pattern of bright and
-  dark bands. The strongest change is one to two gaps beyond the line, not
-  above it.
+  dark bands. The strongest change is about one to two gaps beyond the
+  line, and several times larger than the change in the pixel above it.
 - **So side light gives no direct picture at any gap.** The hope that the
   chip's own edges would scatter light straight up into the pixel above is
   not borne out.
@@ -27,9 +27,10 @@ The answers:
   the same wave model that produced it could in principle be run backwards
   to recover the chip from it. That is a heavy computation and has not
   been tried; it stays on the list ([REQ-23](design.md#requirements)).
-- **Near-infrared light from behind is the better of the two** on every
-  count that has been worked out, and it is the one where taking more
-  readings pays off in the ordinary way.
+- **Near-infrared light from behind is the one to work on first.** It
+  gives more light, a direct picture and a known kind of reconstruction.
+  Side light has one advantage, that nothing has to be done to the chip.
+  The choice does not rest on computing cost.
 
 Everything here is simulated. The slot calculation is exact for its
 idealised geometry: flat, uniform surfaces. The feature calculation is in
@@ -57,7 +58,7 @@ the two surfaces all the way along.
 |---|---|---|
 | The modes | Solving the round-trip condition for the wavenumber across the gap, with the Fresnel formulas for the two surfaces | Exact for flat, uniform surfaces |
 | Loss of each mode with distance | Twice the imaginary part of the mode's wavenumber along the slot | Exact, as above |
-| Power put into each mode by even light at the open edge | The same for every mode: a quarter of the brightness times the wavelength, per polarisation | Derived here: a slot of height h holds 2h ÷ wavelength modes, which between them take in the brightness times h that falls on the opening |
+| Power put into each mode by even light at the open edge | The same for every mode: a quarter of the brightness times the wavelength, per polarisation | Derived here: a slot of height h holds about 2h ÷ wavelength modes per polarisation, which between them take in the brightness times h that falls on the opening. The modes are taken as independent of each other, which is right for a lamp, and losses at the entrance are ignored, which is right for gaps of many wavelengths. With silicon surfaces there is one extra, very short-lived mode for the field across the surfaces |
 | A pixel's reading | The power all modes lose into the sensor per unit length, as a share of what an uncovered pixel would get | Derived here, the wave counterpart of Table 1a of the [light entry](light-entry.md) page |
 
 *Table 1. The wave calculation of the slot.*
@@ -90,9 +91,9 @@ Three checks were made between independent methods, as the
 
 | Check | Result |
 |---|---|
-| Waves against rays where rays are valid (gaps of 10 µm and 30 µm) | Readings agree within 15 %, and so does the distance to where the light last touched the chip |
+| Waves against rays where rays are valid (gaps of 10 µm and 30 µm) | Readings agree within 6 % at 10 µm and 13 % at 30 µm, and so does the distance to where the light last touched the chip. The difference grows with the gap because the ray model takes the light absorbed at each touch as 1 − reflectance while letting the ray fade smoothly, which loses a little energy for steep rays. The wave figure is the one that conserves energy |
 | The flattest mode against the simple wave limit used on the light entry page | Angle and reach agree within 2 % |
-| The mode solution against the grid wave solver of section 2, for the first mode in a 1 µm slot | The solver's loss rate is 10 % low at a grid spacing of 20 nm and 2 % low at 10 nm, so it converges on the mode solution |
+| The mode solution against the grid wave solver of section 2, for the first mode in a 1 µm slot | The solver's loss rate is 10 % low at a grid spacing of 20 nm and 3 % low at 10 nm, so it converges on the mode solution |
 
 *Table 3. Cross-checks. All three are in the tests except the 10 nm run,
 which takes half a minute.*
@@ -112,42 +113,51 @@ sensor is recorded along the slot, with and without the line.
 readings, for three heights, in a gap of 5 µm. A value of 1 means no
 change. Readings are averaged over one pixel width. Simulated.*
 
-| Case | Share of the arriving light sent into the sensor within one gap of the line (%) | Largest change in a pixel's reading (times) | Where that is, beyond the line (µm) | Stretch of slot where readings change by more than 10 % (µm from the line) |
-|---|--:|--:|--:|---|
-| Aluminium line 100 nm high, gap 5 µm | 0.007 | 1.4 | 7.2 | 4.4 to the end of the run at 18.9 |
-| Aluminium line 300 nm high, gap 5 µm | 0.07 | 2.5 | 6.6 | −9.6 to the end of the run |
-| Aluminium line 1,000 nm high, gap 5 µm | 0.76 | 7.1 | 4.5 | The whole run, −14.9 to 18.9 |
-| Glass line 300 nm high, gap 5 µm | 0.06 | 3.3 | 6.9 | −5.0 to 18.6 |
-| Aluminium 300 nm, second mode, gap 5 µm | 0.24 | 2.9 | 8.6 | −9.8 to the end of the run |
-| Aluminium 300 nm, gap 3 µm | 0.24 | 2.8 | 3.5 | −11.8 to the end of the run |
-| Aluminium 300 nm, gap 10 µm | 0.007 | 2.1 | 16.7 | −14.4 to the end of the run |
+| Case | Change in the reading of the pixel above the line (times) | Largest change in a pixel's reading (times) | Where that is, beyond the line (µm) | The same in gaps | Stretch of slot where readings change by more than 10 % (µm from the line) |
+|---|--:|--:|--:|--:|---|
+| Aluminium line 100 nm high, gap 5 µm | 1.03 | 1.4 | 7.2 | 1.4 | 4.4 to the end of the run at 18.9 |
+| Aluminium line 300 nm high, gap 5 µm | 1.27 | 2.5 | 6.6 | 1.3 | −9.6 to the end of the run |
+| Aluminium line 1,000 nm high, gap 5 µm | 2.59 | 7.1 | 4.5 | 0.9 | The whole run, −14.9 to 18.9 |
+| Glass line 300 nm high, gap 5 µm | 1.11 | 3.3 | 6.9 | 1.4 | −5.0 to 18.6 |
+| Aluminium 300 nm, second mode, gap 5 µm | 1.26 | 2.9 | 8.6 | 1.7 | −9.8 to the end of the run |
+| Aluminium 300 nm, gap 3 µm | 1.53 | 2.8 | 3.5 | 1.2 | −11.8 to the end of the run |
+| Aluminium 300 nm, gap 10 µm | 1.08 | 2.1 | 16.7 | 1.7 | −14.4 to the end of the run |
 
 *Table 4. A line 1 µm wide on the chip under one mode of skimming light.
 Simulated; the numbers are in
 [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json).
 Negative positions are on the lit side of the line. The run covers 15 µm
 before the line and 19 µm after it, so "the end of the run" means the mark
-goes on further than was computed.*
+goes on further than was computed. In the 10 µm case the largest change
+is near the end of the run, so a larger one may lie beyond it.*
 
 What the runs show:
 
-- **Almost none of the light goes straight up.** Under 1 % of the
-  arriving light enters the sensor within one gap of the line. The line
-  mostly deflects light by small angles, into steeper modes that travel on
-  and are absorbed further in.
-- **The mark is long.** Readings change over the whole computed run, tens
-  of micrometres, in bands whose spacing is set by the gap. The largest
-  change is one to two gaps beyond the line.
+- **The pixel above the line sees a modest change.** A line 300 nm high
+  raises the reading above it by about a quarter. A line that low only
+  stands in the way of a small part of the light in the slot, and about a
+  third of what it removes enters the sensor within one gap of it (from
+  the reviewer's rerun of this case, recorded in the
+  [review record](review.md)).
+- **The largest change is elsewhere, and the mark is long.** Readings
+  change over the whole computed run, tens of micrometres, in bands whose
+  spacing is set by the gap. The largest change is about one to two gaps
+  beyond the line and two to three times larger than the change above it.
 - **The mark is strong.** A line 300 nm high changes some readings by a
   factor of two or more. Seeing that a feature is there is easy; saying
   where it is from one reading is not.
-- **Material matters less than shape.** A glass line and an aluminium
-  line of the same size leave marks of similar strength.
+- **Shape seems to matter more than material.** A glass line and an
+  aluminium line of the same size leave marks of similar strength (one
+  comparison only).
 
 With real lamp light the picture would differ in one way. The bands in
 Figure 2 come from one mode at one wavelength. Several modes and a spread
-of wavelengths would smooth the bands into a broad streak without making
-it shorter (Judgement; not computed).
+of wavelengths smooth the bands into a broad streak without making it
+shorter. The reviewer's sum over three modes and six wavelengths from
+500 nm to 600 nm gave a rise of 30 % to 45 % around the line, a peak of
+2.5 times at about 1.5 gaps beyond it, and then a shadow of 0.6 to 0.8
+times to the end of the run (Simulated, in the review; not part of the
+saved runs).
 
 ## 3. What this means for side light
 
@@ -163,8 +173,10 @@ a scrambling but known medium: propose a chip surface, compute the pattern
 it would make with the wave model, compare, and adjust. By
 [REQ-23](design.md#requirements) the weight of that computation is no
 reason to drop it. What is not known is how fine a detail the pattern
-still carries: detail finer than about half a wavelength, 275 nm, cannot
-travel along the slot at all, and the calculation needs the gap known to a
+still carries: a repeat distance finer than about half a wavelength, 275 nm,
+which is lines of about 140 nm, cannot be carried by the light in the slot
+at all, and reaching that bound would need the light thrown back towards
+the lit edge to be recorded too, and the calculation needs the gap known to a
 small fraction of a wavelength (Unverified; not computed). It is recorded
 as an approach to examine: [plan](plan.md#d-simulation-chain), item D2d.
 
@@ -185,8 +197,11 @@ as an approach to examine: [plan](plan.md#d-simulation-chain), item D2d.
 *Table 5. The two ordinary ways of lighting. Estimates and simulations
 from this page and the two pages linked.*
 
-Near-infrared light from behind is the better route to work on first
-(Judgement). Side light is kept as an approach for the simulator, because
+Near-infrared light from behind is the route to work on first
+(Judgement). It gives more light, a direct picture and a kind of
+reconstruction that is already established. The judgement does not rest
+on computing cost: the heavier computation that side light needs is no
+reason against it (REQ-23). Side light is kept as an approach for the simulator, because
 it needs nothing done to the chip and shows the surface where the other
 shows the wiring.
 
@@ -212,7 +227,7 @@ costs scan time. The table shows what they buy for light from behind.
 [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py)
 with the baseline pixel and a signal-to-noise of 50 per reading, and of 5
 in the columns marked a tenth, which stands for a hundred times less
-light per reading. The time is the number of readings divided by the
+light per reading when the noise is that of the light itself (Assumption). The time is the number of readings divided by the
 frame rate. The same caveats apply as to Table 7 of the backlight page.*
 
 Three things follow (Derived from Table 6).
@@ -238,7 +253,7 @@ reconstruction to say what the readings yield.
 | Side light gives no direct picture at any gap. Design section 4.11 says so | [Design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes) |
 | The light model for side light in level 1 has to be a wave model of the slot, with reconstruction by running it backwards | [Plan](plan.md#d-simulation-chain), item D2d |
 | A small wave solver exists and is the start of level 4 | [Plan](plan.md#d-simulation-chain), item D5 |
-| Near-infrared light from behind is worked on first; its level 1 model and its unchecked points come next | Plan, items D2f, R19, R20 |
+| Near-infrared light from behind is worked on first; its level 1 model and its unchecked points come next | [Plan](plan.md#d-simulation-chain), item D2f; [plan](plan.md#data-collection), items R19 and R20 |
 
 *Table 7. What this page changes.*
 
@@ -255,7 +270,7 @@ python -m pytest -q tests/test_slot_waves.py
 | Limit | Effect |
 |---|---|
 | Flat, uniform surfaces in the mode solution | A real chip's surface scatters light out of the flat modes all the way along, so less arrives than Table 2 says |
-| Two dimensions, one polarisation, one wavelength in the feature runs | The other polarisation dies out sooner (Figure 1) and matters little. A line running along the light, not across it, is not covered |
+| Two dimensions, one polarisation, one wavelength in the feature runs | The other polarisation dies out sooner at gaps above about 0.5 µm (Figure 1) and matters little there. A line running along the light, not across it, is not covered |
 | Grid spacing of 20 nm, with materials stair-stepped | Loss rates about 10 % low (Table 3). Aluminium's surface layer is thinner than one grid cell, so its reflection is approximate |
 | Runs 34 µm long | The full length of a feature's mark was not reached |
 | One line at a time | A real chip has features all along the light's path, each marking the readings of all the others |
