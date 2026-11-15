@@ -16,6 +16,7 @@ const el = (tag, attrs = {}, ...children) => {
 };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const fmt = (v, digits = 4) => (v === null || v === undefined || !isFinite(v)) ? "" : String(Number(Number(v).toPrecision(digits)));
+const fixed = (v, places) => (v === null || v === undefined || !isFinite(v)) ? "no number" : Number(v).toFixed(places);
 const thousands = (v, places = 0) => Number(v).toLocaleString("en-US", { minimumFractionDigits: places, maximumFractionDigits: places });
 
 let info = null;          // what /api/describe returned
@@ -34,25 +35,34 @@ async function post(url, body) {
 }
 
 function makeRunner(url, request, show, status) {
-  let busy = false, dirty = false, timer = null;
+  let busy = false, dirty = false, timer = null, shownOnce = false;
   async function go() {
     if (busy) { dirty = true; return; }
     busy = true; dirty = false;
     status.classList.remove("bad");
     status.textContent = "Working…";
     const started = performance.now();
-    try {
-      const out = await post(url, request());
-      if (out.ok) {
-        show(out);
-        status.textContent = `Updated in ${((performance.now() - started) / 1000).toFixed(2)} s.`;
-      } else {
-        status.classList.add("bad");
-        status.textContent = `These settings cannot be run: ${out.error}. The pictures below still show the last settings that worked.`;
-      }
-    } catch (problem) {
+    const clock = setInterval(() => { status.textContent = `Working… ${Math.round((performance.now() - started) / 1000)} s`; }, 1000);
+    let out = null;
+    try { out = await post(url, request()); } catch (problem) { out = null; }
+    clearInterval(clock);
+    if (out === null) {
       status.classList.add("bad");
       status.textContent = "The simulator is not answering. Check that python -m ccdsr.gui is still running, then change any setting.";
+    } else if (out.ok) {
+      shownOnce = true;
+      try {
+        show(out);
+        status.textContent = `Updated in ${((performance.now() - started) / 1000).toFixed(2)} s.`;
+      } catch (problem) {
+        status.classList.add("bad");
+        status.textContent = "The answer could not be drawn: " + problem;
+      }
+    } else {
+      status.classList.add("bad");
+      status.textContent = `These settings cannot be run: ${out.error}. ` + (shownOnce
+        ? "The pictures below still show the last settings that worked."
+        : "Change the setting, or press Reset all to return to the defaults.");
     }
     busy = false;
     if (dirty) go();
@@ -62,12 +72,36 @@ function makeRunner(url, request, show, status) {
 
 function saveToAddress() {
   const tab = $("view-2d").hidden ? "1d" : "2d";
-  try { history.replaceState(null, "", "#" + encodeURIComponent(JSON.stringify({ tab, s: state, s2: state2 }))); } catch (e) { /* too long: skip */ }
+  try { history.replaceState(null, "", "#" + encodeURIComponent(JSON.stringify({ tab, s: state, s2: state2, p: $("preset").value }))); } catch (e) { /* too long: skip */ }
 }
 
 function loadFromAddress() {
   if (location.hash.length < 3) return null;
   try { return JSON.parse(decodeURIComponent(location.hash.slice(1))); } catch (e) { return null; }
+}
+
+// A saved state is only trusted where it has the same shape as the default; anything else falls back.
+function sane(saved, usual) {
+  if (saved === null || typeof saved !== "object" || Array.isArray(saved)) return clone(usual);
+  const out = clone(usual);
+  for (const key of Object.keys(usual)) {
+    const given = saved[key], normal = usual[key];
+    if (key === "methods") {
+      if (Array.isArray(given)) {
+        out.methods = given.filter((m) => m && typeof m === "object" && info.methods.some((k) => k.name === m.method))
+          .map((m) => ({ method: m.method, options: sane(m.options, info.methods.find((k) => k.name === m.method).options) }));
+      }
+    } else if (key === "code") {
+      if (Array.isArray(given) && given.every((v) => v === 0 || v === 1)) out.code = given;
+    } else if (key === "seed") {
+      if (Number.isInteger(given) && given >= 0) out.seed = given;
+    } else if (normal !== null && typeof normal === "object") {
+      out[key] = sane(given, normal);
+    } else if (typeof given === typeof normal && (typeof given !== "number" || isFinite(given))) {
+      out[key] = given;
+    }
+  }
+  return out;
 }
 
 // ------------------------------------------------------------------- controls
@@ -99,8 +133,11 @@ function buildControl(def, target, changed) {
   } else if (def.scale === "code") {
     const text = el("input", { type: "text", id, placeholder: "empty: light simply on", "aria-label": def.label });
     text.addEventListener("change", () => {
-      const cleaned = text.value.split(/[\s,]+/).filter((t) => t !== "").map(Number);
-      set(cleaned.length ? cleaned : null);
+      const cleaned = text.value.split(/[\s,]+/).filter((t) => t !== "");
+      const fine = cleaned.every((t) => t === "0" || t === "1") && (cleaned.length === 0 || cleaned.includes("1")) && cleaned.length <= info.limits.code;
+      text.setCustomValidity(fine ? "" : `Only 0 and 1, separated by commas, with at least one 1 and at most ${info.limits.code} entries.`);
+      text.reportValidity();
+      if (fine) set(cleaned.length ? cleaned.map(Number) : null);
     });
     syncers.push(() => { const v = get(); text.value = v ? v.join(",") : ""; });
     box.append(el("div", { class: "top" }, name), text);
@@ -125,7 +162,7 @@ function buildMethods() {
   info.methods.forEach((method, index) => {
     methodOptions[method.name] = clone(method.options);
     const check = el("input", { type: "checkbox", id: "m-" + method.name });
-    const chip = el("span", { class: "chip", style: `background: var(--m${index % 6})` });
+    const chip = el("span", { class: "chip", style: `background: ${colorOf(index)}` });
     const opts = el("div", { class: "opts" });
     for (const option of Object.keys(method.options)) {
       const input = el("input", { type: "number", step: "any", id: `o-${method.name}-${option}` });
@@ -141,18 +178,21 @@ function buildMethods() {
     if (method.solves_positions) notes.push("Works out the frame positions itself, starting from what it is told.");
     const box = el("div", { class: "method" }, el("label", {}, check, chip, el("span", { text: method.label })));
     if (notes.length) box.append(el("p", { class: "note", text: notes.join(" ") }));
-    if (Object.keys(method.options).length) box.append(opts);
+    const fold = el("details", {}, el("summary", { text: "options" }), opts);
+    if (Object.keys(method.options).length) box.append(fold);
     check.addEventListener("change", () => { collectMethods(); changed1(); });
     syncers.push(() => {
       const mine = state.methods.find((m) => m.method === method.name);
       check.checked = !!mine;
       if (mine) methodOptions[method.name] = { ...methodOptions[method.name], ...mine.options };
-      opts.hidden = !mine;
+      fold.hidden = !mine;
       for (const option of Object.keys(method.options)) $(`o-${method.name}-${option}`).value = fmt(methodOptions[method.name][option], 6);
     });
     holder.append(box);
   });
 }
+
+function resetMethodOptions() { for (const m of info.methods) methodOptions[m.name] = clone(m.options); }
 
 function collectMethods() {
   state.methods = info.methods.filter((m) => $("m-" + m.name).checked).map((m) => ({ method: m.name, options: clone(methodOptions[m.name]) }));
@@ -164,6 +204,8 @@ let run1 = () => {}, run2 = () => {};
 
 function changed1(key) {
   if (key === "optics.pitch_nm" && state.optics.aperture_nm > state.optics.pitch_nm) state.optics.aperture_nm = state.optics.pitch_nm;
+  const opening = document.querySelector('[data-key="optics.aperture_nm"] input[type=range]');
+  opening.max = state.optics.pitch_nm;
   syncAll();
   const collimated = state.optics.gap_model === "collimated";
   document.querySelector('[data-key="optics.wavelength_nm"]').classList.toggle("off", !collimated);
@@ -200,7 +242,7 @@ function ticks(lo, hi, about) {
 
 // Draws the frame, grid and labels of a plot and returns functions from data to canvas coordinates.
 function axes(g, w, h, o) {
-  const m = { l: 52, r: 12, t: 10, b: 36 };
+  const m = { l: 62, r: 24, t: 10, b: 36 };
   const placed = [];
   if (o.legend) {
     let x = m.l, row = 0;
@@ -232,7 +274,7 @@ function axes(g, w, h, o) {
   g.strokeStyle = css("--line"); g.strokeRect(m.l, m.t, pw, ph);
   g.textAlign = "center"; g.textBaseline = "bottom";
   g.fillText(o.xlabel, m.l + pw / 2, h - 2);
-  g.save(); g.translate(11, m.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = "top"; g.fillText(o.ylabel, 0, -8); g.restore();
+  g.save(); g.translate(3, m.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = "top"; g.fillText(o.ylabel, 0, 0); g.restore();
   g.textAlign = "left"; g.textBaseline = "middle";
   for (const { item, x, y } of placed) {
     g.strokeStyle = item.color; g.lineWidth = item.width || 2; g.setLineDash(item.dash || []);
@@ -256,7 +298,8 @@ function line(g, a, xs, ys, color, width = 1.5, dash = []) {
   g.stroke(); g.setLineDash([]);
 }
 
-const methodColor = (name) => css("--m" + (info.methods.findIndex((m) => m.name === name) % 6));
+const colorOf = (index) => index < 6 ? `var(--m${index})` : `hsl(${(index * 67) % 360} 55% 50%)`;
+const methodColor = (name) => { const i = info.methods.findIndex((m) => m.name === name); return i < 6 ? css("--m" + i) : colorOf(i); };
 
 function drawSurface() {
   if (!last) return;
@@ -272,8 +315,8 @@ function drawSurface() {
   const xs = (i) => (i0 + i) * dx;
   a.clip();
   if ($("show-seen").checked) line(g, a, xs, last.seen.slice(i0, i1), css("--fg2"), 1.2, [4, 3]);
-  line(g, a, xs, last.scene.truth.slice(i0, i1), css("--fg"), 2);
   for (const r of good) line(g, a, xs, r.estimate.slice(i0, i1), methodColor(r.method), 1.5);
+  line(g, a, xs, last.scene.truth.slice(i0, i1), css("--fg"), 1.25);
   g.restore();
 }
 
@@ -305,13 +348,15 @@ function drawPath() {
   for (const s of series) for (const v of s) if (Math.abs(v) > top) top = Math.abs(v);
   top *= 1.1;
   const legend = [{ label: "true path", color: css("--fg"), width: 2 }, { label: "what the reconstruction is told", color: css("--fg2"), dash: [4, 3] }];
-  for (const r of solved) legend.push({ label: "solved: " + r.label, color: methodColor(r.method) });
+  for (const r of solved) legend.push({ label: "solved: " + r.label, color: methodColor(r.method), width: 5 });
   const a = axes(g, w, h, { x0: 0, x1: Math.max(1, last.path.true_nm.length - 1), y0: -top, y1: top, xlabel: "frame number", ylabel: "distance from the plan (nm)", legend });
   const xs = (i) => i;
   a.clip();
-  line(g, a, xs, last.path.true_nm, css("--fg"), 2);
+  g.globalAlpha = 0.55;
+  for (const r of solved) line(g, a, xs, r.path_nm, methodColor(r.method), 5);
+  g.globalAlpha = 1;
   line(g, a, xs, last.path.believed_nm, css("--fg2"), 1.2, [4, 3]);
-  for (const r of solved) line(g, a, xs, r.path_nm, methodColor(r.method), 1.5);
+  line(g, a, xs, last.path.true_nm, css("--fg"), 1.5);
   g.restore();
 }
 
@@ -353,17 +398,20 @@ function drawSetup() {
   const H = surfaceY + 104;
   const root = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Side view of the sensor above the surface" });
   const add = (tag, attrs, text) => root.append(svg(tag, attrs, text));
-  // The next frame's position, drawn first so that it sits behind.
-  const step = s.step_nm * scale;
-  if (Math.abs(step) < W) add("rect", { x: x0 + step, y: sensorTop, width: shown * s.pitch_nm * scale, height: sensorH, style: "fill:none;stroke:var(--fg2);stroke-dasharray:4 3" });
   // The cone that one pixel collects from.
-  const half = s.aperture_nm * scale / 2, spread = Math.max(s.blur_width_nm, s.aperture_nm) * scale / 2;
+  const full = shown * s.pitch_nm * scale;
+  const half = s.aperture_nm * scale / 2, wanted = s.blur_width_nm * scale / 2, spread = Math.min(wanted, full / 2);
+  const cut = wanted > spread + 0.5;
   add("polygon", { points: `${mid - half},${sensorBottom} ${mid + half},${sensorBottom} ${mid + spread},${surfaceY} ${mid - spread},${surfaceY}`, style: "fill:var(--accent);opacity:0.22" });
   for (let k = 0; k < shown; k++) {
     const left = x0 + k * s.pitch_nm * scale, width = s.pitch_nm * scale, open = s.aperture_nm * scale;
     add("rect", { x: left, y: sensorTop, width, height: sensorH, style: "fill:var(--pill);stroke:var(--fg2)" });
     add("rect", { x: left + (width - open) / 2, y: sensorBottom - 7, width: open, height: 7, style: "fill:var(--accent)" });
   }
+  // The sensor one frame later, as a dashed outline over the pixels; left out if it would leave the drawing.
+  const step = s.step_nm * scale;
+  const later = Math.abs(step) <= s.pitch_nm * scale * 1.5;
+  if (later) add("rect", { x: x0 + step, y: sensorTop - 3, width: full, height: sensorH + 6, style: "fill:none;stroke:var(--fg);stroke-dasharray:5 3;stroke-width:1.3" });
   // The surface, shaded by its true reflectance, centred on the middle of the test surface.
   const dx = last.scene.dx_nm, truth = last.scene.truth, cells = Math.round(shown * s.pitch_nm / dx);
   const first = Math.max(0, Math.floor(truth.length / 2 - cells / 2));
@@ -386,9 +434,9 @@ function drawSetup() {
   add("line", { x1: W - 18, y1: sensorBottom, x2: W - 18, y2: surfaceY, style: "stroke:var(--fg2)" });
   add("text", { x: W - 24, y: (sensorBottom + surfaceY) / 2 + 4, "text-anchor": "end" },
     `gap ${thousands(s.gap_nm)} nm` + (Math.abs(trueGap - gap) > 1 ? " (not to scale)" : ""));
-  dim(mid - spread, mid + spread, surfaceY + 34, `one reading mixes about ${thousands(Math.max(s.blur_width_nm, s.aperture_nm))} nm`);
+  dim(mid - spread, mid + spread, surfaceY + 34, `one reading mixes about ${thousands(s.blur_width_nm)} nm` + (cut ? " (wider than drawn)" : ""));
   add("text", { x: x0, y: surfaceY + 62 }, `Blue: each pixel's opening (${thousands(s.aperture_nm)} nm) and what the middle pixel collects.`);
-  add("text", { x: x0, y: surfaceY + 78 }, `Dashed: the sensor one frame later, moved ${thousands(s.step_nm)} nm.`);
+  add("text", { x: x0, y: surfaceY + 78 }, later ? `Dashed: the sensor one frame later, moved ${thousands(s.step_nm)} nm.` : `One frame later the sensor has moved ${thousands(s.step_nm)} nm (not drawn).`);
   add("text", { x: x0, y: surfaceY + 94 }, "Grey strip: the surface, lighter where it reflects more. Widths to scale.");
   $("setup").replaceChildren(root);
 }
@@ -404,7 +452,7 @@ function showScores() {
   if (twoMaterials) head.append(el("th", { text: "Surface given the wrong material (%)" }));
   head.append(el("th", { text: "Error of the frame positions used (nm, rms)" }), el("th", { text: "Time (s)" }));
   const rows = [head];
-  const good = last.results.filter((r) => r.ok);
+  const good = last.results.filter((r) => r.ok && r.scores.rms_error !== null);
   const best = good.length > 1 ? Math.min(...good.map((r) => r.scores.rms_error)) : null;
   const columns = head.children.length;
   for (const r of last.results) {
@@ -412,13 +460,13 @@ function showScores() {
     if (!r.ok) { rows.push(el("tr", {}, name, el("td", { class: "err", colspan: columns - 1, text: "Did not run: " + r.error }))); continue; }
     if (r.note) name.append(el("div", { class: "help", text: "Warning from the solver: " + r.note }));
     const sc = r.scores, row = el("tr", {}, name);
-    row.append(el("td", { class: "num" + (sc.rms_error === best ? " best" : ""), text: sc.rms_error.toFixed(3) }));
+    row.append(el("td", { class: "num" + (sc.rms_error === best ? " best" : ""), text: fixed(sc.rms_error, 3) }));
     if (groups.length) {
       row.append(el("td", { class: "num", text: sc.finest_period_nm === null ? "none" : thousands(sc.finest_period_nm) }));
-      for (const share of sc.contrast_share) row.append(el("td", { class: "num", text: share === null ? "" : share.toFixed(2) }));
+      for (const share of sc.contrast_share) row.append(el("td", { class: "num", text: fixed(share, 2) }));
     }
-    if (twoMaterials) row.append(el("td", { class: "num", text: sc.wrong_material_percent.toFixed(1) }));
-    row.append(el("td", { class: "num", text: sc.position_error_nm === null ? "" : sc.position_error_nm.toFixed(1) }), el("td", { class: "num", text: r.seconds.toFixed(2) }));
+    if (twoMaterials) row.append(el("td", { class: "num", text: fixed(sc.wrong_material_percent, 1) }));
+    row.append(el("td", { class: "num", text: fixed(sc.position_error_nm, 1) }), el("td", { class: "num", text: fixed(r.seconds, 2) }));
     rows.push(row);
   }
   if (!last.results.length) rows.push(el("tr", {}, el("td", { colspan: columns, text: "No method is ticked. Tick one under Reconstruction." })));
@@ -456,13 +504,18 @@ let shownScene = null;
 function show1(out) {
   last = out;
   if (shownScene !== out.scene.name + ":" + out.scene.truth.length) { shownScene = out.scene.name + ":" + out.scene.truth.length; view.x0 = null; showZooms(); }
+  if (view.zoomTo) {
+    const group = out.scene.groups.find((g) => g[0] === view.zoomTo), dx = out.scene.dx_nm / 1000;
+    if (group) { const pad = 0.15 * (group[2] - group[1]); view.x0 = (group[1] - pad) * dx; view.x1 = (group[2] + pad) * dx; }
+    view.zoomTo = null;
+  }
   showScores(); showFacts(); showFile(); drawSetup(); redraw1();
 }
 function redraw1() { drawSurface(); drawReadings(); drawPath(); drawBlur(); }
 
 function surfaceInteraction() {
   const canvas = $("plot-surface");
-  const span = () => canvas.clientWidth - 64;
+  const span = () => canvas.clientWidth - 86;
   let drag = null;
   canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, x0: view.x0, x1: view.x1 }; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener("pointermove", (e) => {
@@ -475,7 +528,7 @@ function surfaceInteraction() {
   canvas.addEventListener("wheel", (e) => {
     if (view.x0 === null) return;
     e.preventDefault();
-    const at = view.x0 + (view.x1 - view.x0) * Math.max(0, Math.min(1, (e.offsetX - 52) / span()));
+    const at = view.x0 + (view.x1 - view.x0) * Math.max(0, Math.min(1, (e.offsetX - 62) / span()));
     const factor = e.deltaY > 0 ? 1.25 : 0.8;
     const width = Math.max(0.2, (view.x1 - view.x0) * factor);
     const share = (at - view.x0) / (view.x1 - view.x0);
@@ -486,15 +539,20 @@ function surfaceInteraction() {
 
 // ------------------------------------------------------------- two dimensions
 
+// A grey picture; cells with no value (never scanned) are drawn in a flat blue.
 function grey(canvas, values, width, height, top) {
   canvas.width = width; canvas.height = height;
   const image = new ImageData(width, height);
   for (let i = 0; i < values.length; i++) {
+    image.data[4 * i + 3] = 255;
+    if (values[i] === null) { image.data[4 * i] = 40; image.data[4 * i + 1] = 70; image.data[4 * i + 2] = 130; continue; }
     const c = Math.max(0, Math.min(255, Math.round(255 * values[i] / top)));
-    image.data[4 * i] = image.data[4 * i + 1] = image.data[4 * i + 2] = c; image.data[4 * i + 3] = 255;
+    image.data[4 * i] = image.data[4 * i + 1] = image.data[4 * i + 2] = c;
   }
   canvas.getContext("2d").putImageData(image, 0, 0);
 }
+
+const shareText = (share) => share === null ? "not scanned" : share.toFixed(2);
 
 function show2(out) {
   const [height, width] = out.shape;
@@ -504,18 +562,19 @@ function show2(out) {
   for (const v of out.frame.values) if (v > top) top = v;
   grey($("img-frame"), out.frame.values, out.frame.side, out.frame.side, top);
   const facts = [
-    ["Error against the true picture (rms, reflectance)", out.rms_error.toFixed(3)],
+    ["Error against the true picture, where scanned (rms, reflectance)", fixed(out.rms_error, 3)],
+    ["Share of the picture that a pixel passed over", (100 * out.scanned_share).toFixed(0) + " %"],
     ["Readings taken", thousands(out.readings)],
-    ["Different lines across the scan that the pixels trace, per pixel spacing", thousands(out.distinct_lines_across)],
+    ["Largest gap, across the scan, between the lines the pixels trace", thousands(out.largest_gap_across_nm) + " nm"],
     ["Time to reconstruct", out.seconds.toFixed(2) + " s"],
   ];
-  if (out.note) facts.push(["Note", out.note]);
+  $("note-2d").textContent = out.note;
   $("facts-2d").replaceChildren(...facts.map(([a, b]) => el("tr", {}, el("td", { text: a }), el("td", { text: b }))));
   const rows = [el("tr", {}, el("th", { text: "Line period (nm)" }), el("th", { text: "Share shown, lines varying along the scan" }), el("th", { text: "Share shown, lines varying across the scan" }))];
   const periods = [...new Set(out.groups.map((g) => g.period_nm))];
   for (const period of periods) {
     const pick = (direction) => out.groups.find((g) => g.period_nm === period && g.direction === direction);
-    rows.push(el("tr", {}, el("td", { class: "num", text: thousands(period) }), el("td", { class: "num", text: pick("along").share.toFixed(2) }), el("td", { class: "num", text: pick("across").share.toFixed(2) })));
+    rows.push(el("tr", {}, el("td", { class: "num", text: thousands(period) }), el("td", { class: "num", text: shareText(pick("along").share) }), el("td", { class: "num", text: shareText(pick("across").share) })));
   }
   $("groups-2d").replaceChildren(...rows);
   // Top view: the outline of the sensor at the first frame and twenty frames later, over the picture's outline.
@@ -547,8 +606,8 @@ function selectTab(which) {
 async function start() {
   info = await (await fetch("/api/describe")).json();
   const saved = loadFromAddress();
-  state = (saved && saved.s) || clone(info.default);
-  state2 = (saved && saved.s2) || clone(info.default_2d);
+  state = sane(saved && saved.s, info.default);
+  state2 = sane(saved && saved.s2, info.default_2d);
 
   const groups = { optics: $("group-optics"), scan: $("group-scan"), noise: $("group-noise") };
   for (const def of info.controls) groups[def.key.split(".")[0]].append(buildControl(def, () => state, changed1));
@@ -562,16 +621,37 @@ async function start() {
     const chosen = info.presets.find((p) => p.name === preset.value);
     const keep = { scene: state.scene, seed: state.seed };
     state = { ...clone(chosen ? chosen.request : info.default), ...keep };
-    $("preset-help").textContent = chosen ? chosen.description : "";
+    resetMethodOptions();
+    describePreset();
     changed1();
   });
   const scene = $("scene");
   for (const s of info.scenes) scene.append(el("option", { value: s.name, text: s.label }));
   scene.addEventListener("change", () => { state.scene = scene.value; changed1(); });
-  syncers.push(() => { scene.value = state.scene; $("seed").value = state.seed; });
+  syncers.push(() => {
+    scene.value = state.scene; $("seed").value = state.seed;
+    const chosen = info.scenes.find((k) => k.name === state.scene);
+    $("scene-help").textContent = chosen ? chosen.about : "";
+  });
+  const describePreset = () => {
+    const chosen = info.presets.find((k) => k.name === preset.value);
+    $("preset-help").textContent = chosen ? chosen.description + " Loading it sets every control, the method and what is told about positions; the test surface and noise sample stay." : "";
+  };
+  if (saved && typeof saved.p === "string" && info.presets.some((k) => k.name === saved.p)) { preset.value = saved.p; describePreset(); }
   $("seed").addEventListener("change", () => { state.seed = Math.max(0, Math.round(Number($("seed").value) || 0)); changed1(); });
-  $("reseed").addEventListener("click", () => { state.seed += 1; changed1(); });
-  $("reset").addEventListener("click", () => { state = clone(info.default); preset.value = ""; $("preset-help").textContent = ""; changed1(); });
+  $("reseed").addEventListener("click", () => { state.seed = Number(state.seed) + 1; changed1(); });
+  $("reset").addEventListener("click", () => { state = clone(info.default); preset.value = ""; resetMethodOptions(); describePreset(); changed1(); });
+  for (const button of document.querySelectorAll("#tries button")) {
+    button.addEventListener("click", () => {
+      const change = JSON.parse(button.dataset.set);
+      for (const [key, value] of Object.entries(change)) {
+        if (key === "methods") state.methods = value.map((name) => ({ method: name, options: clone(methodOptions[name]) }));
+        else if (key === "zoom") view.zoomTo = value;
+        else setKey(state, key, value);
+      }
+      changed1();
+    });
+  }
   for (const radio of document.querySelectorAll('input[name="positions"]')) {
     radio.addEventListener("change", () => { state.positions = radio.value; changed1(); });
     syncers.push(() => { radio.checked = state.positions === radio.value; });

@@ -24,6 +24,7 @@ import argparse
 import dataclasses
 import inspect
 import json
+import threading
 import time
 import warnings
 import webbrowser
@@ -31,6 +32,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import numpy as np
+from scipy.ndimage import maximum_filter
 
 from . import approaches as ap
 from . import compare as cp
@@ -42,7 +44,9 @@ STATIC = Path(__file__).parent / "gui_static"
 APPROACH_DIR = Path(__file__).parent.parent / "approaches"
 
 # Sizes above these would make the page slow to respond; the command line has no such limit.
-MAX_FRAMES, MAX_PIXELS = 2000, 512
+MAX_FRAMES, MAX_PIXELS = 1000, 256
+MAX_CODE, MAX_WANDER_FRAMES, MAX_LIGHT_E, MAX_SEED = 64, 10000, 1e9, 2**31 - 1
+_LOCK = threading.Lock()                 # one request at a time: the warning capture below is not thread-safe
 MAX_FRAMES_2D, MAX_SIDE_2D = 600, 32
 
 # How each setting is offered on the page: (key, label, unit, lowest, highest, step, scale, help).
@@ -90,13 +94,15 @@ CONTROLS_2D = [
     ("tilt_deg", "Sensor tilt", "degrees", 0, 45, 0.02, "linear",
      "Turning the sensor makes its rows trace different lines across the scan."),
     ("shift_px", "Movement between frames", "pixel", 0.02, 4, 0.01, "linear", CONTROLS[6][7]),
-    ("n_frames", "Number of frames", "", 10, MAX_FRAMES_2D, 1, "linear", "How many times the sensor is read."),
-    ("n_side", "Pixels along each side of the sensor", "", 4, MAX_SIDE_2D, 1, "linear",
+    ("n_frames", "Number of frames", "", 40, MAX_FRAMES_2D, 1, "linear", "How many times the sensor is read."),
+    ("n_side", "Pixels along each side of the sensor", "", 8, MAX_SIDE_2D, 1, "linear",
      "The sensor is square in this view."),
     ("exposure_fraction", "Share of each frame the light is on", "", 0, 1, 0.01, "linear", CONTROLS[9][7]),
     ("row_delay_px", "Extra movement per sensor row", "pixel", 0, 0.2, 0.002, "linear",
      "A sensor that reads its rows one after another sees each row slightly later."),
-    ("jitter_px", "Random position error of every frame", "pixel, rms", 0, 1, 0.01, "linear", CONTROLS[11][7]),
+    ("jitter_px", "Random position error of every frame", "pixel, rms", 0, 1, 0.01, "linear",
+     "Shake that differs from frame to frame. On this tab the reconstruction is told the exact position of "
+     "every frame, shake included, so this changes the sampling and does not test position finding."),
     ("full_e", "Light collected at full brightness", "electrons", 10, 100000, None, "log", CONTROLS[14][7]),
     ("read_e", "Read noise of the sensor", "electrons, rms", 0, 50, 0.5, "linear", CONTROLS[15][7]),
     ("smoothness", "Smoothing in least squares", "", 1e-5, 10, None, "log",
@@ -107,6 +113,7 @@ DEFAULTS_2D = {"gap_nm": 300.0, "aperture_nm": 1120.0, "tilt_deg": 3.58, "shift_
                "read_e": 2.0, "smoothness": 1e-2, "method": "least_squares", "seed": 0}
 PERIODS_2D = (1960.0, 1400.0, 980.0, 700.0)
 DX_2D, SHAPE_2D = 70.0, (256, 512)
+ITERATIONS_2D = 100                     # solver steps on the two-dimensional tab, so that no change takes long
 
 METHOD_LABELS = {
     "shift_and_add": "Shift and add",
@@ -117,9 +124,9 @@ METHOD_LABELS = {
     "two_materials_positions": "Two known materials, solving positions",
 }
 SCENE_LABELS = {
-    "bars": "Bar groups, 4,000 to 320 nm",
-    "random_layout": "Random two-material layout, 240 nm cells",
-    "isolated_lines": "Isolated 200 nm lines",
+    "bars": "Bar groups",
+    "random_layout": "Random two-material layout",
+    "isolated_lines": "Isolated narrow lines",
     "soft_ramps": "Smooth waves of many reflectances",
 }
 
@@ -191,14 +198,19 @@ def describe(directory=None):
     scenes = []
     for name in ap.SCENES:
         scene = ap.get_scene(name)
-        scenes.append({"name": name, "label": SCENE_LABELS.get(name, name.replace("_", " ")),
-                       "two_materials": scene.levels is not None, "length_um": scene.surface.size * scene.dx_nm / 1e3})
+        about = f"{scene.surface.size * scene.dx_nm / 1e3:,.1f} µm long"
+        if scene.groups:
+            about += f", bars repeating every {max(g[0] for g in scene.groups):,.0f} down to " \
+                     f"{min(g[0] for g in scene.groups):,.0f} nm"
+        about += ", two materials" if scene.levels is not None else ", many reflectances"
+        scenes.append({"name": name, "label": SCENE_LABELS.get(name, name.replace("_", " ")), "about": about,
+                       "two_materials": scene.levels is not None})
     return {"controls": [_control(r) for r in CONTROLS], "choices": {"optics.gap_model": list(ap._CHOICES["gap_model"])},
             "methods": methods, "scenes": scenes, "default": default_request(), "presets": presets(directory),
             "controls_2d": [_control(r) for r in CONTROLS_2D], "default_2d": dict(DEFAULTS_2D),
             "methods_2d": [{"name": "least_squares", "label": "Least squares"},
                            {"name": "shift_and_add", "label": "Shift and add"}],
-            "limits": {"frames": MAX_FRAMES, "pixels": MAX_PIXELS}}
+            "limits": {"frames": MAX_FRAMES, "pixels": MAX_PIXELS, "code": MAX_CODE}}
 
 
 # ------------------------------------------------------------ one dimension
@@ -223,12 +235,17 @@ def _clean_parts(request):
     else:
         scan["code"] = tuple(scan["code"]) if isinstance(scan["code"], (list, tuple)) else scan["code"]
     for name in ("n_frames", "n_pixels"):
-        if isinstance(scan.get(name), float) and scan[name] == int(scan[name]):
+        if isinstance(scan.get(name), float) and np.isfinite(scan[name]) and scan[name] == int(scan[name]):
             scan[name] = int(scan[name])
-    if ap._is_number(scan.get("n_frames", 0)) and scan.get("n_frames", 0) > MAX_FRAMES:
-        raise BadRequest(f"the page runs at most {MAX_FRAMES:,} frames; use the command line for more")
-    if ap._is_number(scan.get("n_pixels", 0)) and scan.get("n_pixels", 0) > MAX_PIXELS:
-        raise BadRequest(f"the page runs at most {MAX_PIXELS} pixels; use the command line for more")
+    caps = (("scan", "n_frames", MAX_FRAMES), ("scan", "n_pixels", MAX_PIXELS),
+            ("scan", "wander_frames", MAX_WANDER_FRAMES), ("noise", "full_e", MAX_LIGHT_E))
+    for part, name, most in caps:
+        value = parts[part].get(name, 0)
+        if ap._is_number(value) and value > most:
+            raise BadRequest(f"{part}.{name} can be at most {most:,.0f} on this page, not {value:g}; "
+                             "the command line has no such limit")
+    if isinstance(scan.get("code"), tuple) and len(scan["code"]) > MAX_CODE:
+        raise BadRequest(f"scan.code can have at most {MAX_CODE} entries on this page")
     return parts
 
 
@@ -273,7 +290,7 @@ def approach_text(approach: ap.Approach):
 
 def _blur_curves(optics: l1.Optics1D, scan: l1.Scan1D):
     """How much of a detail of each size survives each cause of blur, and all three together."""
-    periods = np.geomspace(100.0, 20000.0, 70)
+    periods = np.geomspace(100.0, 20000.0, 280)
     freq = 1 / periods
     smear = abs(scan.shift_px) * optics.pitch_nm * scan.exposure_fraction
     gap = np.abs(gap_transfer(periods, optics.gap_nm, optics.gap_model, optics.wavelength_nm))
@@ -284,8 +301,9 @@ def _blur_curves(optics: l1.Optics1D, scan: l1.Scan1D):
             "total": _list(total), "smear_nm": float(smear)}
 
 
-def _blur_width_nm(optics, scan, dx_nm=10.0, n=8192):
+def _blur_width_nm(optics, scan, n=16384):
     """Width at half height of the combined blur of a single point, by the simulator's own blur."""
+    dx_nm = max(10.0, optics.gap_nm / 400.0, optics.pitch_nm / 400.0)      # the grid grows with the blur
     spike = np.zeros(n)
     spike[n // 2] = 1.0
     spread = l1.blur(spike, dx_nm, optics, scan)
@@ -303,12 +321,20 @@ def _facts(scene, frames, optics, scan, noise, blur_width):
     length = scene.surface.size * scene.dx_nm
     light = noise.full_e * aperture / optics.pitch_nm
     per_point = frames.readings.size * aperture / length
+    where = np.sort(np.unique(np.round(frames.positions_nm.ravel() % length, 3)))
+    largest_gap = float(np.max(np.diff(np.concatenate([where, [where[0] + length]]))))
+    cells = np.zeros(scene.surface.size, dtype=bool)
+    cells[np.round(frames.positions_nm.ravel() / scene.dx_nm).astype(int) % cells.size] = True
+    passed = maximum_filter(cells, size=max(1, int(round(optics.pitch_nm / scene.dx_nm))), mode="wrap").mean()
     return [
         {"label": "Readings taken", "value": f"{frames.readings.size:,}", "unit": ""},
         {"label": "Readings whose opening covers any one point, on average", "value": f"{per_point:,.0f}", "unit": ""},
+        {"label": "Share of the test surface that a pixel passed over", "value": f"{100 * passed:.0f}", "unit": "%"},
         {"label": "Distance travelled", "value": f"{travel / 1e3:,.1f}", "unit": "µm"},
         {"label": "Length of the test surface (it repeats end to end)", "value": f"{length / 1e3:,.1f}", "unit": "µm"},
-        {"label": "Spacing of sample positions", "value": f"{abs(scan.shift_px) * optics.pitch_nm:,.0f}", "unit": "nm"},
+        {"label": "Movement between frames", "value": f"{abs(scan.shift_px) * optics.pitch_nm:,.0f}", "unit": "nm"},
+        {"label": "Largest gap between neighbouring sample positions, all frames and pixels together",
+         "value": f"{largest_gap:,.0f}", "unit": "nm"},
         {"label": "Width of the blur of one point (at half height)", "value": f"{blur_width:,.0f}", "unit": "nm"},
         {"label": "Motion smear in one reading", "value":
             f"{abs(scan.shift_px) * optics.pitch_nm * scan.exposure_fraction:,.0f}", "unit": "nm"},
@@ -325,12 +351,28 @@ def respond(request):
     run. A request that cannot be simulated at all gives
     ``{"ok": False, "error": reason}``.
     """
+    return _guarded(_respond, request, {c[0]: c[1] for c in CONTROLS})
+
+
+def _guarded(run, request, labels):
+    """Run one request, one at a time, and turn any failure into a reason the page can show."""
     try:
-        return _respond(request)
+        with _LOCK:
+            return run(request)
     except (BadRequest, ap.InvalidApproach) as reason:
-        return {"ok": False, "error": str(reason)}
-    except (ValueError, TypeError, KeyError, MemoryError, np.linalg.LinAlgError) as reason:
-        return {"ok": False, "error": f"{type(reason).__name__}: {reason}"}
+        return {"ok": False, "error": _plain_words(str(reason), labels)}
+    except Exception as reason:                        # whatever a registered part raises, the page gets an answer
+        return {"ok": False, "error": f"the simulator stopped with an error ({type(reason).__name__}: {reason})"}
+
+
+def _plain_words(message, labels):
+    """An error message with each setting's code name followed by its label on the page."""
+    if message.startswith("settings: "):
+        message = message[len("settings: "):]
+    for key in sorted(labels, key=len, reverse=True):
+        if key in message:
+            return message.replace(key, f"'{labels[key]}' ({key})", 1)
+    return message
 
 
 def _respond(request):
@@ -339,8 +381,8 @@ def _respond(request):
     parts = _clean_parts(request)
     positions = request.get("positions", "known")
     seed = request.get("seed", 0)
-    if not isinstance(seed, int) or isinstance(seed, bool) or seed < 0:
-        raise BadRequest("the seed is a whole number, 0 or more")
+    if not isinstance(seed, int) or isinstance(seed, bool) or not 0 <= seed <= MAX_SEED:
+        raise BadRequest(f"the seed is a whole number from 0 to {MAX_SEED:,}")
     try:
         scene = ap.get_scene(request.get("scene", "bars"))
     except (ValueError, TypeError) as reason:
@@ -382,8 +424,8 @@ def _respond(request):
                 result["path_nm"] = _list((l1.align_positions(frames, solved) - plan)[:, 0], 1)
         except (BadRequest, ap.InvalidApproach) as reason:
             result["error"] = str(reason)
-        except (ValueError, TypeError, np.linalg.LinAlgError) as reason:
-            result["error"] = f"{type(reason).__name__}: {reason}"
+        except Exception as reason:                    # one method failing must not hide the others
+            result["error"] = f"the method stopped with an error ({type(reason).__name__}: {reason})"
         results.append(result)
 
     blur_width = _blur_width_nm(optics, scan)
@@ -413,12 +455,7 @@ def _respond(request):
 
 def respond_2d(request):
     """Run one request of the two-dimensional tab: a tilted square sensor over a picture of line groups."""
-    try:
-        return _respond_2d(request)
-    except BadRequest as reason:
-        return {"ok": False, "error": str(reason)}
-    except (ValueError, TypeError, KeyError, MemoryError) as reason:
-        return {"ok": False, "error": f"{type(reason).__name__}: {reason}"}
+    return _guarded(_respond_2d, request, {c[0]: c[1] for c in CONTROLS_2D})
 
 
 def _number(settings, name, low, high, whole=False):
@@ -446,7 +483,7 @@ def _respond_2d(request):
                      exposure_fraction=_number(s, "exposure_fraction", 0, 1),
                      row_delay_px=_number(s, "row_delay_px", -1, 1), jitter_px=_number(s, "jitter_px", 0, 10))
     noise = l2.Noise(full_e=_number(s, "full_e", 1e-9, 1e12), read_e=_number(s, "read_e", 0, 1e6))
-    seed = _number(s, "seed", 0, 2**31, whole=True)
+    seed = _number(s, "seed", 0, MAX_SEED, whole=True)
     smoothness = _number(s, "smoothness", 0, 1e9)
     if s["method"] not in ("least_squares", "shift_and_add"):
         raise BadRequest(f"unknown method {s['method']!r}; known: ['least_squares', 'shift_and_add']")
@@ -459,24 +496,32 @@ def _respond_2d(request):
     with warnings.catch_warnings(record=True) as raised:
         warnings.simplefilter("always")
         if s["method"] == "least_squares":
-            estimate = l2.least_squares(frames, smoothness=smoothness)[0]
+            estimate = l2.least_squares(frames, smoothness=smoothness, iterations=ITERATIONS_2D)[0]
         else:
             estimate = l2.shift_and_add(frames)[0]
     seconds = time.perf_counter() - started
     note = "The solver stopped at its limit of steps before fully settling." if raised else ""
+    # Only what at least one pixel passed over can be judged; the rest is reported as not scanned.
+    # A cell counts as scanned if the centre of some reading came within half a pixel spacing of it.
+    reach = max(1, int(round(optics.pitch_nm / DX_2D)))
+    scanned = maximum_filter(np.asarray(l2.shift_and_add(frames)[1]) > 0, size=reach, mode="wrap")
     estimate = np.nan_to_num(np.asarray(estimate, dtype=float), nan=0.0)
     shown = []
     for group in groups:
-        true_strength = l2.group_contrast(picture, group, DX_2D)
-        shown.append({"period_nm": float(group[0]), "direction": str(group[1]),
-                      "share": float(l2.group_contrast(estimate, group, DX_2D) / true_strength)})
-    offsets = l2.cross_scan_offsets(scan, optics.pitch_nm)
+        _, _, y0, y1, x0, x1 = group
+        share = None
+        if scanned[y0:y1, x0:x1].all():
+            share = float(l2.group_contrast(estimate, group, DX_2D) / l2.group_contrast(picture, group, DX_2D))
+        shown.append({"period_nm": float(group[0]), "direction": str(group[1]), "share": share})
+    offsets = np.sort(l2.cross_scan_offsets(scan, optics.pitch_nm))
+    across_gap = float(np.max(np.diff(np.concatenate([offsets, [offsets[0] + 1.0]]))) * optics.pitch_nm)
+    rms = float(np.sqrt(np.mean((estimate - picture)[scanned] ** 2))) if scanned.any() else None
     return {
         "ok": True, "shape": list(SHAPE_2D), "dx_nm": DX_2D, "note": note,
-        "truth": _list(picture, 3), "estimate": _list(estimate, 3),
+        "truth": _list(picture, 3), "estimate": [v if ok else None for v, ok in zip(_list(estimate, 3), scanned.ravel())],
+        "scanned_share": float(scanned.mean()),
         "frame": {"side": side, "values": _list(frames.readings[frames.readings.shape[0] // 2], 1)},
-        "rms_error": float(np.sqrt(np.mean((estimate - picture) ** 2))),
-        "groups": shown, "distinct_lines_across": int(len(offsets)),
+        "rms_error": rms, "groups": shown, "largest_gap_across_nm": across_gap,
         "readings": int(frames.readings.size), "seconds": round(seconds, 3), "simulate_seconds": round(simulate_s, 3),
         "footprint": _list(frames.positions_nm[0].reshape(-1, 2)[[0, side - 1, side * side - 1, side * (side - 1)]], 1),
         "step_nm": shift * optics.pitch_nm,
@@ -491,6 +536,15 @@ _ROUTES = {"/api/run": respond, "/api/run2d": respond_2d}
 
 
 class _Handler(BaseHTTPRequestHandler):
+    timeout = 30                                       # a request that stalls does not hold a thread for ever
+
+    def _local(self):
+        """True if the request names this server and comes from its own page, not from another site."""
+        port = self.server.server_address[1]
+        mine = {f"127.0.0.1:{port}", f"localhost:{port}"}
+        origin = self.headers.get("Origin")
+        return self.headers.get("Host") in mine and (origin is None or origin in {f"http://{m}" for m in mine})
+
     def _send(self, status, body, kind):
         self.send_response(status)
         self.send_header("Content-Type", kind)
@@ -504,24 +558,34 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path.split("?")[0]
+        if not self._local():
+            return self._send(403, b"not allowed", "text/plain")
         if path == "/api/describe":
             return self._json(describe())
         name = "index.html" if path == "/" else path.lstrip("/")
         target = STATIC / name
-        if "/" in name or ".." in name or not target.is_file() or target.suffix not in _TYPES:
+        inside = target.resolve().parent == STATIC.resolve()
+        if "/" in name or "\\" in name or not inside or not target.is_file() or target.suffix not in _TYPES:
             return self._send(404, b"not found", "text/plain")
         self._send(200, target.read_bytes(), _TYPES[target.suffix])
 
     def do_POST(self):
         route = _ROUTES.get(self.path)
-        length = int(self.headers.get("Content-Length") or 0)
-        if route is None or not 0 < length < 1_000_000:
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = 0
+        if route is None or not self._local() or not 0 < length < 1_000_000:
             return self._json({"ok": False, "error": "not a request this page understands"}, 400)
         try:
             request = json.loads(self.rfile.read(length))
-        except ValueError:
+        except (ValueError, RecursionError):
             return self._json({"ok": False, "error": "the request was not readable"}, 400)
-        self._json(_no_nan(route(request)))
+        try:
+            answer = _no_nan(route(request))
+        except Exception as reason:                    # never leave the page without an answer
+            answer = {"ok": False, "error": f"the simulator stopped with an error ({type(reason).__name__}: {reason})"}
+        self._json(answer)
 
     def log_message(self, *args):                      # keep the terminal quiet
         pass
@@ -550,6 +614,7 @@ def make_server(port=8765, host="127.0.0.1"):
 
 
 def main(argv=None):
+    """Start the server and open the page: what ``python -m ccdsr.gui`` runs."""
     parser = argparse.ArgumentParser(description="Interactive explorer of the scanning sensor simulator.")
     parser.add_argument("--port", type=int, default=8765, help="port to serve the page on (default: 8765)")
     parser.add_argument("--no-browser", action="store_true", help="do not open the page automatically")

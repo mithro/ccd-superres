@@ -95,3 +95,7 @@ code { font-family: var(--mono); font-size: 12.5px; background: var(--pill); pad
 }
 .tools select { width: auto; }
 [hidden] { display: none !important; }
+details { margin: 4px 0 0 26px; font-size: 12.5px; color: var(--fg2); }
+details .opts { margin-left: 0; }
+summary { cursor: pointer; }
+#tries button { white-space: normal; text-align: left; }

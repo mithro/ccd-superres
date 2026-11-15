@@ -29,6 +29,7 @@
       <label class="row">Test surface
         <select id="scene"></select>
       </label>
+      <p class="help" id="scene-help"></p>
       <div class="row split">
         <label>Noise sample (seed) <input type="number" id="seed" min="0" step="1" value="0"></label>
         <button id="reseed" type="button">New noise</button>
@@ -53,9 +54,19 @@
   <div class="results">
     <div id="status" class="status" role="status"></div>
     <section class="card">
+      <h2>Things to try first</h2>
+      <div class="tools" id="tries">
+        <button type="button" data-set='{"optics.gap_nm": 2000, "zoom": 800}'>Widen the gap to 2,000 nm and watch the 800 nm bars fade</button>
+        <button type="button" data-set='{"noise.full_e": 50, "zoom": 1200}'>Dim the light to 50 electrons</button>
+        <button type="button" data-set='{"optics.aperture_nm": 300, "zoom": 480}'>Narrow each pixel's opening to 300 nm</button>
+        <button type="button" data-set='{"scan.wander_px": 1, "positions": "unknown", "methods": ["least_squares", "least_squares_positions", "two_materials_positions"], "zoom": 800}'>Let the stage wander and compare three methods</button>
+      </div>
+      <p class="help">Each button changes the settings on the left, which you can then move yourself. "Reset all" returns to the start.</p>
+    </section>
+    <section class="card">
       <h2>How well each method did</h2>
       <div class="scroll"><table id="scores"></table></div>
-      <p class="help">Every score is measured against the true surface, which only the simulator knows. Lower error is better. The share of a bar group is 1.00 when the bars come out at their true strength.</p>
+      <p class="help">Every score is measured against the true surface, which only the simulator knows. Lower error is better. The share of a bar group is 1.00 when the bars come out at their true strength and in the right place; below 0 means bright and dark are swapped, above 1 means the method has exaggerated them. A bar group counts as shown when its share is between 0.5 and 1.5, and the finest period shown is the smallest one reached, going from coarse to fine, before a group fails that test.</p>
     </section>
     <section class="card two">
       <div>
@@ -65,6 +76,7 @@
       <div>
         <h2>What these settings give</h2>
         <table id="facts" class="facts"></table>
+        <p class="help">If the sensor passes over less than the whole surface, the rest cannot be recovered, the scores suffer and the position-solving methods can take many seconds.</p>
       </div>
     </section>
     <section class="card">
@@ -73,7 +85,7 @@
         <div class="tools" id="zooms"></div>
       </div>
       <canvas id="plot-surface" height="320"></canvas>
-      <p class="help">Drag to move, scroll to zoom, double-click for the whole surface.
+      <p class="help">Drag to move, scroll to zoom, double-click for the whole surface. Before it is drawn and scored, each reconstruction is slid sideways by up to three pixel spacings to where it best matches the true surface, because a scan cannot tell where the surface starts.
         <label class="inline"><input type="checkbox" id="show-seen"> Also draw the surface as the blur leaves it, before sampling and noise</label></p>
     </section>
     <section class="card two">
@@ -108,7 +120,7 @@
   <aside class="controls" aria-label="Settings in two dimensions">
     <section>
       <h2>Two dimensions</h2>
-      <p class="help">A small square sensor is scanned over a picture of line groups. The top row of groups varies along the scan, the bottom row across it. Without tilt every row of pixels retraces the same lines, and detail across the scan is lost.</p>
+      <p class="help">A small square sensor is scanned over a picture of line groups. The top row of groups varies along the scan, the bottom row across it. Without tilt every row of pixels retraces the same lines, and detail across the scan is lost. On this tab the reconstruction is told the exact position of every frame.</p>
       <label class="row">Method <select id="method-2d"></select></label>
       <div class="row split">
         <label>Noise sample (seed) <input type="number" id="seed-2d" min="0" step="1" value="0"></label>
@@ -127,6 +139,7 @@
       <div>
         <h2>How well it did</h2>
         <table id="facts-2d" class="facts"></table>
+        <p class="help" id="note-2d"></p>
         <div class="scroll"><table id="groups-2d"></table></div>
       </div>
     </section>
@@ -135,7 +148,7 @@
       <canvas id="img-truth" class="img"></canvas>
       <h2>Reconstruction</h2>
       <canvas id="img-estimate" class="img"></canvas>
-      <p class="help">Both pictures are 35.8 µm wide and 17.9 µm high and use the same grey scale. The scan runs left to right.</p>
+      <p class="help">Both pictures are 35.8 µm wide and 17.9 µm high and use the same grey scale. The scan runs left to right. Blue marks parts that no pixel passed over; they are left out of the scores.</p>
     </section>
     <section class="card">
       <h2>One raw frame</h2>

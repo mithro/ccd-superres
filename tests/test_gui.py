@@ -121,9 +121,16 @@ def test_approach_text_reads_back_as_the_same_approach():
 
 
 @pytest.mark.parametrize("change, message", [
-    (lambda r: r["optics"].update(gap_nm=-5), "at least 0"),
+    (lambda r: r["optics"].update(gap_nm=-5), "'Gap between sensor and surface' (optics.gap_nm) must be at least 0"),
     (lambda r: r["optics"].update(aperture_nm=2000), "cannot be wider"),
     (lambda r: r["scan"].update(n_frames=10**6), "at most"),
+    (lambda r: r["scan"].update(n_pixels=gui.MAX_PIXELS + 1), "at most"),
+    (lambda r: r["scan"].update(wander_frames=1e7), "at most"),
+    (lambda r: r["scan"].update(code=[1] * 65), "at most 64"),
+    (lambda r: r["scan"].update(n_frames=1e400), "must be a number"),
+    (lambda r: r["noise"].update(full_e=1e30), "at most"),
+    (lambda r: r.update(seed=10**20), "seed"),
+    (lambda r: r.update(methods="all"), "list"),
     (lambda r: r["scan"].update(code=[0, 0]), "at least one 1"),
     (lambda r: r["scan"].update(shift_px=0), "must not be 0"),
     (lambda r: r.update(scene="nowhere"), "unknown scene"),
@@ -145,7 +152,20 @@ def test_two_dimensions_tilt_recovers_lines_across_the_scan():
     assert tilted["ok"] and flat["ok"]
     share = lambda out, direction: [g["share"] for g in out["groups"] if g["direction"] == direction][1]
     assert share(tilted, "across") > 0.8 > 0.3 > share(flat, "across")
-    assert flat["distinct_lines_across"] == 1 < tilted["distinct_lines_across"]
+    assert flat["largest_gap_across_nm"] == pytest.approx(1120.0) and tilted["largest_gap_across_nm"] < 100
+    assert gui.respond_2d({"tilt_deg": 0.02})["largest_gap_across_nm"] > 1000       # too little tilt to help
+    picture = np.array(tilted["truth"]).reshape(tilted["shape"])
+    estimate = np.array([np.nan if v is None else v for v in tilted["estimate"]]).reshape(tilted["shape"])
+    assert tilted["rms_error"] == pytest.approx(np.sqrt(np.nanmean((estimate - picture) ** 2)), abs=2e-3)
+    assert tilted["scanned_share"] == pytest.approx(np.mean(~np.isnan(estimate)))
+    assert picture[64, 30] != picture[64, 10] and estimate.shape == (256, 512)
+    corners = np.array(tilted["footprint"]).reshape(4, 2)
+    assert np.allclose(np.linalg.norm(corners[1] - corners[0]), 15 * 1120, atol=1)       # one side of 16 pixels
+    assert corners[1][1] == pytest.approx(15 * 1120 * np.sin(np.deg2rad(3.58)), abs=1)
+    small = gui.respond_2d({"n_side": 4, "n_frames": 40})                 # a sensor that covers little of the picture
+    assert small["ok"] and small["scanned_share"] < 0.5 and None in small["estimate"]
+    assert all(g["share"] is None for g in small["groups"] if g["direction"] == "across")
+    assert all(g["share"] is None or -0.5 < g["share"] < 1.5 for g in small["groups"])
     assert len(tilted["truth"]) == len(tilted["estimate"]) == tilted["shape"][0] * tilted["shape"][1]
     assert gui.respond_2d({"gap_nm": 3000.0})["rms_error"] > tilted["rms_error"]
     assert "unknown setting" in gui.respond_2d({"gap": 3})["error"]
@@ -176,11 +196,111 @@ def test_server_serves_the_page_and_answers_requests(address):
             read(path)
     with pytest.raises(urllib.error.HTTPError):
         post("/api/run", b"not json")
-    assert server_is_local(address)
+    with pytest.raises(urllib.error.HTTPError):
+        read("/../gui.py")
+    for headers in ({"Origin": "http://evil.example"}, {"Host": "evil.example"}):          # another site's page
+        ask = urllib.request.Request(address + "/api/run", data=b"{}", headers=headers)
+        with pytest.raises(urllib.error.HTTPError):
+            urllib.request.urlopen(ask, timeout=30)
+    ask = urllib.request.Request(address + "/api/run", data=b"{}", headers={"Content-Length": "abc"})
+    with pytest.raises(urllib.error.HTTPError):
+        urllib.request.urlopen(ask, timeout=30)
+    assert post("/api/run", b'{"noise": {"read_e": 1e300}}')["results"] == []       # no method ticked: still an answer
+    huge = gui.default_request()
+    huge["noise"]["read_e"] = 1e300
+    assert post("/api/run", json.dumps(huge).encode())["results"][0]["scores"]["rms_error"] is None    # not-a-number sent as none
 
 
-def server_is_local(address):
-    return address.startswith("http://127.0.0.1:")
+def test_server_listens_on_this_computer_only():
+    server = gui.make_server(port=0)
+    try:
+        assert server.server_address[0] == "127.0.0.1"
+    finally:
+        server.server_close()
+
+
+def test_one_broken_part_does_not_take_the_page_down():
+    @ap.reconstruction("breaks_for_test")
+    def _breaks(frames, levels, strength=1.0):
+        raise RuntimeError("deliberate")
+
+    @ap.scene("flat_for_test")
+    def _flat():
+        return ap.Scene("flat_for_test", np.full(600, 0.5), 20.0)
+    try:
+        told = gui.describe()
+        assert "breaks_for_test" in [m["name"] for m in told["methods"]]
+        assert "flat_for_test" in [k["name"] for k in told["scenes"]]
+        request = gui.default_request()
+        request["scene"] = "flat_for_test"
+        request["methods"].append({"method": "breaks_for_test", "options": {"strength": 2.0}})
+        out = gui.respond(request)
+        good, bad = out["results"]
+        assert out["ok"] and good["ok"] and good["scores"]["rms_error"] < 0.05
+        assert not bad["ok"] and "RuntimeError: deliberate" in bad["error"]
+    finally:
+        del ap.RECONSTRUCTIONS["breaks_for_test"], ap.SCENES["flat_for_test"]
+
+
+def test_what_is_drawn_is_what_was_computed():
+    from ccdsr import level1 as l1
+    from ccdsr import run
+
+    request = gui.default_request()
+    request["optics"].update(gap_nm=500.0, aperture_nm=560.0)
+    request["scan"].update(shift_px=0.5, n_frames=100, exposure_fraction=0.5, code=[1, 0, 1, 1], wander_px=0.5)
+    request["noise"].update(full_e=1000.0)
+    request["positions"] = "unknown"
+    request["seed"] = 3
+    request["methods"] = [{"method": "least_squares_positions", "options": {}}]
+    out = gui.respond(request)
+    scene = ap.get_scene("bars")
+    approach = ap.parse_approach(out["results"][0]["file"])
+    _, frames, estimate, scores = run.run(approach, "bars", seed=3)                 # the command line's own path
+    result = out["results"][0]
+    assert result["scores"]["rms_error"] == pytest.approx(scores["rms_error"])
+    aligned, _ = cp.align_to_truth(np.asarray(estimate), scene.surface, cp.ALIGN_PX * 1120 / scene.dx_nm)
+    assert np.allclose(result["estimate"], aligned, atol=1e-4) and not np.allclose(aligned, aligned[::-1], atol=0.05)
+    assert np.allclose(np.array(out["readings"]["values"]).reshape(100, 64), frames.readings, atol=0.06)
+    plan = l1.nominal_positions(frames)
+    assert np.allclose(out["path"]["true_nm"], (frames.positions_nm - plan)[:, 0], atol=0.06)
+    assert np.std(out["path"]["true_nm"]) > 100 and np.allclose(out["path"]["believed_nm"], 0)
+    assert np.std(np.array(result["path_nm"]) - np.array(out["path"]["true_nm"])) < 60 < np.std(result["path_nm"])
+    seen = l1.blur(scene.surface, scene.dx_nm, frames.optics, frames.scan)
+    assert np.allclose(out["seen"], seen, atol=1e-4) and np.abs(seen - scene.surface).max() > 0.2
+    facts = {f["label"]: f["value"] for f in out["facts"]}
+    assert facts["Readings taken"] == "6,400" and facts["Share of the test surface that a pixel passed over"] == "100"
+    short = gui.respond({**request, "scan": {**request["scan"], "n_frames": 10, "n_pixels": 8, "wander_px": 0.0}})
+    covered = (8 * 1120 + 9 * 560) / 73800                                          # sensor length plus travel
+    assert float(short["facts"][2]["value"]) == pytest.approx(100 * covered, abs=2)
+    assert facts["Readings whose opening covers any one point, on average"] == f"{6400 * 560 / 73800:,.0f}"
+    assert facts["Distance travelled"] == f"{0.5 * 1120 * 99 / 1e3:,.1f}"
+    assert facts["Movement between frames"] == "560" and facts["Motion smear in one reading"] == "280"
+    assert facts["Light per reading at full brightness"] == "500"
+    assert out["setup"]["step_nm"] == 560 and out["setup"]["aperture_nm"] == 560 and out["setup"]["smear_nm"] == 280
+    again = gui.respond({**request, "seed": 4})
+    assert again["readings"]["values"] != out["readings"]["values"]
+    plain = gui.respond({**request, "scan": {**request["scan"], "code": None}})
+    assert plain["blur"]["motion"] != out["blur"]["motion"]
+
+
+def test_blur_width_and_sample_gap_facts():
+    def facts(**scan):
+        request = gui.default_request()
+        request["scan"].update(scan)
+        out = gui.respond(request)
+        return {f["label"]: float(f["value"].replace(",", "")) for f in out["facts"]}, out
+    gap = "Largest gap between neighbouring sample positions, all frames and pixels together"
+    width = "Width of the blur of one point (at half height)"
+    usual, out = facts()
+    assert usual[gap] < 50 < usual["Movement between frames"]              # many frames interleave finely
+    assert 1100 <= usual[width] <= 1300 and out["setup"]["blur_width_nm"] == usual[width]
+    request = gui.default_request()
+    request["optics"]["gap_nm"] = 0.0
+    request["optics"]["aperture_nm"] = 400.0
+    assert gui.respond(request)["setup"]["blur_width_nm"] == pytest.approx(400, abs=15)      # the opening alone
+    request["optics"]["gap_nm"] = 100000.0
+    assert gui.respond(request)["setup"]["blur_width_nm"] > 100000                          # no ceiling from the grid
 
 
 def test_page_works_in_a_real_browser(address):
