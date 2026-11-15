@@ -66,6 +66,7 @@ link here the first time they use a term that is not explained on the spot.
 | Global shutter | A sensor in which every pixel is exposed at the same instant. See rolling shutter. |
 | Grating | A plate carrying fine, evenly spaced lines. |
 | Grating lobes | False directions that an array cannot tell from the true one, because its receivers are more than half a wavelength apart. |
+| Grazing angle | The angle between a ray and the surface it skims along. A small grazing angle means the ray is nearly parallel to the surface. |
 | Held-out data | Readings kept aside and not shown to the reconstruction. A good reconstruction predicts them as well as the readings it was given. |
 | Hologram | A recording of the fringes made when light scattered from an object overlaps with an undisturbed reference beam. It holds the phase in a form a camera can record. |
 | Identifiable | Said of an unknown that the data can pin down. Two unknowns that can change together without changing any reading are not identifiable separately. |

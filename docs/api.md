@@ -17,6 +17,15 @@ adds its modules as it is built.
    :members:
 ```
 
+## Light entry under the sensor
+
+See the [light entry page](light-entry.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.light_entry
+   :members:
+```
+
 ## Simulation level 1
 
 See the [level 1 page](level1.md) for the method and results. One dimension:
