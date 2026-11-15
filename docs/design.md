@@ -103,6 +103,9 @@ it is an Assumption until confirmed, and it is not part of the requirement.
 | REQ-19 | Combining the readings with simulation should allow recovery without exact position information, by working out possible solutions and eliminating the physically impossible ones, including by the behaviour of the real world in time. | Requirement | 14 November 2026 | Taken up as a named approach to explore and compare (section 6.6) |
 | REQ-20 | The research covers the neighbouring fields (radar, beamforming, satellite and astronomical imaging and similar), looks for approaches beyond those already named, and includes a deep dive into candidate sensors and how to control them at pixel level. | Requirement | 14 November 2026 | The [plan](plan.md), phase B |
 | REQ-21 | Everything is in this git repository, documented with real diagrams, published on Read the Docs, and independently reviewed. Calibration and test methods are covered. | Requirement | 14 November 2026 | The [plan](plan.md), documentation standard; the [review record](review.md) |
+| REQ-22 | Ways are to be found to keep both super resolution and the absence of special lighting. | Requirement | 15 November 2026 | Answers question 14 of section 11. Interpreted as: neither gives way to the other, and the 100 nm goal of REQ-3 stands. Section 4.11 states what is known so far about how far ordinary light reaches, and the search for routes is plan item B8 |
+| REQ-23 | Computationally expensive options are fully acceptable. Nothing is discarded because of its mathematics or the complexity of its calculations. | Requirement | 15 November 2026 | Interpreted as also ruling out ranking an approach lower for that reason. Approaches are judged on what they can recover and on hardware, never on computing cost. Computing cost is reported as a fact beside each result (section 7.1). An approach may be scheduled later in the order of work, but not dropped, for this reason |
+| REQ-24 | Oversampling trade-offs are a core part of the discussion. | Requirement | 15 November 2026 | Interpreted as: how the number of readings of each point of the surface trades against sharpness, noise and scan time is shown throughout. Every approach, comparison and explorer view states its readings per point and shows the result against that number (sections 4.2 and 5.4; [slot waves](slot-waves.md), Table 6). "Readings per point" is set by speed, frame rate, exposure, sensor rotation, passes and pixel count |
 
 *Table 1.1. The requirements. "Recorded by" is the date by which the
 requirement was in the documentation. "Assumption given" marks a starting
@@ -1222,9 +1225,15 @@ limit of about 280 nm at a gap of 0.3 µm is unlikely to be met in
 practice. All of this needs the back of the chip to be exposed and
 polished. Whether such a lamp counts as special lighting is open (section
 11, item 12), and the chip's doping, how much of it is free of metal, and
-the sensor's behaviour at this wavelength are not checked. The other candidate,
-the chip's own edges scattering skimming light upwards near the lit side,
-is Unverified. The bond wires around the
+the sensor's behaviour at this wavelength are not checked. The other candidate was
+the chip's own edges scattering skimming light upwards. A wave calculation
+([slot waves](slot-waves.md); simulated) confirms that side light reaches
+the middle only at gaps of about 3 µm and more, and shows that a line on
+the chip then changes the readings over tens of micrometres as a banded
+pattern, strongest one to two gaps beyond the line and not above it. Side
+light therefore gives no direct picture. The pattern is fixed and
+repeatable, so recovering the chip from it by running the wave model
+backwards stays on the list as an approach (REQ-23). The bond wires around the
 sensor also force the chip to be smaller than the sensor or to stand on a
 pedestal (section 5.3). The laser route avoided all this with a gap of
 about a millimetre (Table 4.10a), which ordinary light cannot use without
@@ -1239,8 +1248,8 @@ model the reconstruction has to use.
 | Order | Work | Why now |
 |--:|---|---|
 | 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap. Done: [light entry](light-entry.md) | It showed that side light does not reach the middle of the sensor at gaps under about 5 µm, and does not give the best case of Table 4.11b at any gap |
-| 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind (done: [backlight](backlight.md)), then its unchecked points: doping of the chip's silicon, how open the metal of real chips is, the sensor's response near 1,050 nm. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and how much of it the chip's edges and steps scatter upwards into the pixel above | It decides the light model that every item below has to use |
-| 1b | Further light models in level 1 beside "matt": directed light from behind the chip, where the metal's shadow crosses the gap as a wave; and light from the side, where a reading is a running total along the direction of the light with a sideways carry | So that the items below can be run under both models until item 1a decides |
+| 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind (done: [backlight](backlight.md)), then its unchecked points: doping of the chip's silicon, how open the metal of real chips is, the sensor's response near 1,050 nm. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and what a feature does to it (done: [slot waves](slot-waves.md)) | It decides the light model that every item below has to use |
+| 1b | Further light models in level 1 beside "matt": directed light from behind the chip, where the metal's shadow crosses the gap as a wave; and light from the side, as a wave model of the slot in which a feature marks the readings over tens of micrometres ([slot waves](slot-waves.md)) | So that the items below can be run under both models until item 1a decides |
 | 2 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
 | 3 | Position solving, rotation, gap and wedge (the gap being larger at one side of the sensor than the other), and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
 | 4 | The pixel's response as an uncertain range, and its recovery from the scan itself | It matters as much as the distance below a micrometre |
@@ -2231,14 +2240,20 @@ Open questions, each for a decision on the requirements:
     and colour filter) be removed, and how close may the sensor come to
     the chip? With ordinary light this distance sets the finest detail
     (Table 4.11b), and question 5 becomes the most important one.
-14. Open, raised by item 11: REQ-3 asks for a picture of 100 nm features
-    and section 4.11 concludes that ordinary light cannot give a true
-    picture at that scale. Which gives way: is a true picture at about
-    1 µm down to a few hundred nanometres, with detection, location and an
-    inferred picture below that, an acceptable result, or does the 100 nm
-    target stand and bring special lighting back? Height (REQ-2) is in
-    the same position: under ordinary light at these distances no height
-    mechanism of section 4.5 has been shown to work (Unverified).
+14. Answered on 15 November 2026, now REQ-22: both are kept. The
+    question was which gives way, the 100 nm goal of REQ-3 or the absence
+    of special lighting of REQ-6, given that section 4.11 finds no true
+    picture at that scale under ordinary light with the methods looked at
+    so far. The answer is that ways to keep both are to be found,
+    which is read as neither giving way. Taken up as follows: section 4.11 is a statement
+    of what has been examined so far and not a final limit; routes that
+    have not been examined (changes to the sensor, masks, contact,
+    knowledge of the chip, readout control, heavier computation) are being
+    scouted under [plan](plan.md#b-research-and-data-collection) item B8;
+    and by REQ-23 no route is to be dropped because its calculations are
+    heavy. Height (REQ-2) under ordinary light stays open: no height
+    mechanism of section 4.5 has been shown to work at these distances
+    (Unverified).
 
 ## 12. Where each claim comes from
 
@@ -2266,6 +2281,7 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.7 | Resolution expected at each stage | Stage 2 and 4 limits are the formula above. "150 to 200 nm expected" is an **Estimate** from the optical elements study. |
 | 4.10 | Corrections and additions from the four research studies | Each row of Tables 4.10a to 4.10c names the study section it comes from. Values are **Estimates**, **Derived** or toy calculations there, and none has yet been repeated in this project's simulator. |
 | 4.11 | Near-infrared light from behind the chip | **Estimate** from the flat-layer model on the [backlight](backlight.md) page, with silicon data from its cited source. Doping, metal coverage, the state of the chip's back face and the sensor's response are unchecked |
+| 4.11 | Side light with waves, and what a feature does to it | **Simulated**: mode solution and a small grid wave solver on the [slot waves](slot-waves.md) page, cross-checked against each other and against the ray estimate |
 | 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
 | 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there.  |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |

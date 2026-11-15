@@ -671,3 +671,42 @@ table row by row against the paper, the cited microscope papers, the real
 depth and response of the baseline sensor's pixels, and anything that
 needs a wave simulation. The corrections were checked by the tests and a
 strict build of the pages, not by a second review.*
+
+## Review 14: the wave calculation for light from the side
+
+The [slot waves](slot-waves.md) page, its code
+([`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py),
+[`ccdsr/fdfd.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/fdfd.py),
+[`ccdsr/edge_scatter.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/edge_scatter.py)),
+the tests and figures, and the matching changes to the design and plan
+were reviewed on 15 November 2026, before merging. The reviewer was given
+the material and not the author's conclusions. It derived the condition
+for a wave to travel along the slot again, found the waves by a brute
+force search and compared them with the code's, checked how each wave's
+power is set, read the wave solver line by line (the grid formula, the
+absorbing border and the power flow), and repeated the feature runs with a
+finer grid, a thicker border and a longer run-in. It also added up three
+waves at six wavelengths to stand in for lamp light.
+
+It confirmed the waves, their loss rates and powers, the solver, and that
+the feature runs do not depend on the grid, the border or the run-in
+length.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The page said under 1 % of the light a feature removes goes up into the sensor, measured against a misleading total. | Table 4 now gives the change in the pixel directly above the line beside the largest change and where it falls. |
+| 2 | Error | Waves and rays were said to agree at large gaps without a figure. They differ by 6 % and 13 %, because the ray model counts all light not reflected as absorbed. | The differences and the reason are stated. |
+| 3 | Error | The wording of three new requirements (REQ-22 to REQ-24) mixed what was required with this project's reading of it. | The reading moved to the interpretation column. |
+| 4 | Error | Light from behind was called better "on every count". It needs the chip's back exposed and polished, which side light does not. | Replaced by the comparison table with that condition in it. |
+| 5 | Gap | The light entry page still said the wave calculation was to come. | Updated. |
+| 6 | Gap | The wave solver's loss rate was said to match the mode solution at a 10 nm grid. It is 3 % low there (10 % low at 20 nm). | Both figures stated. |
+| 7 | Gap | "Half a wavelength" did not say whether it meant a line or a period. | A period of 275 nm, which is lines of about 140 nm. |
+| 8 | Gap | The tests did not check a slot with unlike walls, that waves give more light than rays, where the mark falls, or that power is conserved. | Assertions and one test added. |
+| 9 | Wording | The judgement on turning side-light readings back into a picture leaned on computing cost, against REQ-23; one label and two links were missing. | The judgement rests on how little the reading above a feature changes, and the route stays in the plan. Label and links added. |
+
+*Table: findings of review 14. Not checked by the reviewer: aluminium
+features on the 20 nm grid against a finer one, the 10 µm gap and the
+1,000 nm feature at finer spacing, features in three dimensions or with
+the other polarisation, the inside of the backlight model, and the figures
+in their published form. The corrections were checked by the tests and a
+strict build of the pages, not by a second review.*

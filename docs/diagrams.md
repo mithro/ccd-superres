@@ -248,6 +248,22 @@ python docs/diagrams/make_backlight_diagrams.py
 | [`backlight-spectrum`](diagrams/backlight-spectrum.svg) | Share of light that crosses the chip and that a pixel catches, and their product, against wavelength | Flat-layer estimate in [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) with the silicon table of Green (2008) |
 | [`backlight-sharpness`](diagrams/backlight-sharpness.svg) | Finest line width against gap for near-infrared light from behind and for the visible best case | Analytic model in [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) with the depth factor of [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) |
 
+## Slot wave figures
+
+The figures on the [slot waves](slot-waves.md) page come from
+[`docs/diagrams/make_slot_wave_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_slot_wave_diagrams.py).
+With `--rerun` it repeats the wave runs behind the second figure, which
+takes about four minutes:
+
+```
+python docs/diagrams/make_slot_wave_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
+| [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
+
 ## Beamforming study figures
 
 The figures on the [beamforming and array processing](research/beamforming.md)
