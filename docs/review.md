@@ -839,3 +839,35 @@ suite, the noisy-sensor case beyond one other set of runs, the gap and
 narrow-opening cases on other surfaces, and anything in two dimensions. The
 corrections were checked by the tests, a rerun of the study and a strict
 build of the pages, not by a second review.*
+
+## Review 18: the routes that keep ordinary light folded into the design and plan
+
+The changes that carry the
+[routes that keep ordinary light](research/ordinary-light-routes.md) study
+into the [design](design.md) (section 4.11 with Table 4.11e, and items 15
+to 18 of section 11) and the [plan](plan.md) (items B5, B8, C3, D5 and D2g
+to D2i) were reviewed on 18 November 2026, before merging. The reviewer was
+given the changes and the study, and not the author's view of them. It
+compared every number and statement with the study, read the neighbouring
+older text for contradictions, and checked the plan rows against the
+study's list of simulator work.
+
+It confirmed every number in Table 4.11e, the readings and times quoted,
+the "just detectable" label added to Table 4.11b, the four questions, and
+all references and links.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Gap | Older text still said without qualification that 100 nm is out of reach of ordinary light: the opening summary, a conclusion under Table 4.11b and two rows of that table. | Each now says at a micrometre from the chip, and for the baseline pixel at any distance, and points to the near-contact routes. |
+| 2 | Gap | "More computation does not close the gap" stood beside a route that is nothing but more readings. | The study's figures for trading readings against distance near the chip are added to that conclusion. |
+| 3 | Gap | Routes A to F and stages A to D used the same letters. | The table's caption says they are different. |
+| 4 | Gap | The table left out whether each route truly has no special lighting. | The open points are stated for the slit mask and the immersion lens. |
+| 5 | Wording | Evidence for three routes had lost its unfavourable half. | Restored. |
+| 6 | Wording | "Every route" goes within 100 nm, against the table's own route D; widths attributed to level 1 as well as level 0; "these decide whether any route reaches 100 nm". | Each reworded to what the study says. |
+| 7 | Gap | The plan rows had lost light from behind the sensor, the runs without layout rules and against invented detail, the two strengths of line width, and any action on pixel edge softness. | Added to D5, D2i, D2g and B5. |
+| 8 | Wording | One paragraph unlabelled and wrong about its place in the order; a term unexplained; rows out of order; two questions that overlap older ones not linked to them. | Fixed. |
+
+*Table: findings of review 18. Not checked by the reviewer: the study's own
+numbers against its code (covered by review 16), the plan-status figure,
+and the pages as rendered. The corrections were checked by a strict build
+of the pages, not by a second review.*
