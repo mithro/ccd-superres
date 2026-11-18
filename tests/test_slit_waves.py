@@ -6,8 +6,8 @@ import pytest
 
 from ccdsr.fdfd import solve_periodic
 from ccdsr.light_entry import fresnel_reflectance
-from ccdsr.slit_waves import (SlitCase, balance, fade_length_nm, fitted_fade_length_nm, layout,
-                              metal_index, reading, scan, silicon_index)
+from ccdsr.slit_waves import (GLASS, SlitCase, balance, default_shifts, fade_length_nm, fitted_fade_length_nm,
+                              layout, metal_index, reading, scan, silicon_index)
 
 
 def _through(index, angle_deg, polarisation, wavelength=550.0, h=5.0, nx=8, nz=400, pml=60):
@@ -215,3 +215,83 @@ def test_lines_fade_from_the_readings_at_about_the_simple_rate():
     simple = fade_length_nm(200.0, 1050.0)
     assert simple == pytest.approx(32.5, abs=0.1)
     assert fitted_fade_length_nm(gaps, swings) == pytest.approx(simple, rel=0.25)
+
+
+def _layers_through(indices, thicknesses, wavelength, angle_deg, polarisation):
+    """Textbook share of light passing a stack of flat layers (characteristic matrices, Born and Wolf).
+
+    ``indices`` runs from the medium the light arrives in to the medium it
+    leaves in; ``thicknesses`` are those of the layers between. The angle is
+    in the first medium.
+    """
+    k0 = 2 * np.pi / wavelength
+    kx = k0 * indices[0] * np.sin(np.radians(angle_deg))
+    kz = [np.sqrt((k0 * n) ** 2 - kx**2 + 0j) for n in indices]
+    # admittance of each medium: kz for the field along, kz / n^2 for the field across
+    y = [k if polarisation == "s" else k / n**2 for k, n in zip(kz, indices)]
+    m = np.eye(2, dtype=complex)
+    for k, eta, t in zip(kz[1:-1], y[1:-1], thicknesses):
+        c, sn = np.cos(k * t), np.sin(k * t)
+        m = m @ np.array([[c, -1j * sn / eta], [-1j * eta * sn, c]])
+    b, c = m @ np.array([1.0, y[-1]])
+    return float(4 * y[0].real * y[-1].real / abs(y[0] * b + c) ** 2)
+
+
+@pytest.mark.parametrize("polarisation", ["s", "p"])
+@pytest.mark.parametrize("angle", [0.0, 30.0])
+def test_unbroken_metal_film_matches_the_textbook_layer_formula(polarisation, angle):
+    # Glass, 50 nm of air, 50 nm of aluminium, silicon: metal boundaries, slanted light in the glass,
+    # and a cell wide enough for the phase step across it to matter.
+    case = SlitCase(wavelength_nm=650.0, polarisation=polarisation, gap_nm=50.0, slit_nm=0.0, film_nm=50.0,
+                    period_nm=None, cell_nm=400.0, spacing_nm=2.5, angle_deg=angle)
+    expected = _layers_through([GLASS, 1.0, metal_index("aluminium", 650.0), silicon_index(650.0)],
+                               [50.0, 50.0], 650.0, angle, polarisation)
+    assert 1e-4 < expected < 1e-3
+    assert reading(case) == pytest.approx(expected, rel=0.03)
+
+
+def test_slanted_light_on_one_repeat_equals_two_repeats():
+    one = SlitCase(wavelength_nm=650.0, spacing_nm=5.0, cell_nm=600.0, angle_deg=20.0, shift_nm=50.0)
+    # the same picture drawn twice in a cell of double width: two slits, so build it by hand
+    from ccdsr.fdfd import solve_periodic
+    from ccdsr.slit_waves import _arriving_for, _source
+    lay = layout(one)
+    eps = np.concatenate([lay.eps, lay.eps])
+    source, phase = _source(one, eps.shape, lay.source_row)
+    field = solve_periodic(eps, source, 650.0, 5.0, one.pml_cells, "p", phase)
+    twice = float(np.mean(field.flow_z(lay.reading_row))) / _arriving_for(one)
+    assert twice == pytest.approx(reading(one), rel=1e-6)
+
+
+def test_metal_corners_settle_as_the_grid_is_made_finer():
+    # With the wrong average of the materials between grid points this differs by half.
+    coarse = SlitCase(wavelength_nm=1050.0, gap_nm=20.0, slit_nm=50.0, spacing_nm=5.0, cell_nm=400.0)
+    fine = replace(coarse, spacing_nm=2.5)
+    assert reading(coarse) == pytest.approx(reading(fine), rel=0.08)
+
+
+def test_brightest_position_is_reported_the_right_way_round():
+    result = scan(SlitCase(wavelength_nm=1050.0, spacing_nm=5.0, gap_nm=50.0, slit_nm=50.0))
+    assert result.readings[0] > result.readings[-1]          # first position: a line under the slit
+    assert result.brightest_over == "line"
+    flipped = type(result)(result.case, result.shifts_nm, result.readings[::-1].copy())
+    assert flipped.brightest_over == "space"
+    assert flipped.swing == pytest.approx(result.swing)
+
+
+def test_line_positions_stay_on_the_grid():
+    assert len(default_shifts(200.0)) == 5
+    for period in (120.0, 150.0, 300.0, 400.0):
+        steps = np.diff(default_shifts(period))
+        assert np.allclose(steps / 2.5, np.round(steps / 2.5)) and len(steps) >= 4
+    with pytest.raises(ValueError):
+        layout(SlitCase(shift_nm=18.75))
+    widths = {int(np.isclose(layout(SlitCase(period_nm=150.0, shift_nm=s)).eps[:, 170],
+                             metal_index("copper", 1050.0) ** 2).sum()) for s in default_shifts(150.0)}
+    assert widths == {240}                                    # 8 lines of 30 cells at every position
+
+
+def test_roomy_case_agrees_with_the_default_on_the_standard_cell():
+    case = SlitCase(wavelength_nm=650.0, spacing_nm=5.0, gap_nm=50.0, slit_nm=50.0)
+    assert case.roomy().pml_cells == 40 and case.roomy().above_nm == 600.0
+    assert reading(case.roomy()) == pytest.approx(reading(case), rel=0.01)

@@ -3,8 +3,8 @@
 Run from the repository root:
 
     python docs/diagrams/make_slit_wave_diagrams.py            # figures and tables from saved runs
-    python docs/diagrams/make_slit_wave_diagrams.py --rerun    # redo the wave runs (about 1,800 solves,
-                                                               # half an hour on four processor cores)
+    python docs/diagrams/make_slit_wave_diagrams.py --rerun    # redo the wave runs (about 2,700 solves,
+                                                               # about two hours on four processor cores)
 
 Writes SVG and PNG figures next to this file with the prefix ``slit-waves-``,
 the tables of the page to ``results/slit-waves/tables.md``, and with
@@ -47,6 +47,11 @@ LINE_SHIFTS = tuple(np.arange(0.0, 601.0, 25.0))
 SLANT = 30.0
 WIDE = 2400.0                                   # a repeat twice as wide, to see what the repeat itself does
 WIDE_SHIFTS = tuple(np.arange(0.0, 1201.0, 50.0))
+PLAIN_REPEATS = (1000.0, 1100.0, 1120.0, 1200.0, 1400.0, 1600.0, 1800.0)   # slit spacings tried over plain glass
+LINE_REPEATS = (1000.0, 1200.0, 1400.0, 1600.0, 1800.0)                     # and over lines (whole periods only)
+REPEAT_GAPS = {1050.0: (50.0, 150.0), 650.0: (50.0, 300.0), 450.0: (50.0, 100.0)}
+NEAR_COLOURS = (1000.0, 1025.0, 1050.0, 1075.0, 1100.0)
+ANGLES = (0.0, 5.0, 10.0, 20.0, 30.0)
 
 
 def key(case):
@@ -54,14 +59,16 @@ def key(case):
 
 
 def scan_cases(case):
-    shifts = default_shifts(case.period_nm) if case.angle_deg == 0 else np.arange(8) * case.period_nm / 8
+    shifts = (default_shifts(case.period_nm, spacing_nm=case.spacing_nm) if case.angle_deg == 0
+              else np.arange(8) * case.period_nm / 8)
     return [replace(case, shift_nm=float(s)) for s in shifts]
 
 
 def study():
     """Every cross-section of the study, as a dictionary of named groups of cases."""
     groups = {"main": [], "thick-film": [], "references": [], "lines-only": [], "periods": [],
-              "single-line": [], "aluminium-lines": [], "slanted": [], "fine-grid": [], "wide-cell": []}
+              "single-line": [], "aluminium-lines": [], "slanted": [], "fine-grid": [], "wide-cell": [],
+              "repeats": [], "colours": [], "angles": []}
     for lam in WAVELENGTHS:
         for pol in "ps":
             for gap in GAPS:
@@ -83,7 +90,7 @@ def study():
                 if period != 200.0:
                     groups["periods"] += scan_cases(SlitCase(lam, "p", gap, 50.0, period_nm=period))
             groups["aluminium-lines"] += scan_cases(SlitCase(lam, "p", gap, 50.0, line_metal="aluminium"))
-            groups["slanted"] += scan_cases(SlitCase(lam, "p", gap, 50.0, angle_deg=SLANT))
+            groups["slanted"] += scan_cases(SlitCase(lam, "p", gap, 50.0, angle_deg=SLANT).roomy())
         for gap in LINE_GAPS:
             groups["single-line"] += [SlitCase(lam, "p", gap, 50.0, line_nm=100.0, single_line=True, shift_nm=s)
                                       for s in LINE_SHIFTS]
@@ -91,8 +98,20 @@ def study():
         groups["wide-cell"].append(SlitCase(lam, "p", 50.0, 50.0, period_nm=None, cell_nm=WIDE))
         groups["wide-cell"] += [SlitCase(lam, "p", 50.0, 50.0, line_nm=100.0, single_line=True, shift_nm=s,
                                          cell_nm=WIDE) for s in WIDE_SHIFTS]
+        groups["wide-cell"] += [SlitCase(lam, "p", 100.0, 50.0, line_nm=100.0, single_line=True, shift_nm=s,
+                                         cell_nm=WIDE) for s in WIDE_SHIFTS]
+        groups["wide-cell"].append(SlitCase(lam, "p", 100.0, 50.0, period_nm=None, cell_nm=WIDE))
+        for cell in PLAIN_REPEATS:
+            groups["repeats"].append(SlitCase(lam, "p", 50.0, 50.0, period_nm=None, cell_nm=cell).roomy())
+        for cell in LINE_REPEATS:
+            for gap in REPEAT_GAPS[lam]:
+                groups["repeats"] += scan_cases(SlitCase(lam, "p", gap, 50.0, cell_nm=cell).roomy())
         for gap in (20.0, 100.0):
             groups["fine-grid"] += scan_cases(SlitCase(lam, "p", gap, 50.0, spacing_nm=1.25, pml_cells=80))
+    for lam in NEAR_COLOURS:
+        groups["colours"] += scan_cases(SlitCase(lam, "p", 50.0, 50.0).roomy())
+    for angle in ANGLES:
+        groups["angles"] += scan_cases(SlitCase(1050.0, "p", 50.0, 50.0, angle_deg=angle).roomy())
     return groups
 
 
@@ -106,9 +125,9 @@ def rerun():
     done = load() if READINGS.exists() else {}
     cases = {key(c): c for group in study().values() for c in group}
     todo = [c for k, c in cases.items() if k not in done]
-    todo.sort(key=lambda c: c.spacing_nm, reverse=True)
+    todo.sort(key=lambda c: c.cell_nm * (c.below_nm + c.above_nm) / c.spacing_nm**2)
     print(f"{len(cases)} cross-sections, {len(todo)} to run", flush=True)
-    with Pool(4) as pool:
+    with Pool(3) as pool:
         for n, (k, value) in enumerate(pool.imap_unordered(_one, todo), start=1):
             done[k] = value
             if n % 20 == 0 or n == len(todo):
@@ -242,10 +261,10 @@ def tables(runs):
                 simple = simple_swing(200.0, slit, gap, lam)
                 rows.append([COLOUR_NAME[lam], f"{slit:.0f}", f"{gap:.0f}", num(s.mean), num(s.swing),
                              num(simple), num(s.swing / simple), s.brightest_over,
-                             num(readings_for_clean(s.swing))])
+                             "under 1" if readings_for_clean(s.swing) < 1 else num(readings_for_clean(s.swing))])
     out.append(("main", table(["Light", "Slit (nm)", "Gap (nm)", "Reading, mean over the lines", "Swing, wave calculation",
                                "Swing, simple model", "Wave over simple", "Reading is highest over a",
-                               "Readings for the lines to stand 5 times above the noise"],
+                               "Full readings to detect a known, endless set of lines"],
                               rows, ["---", "--:", "--:", "--:", "--:", "--:", "--:", "---", "--:"])))
 
     # 3. fade lengths
@@ -253,14 +272,15 @@ def tables(runs):
     for lam in WAVELENGTHS:
         for period in PERIODS:
             swings = [runs.scan(SlitCase(lam, "p", g, 50.0, period_nm=period)).swing for g in GAPS]
-            use = [i for i, g in enumerate(GAPS) if g <= 150.0]
-            fitted = fitted_fade_length_nm([GAPS[i] for i in use], [swings[i] for i in use])
+            fitted = fitted_fade_length_nm(GAPS[:4], swings[:4])
+            far = fitted_fade_length_nm(GAPS[2:], swings[2:])
             simple = fade_length_nm(period, lam)
             rows.append([COLOUR_NAME[lam], f"{period / 2:.0f}", f"{period:.0f}", num(simple, 3), num(fitted, 3),
-                         num(fitted / simple)] + [num(v) for v in swings])
+                         num(far, 3), num(far / simple)] + [num(v) for v in swings])
     out.append(("fade", table(["Light", "Line width (nm)", "Period (nm)", "Fade length, simple model (nm)",
-                               "Fade length, fitted to the wave calculation at gaps to 150 nm (nm)", "Ratio"]
-                              + [f"Swing at {g:.0f} nm" for g in GAPS], rows, ["---"] + ["--:"] * 11)))
+                               "Fade length fitted to the wave calculation, gaps 20 to 150 nm (nm)",
+                               "The same, gaps 100 to 300 nm (nm)", "Far fit ÷ simple"]
+                              + [f"Swing at {g:.0f} nm" for g in GAPS], rows, ["---"] + ["--:"] * 12)))
 
     # 4. the other polarisation and the lamp of both kinds
     rows = []
@@ -290,7 +310,7 @@ def tables(runs):
             base = runs.scan(SlitCase(lam, "p", gap, 50.0))
             thick = runs.scan(SlitCase(lam, "p", gap, 50.0, 100.0))
             alu = runs.scan(SlitCase(lam, "p", gap, 50.0, line_metal="aluminium"))
-            slant = runs.scan(SlitCase(lam, "p", gap, 50.0, angle_deg=SLANT))
+            slant = runs.scan(SlitCase(lam, "p", gap, 50.0, angle_deg=SLANT).roomy())
             rows.append([COLOUR_NAME[lam], f"{gap:.0f}"] + [f"{num(x.mean)} / {num(x.swing)}"
                                                            for x in (base, thick, alu, slant)])
     out.append(("variations", table(["Light", "Gap (nm)", "Baseline", "Film 100 nm thick", "Aluminium lines",
@@ -321,6 +341,56 @@ def tables(runs):
                                     "The same, repeat 2,400 nm", "Swing, repeat 1,200 nm", "Swing, repeat 2,400 nm",
                                     "One line under the slit, repeat 1,200 nm", "The same, repeat 2,400 nm",
                                     "Width of the response, repeat 1,200 nm (nm)", "The same, repeat 2,400 nm"],
+                                   rows)))
+
+    # 7c. other slit spacings, colours, angles, buffers
+    rows = []
+    for lam in WAVELENGTHS:
+        for cell in PLAIN_REPEATS:
+            r = runs.reading(SlitCase(lam, "p", 50.0, 50.0, period_nm=None, cell_nm=cell).roomy())
+            rows.append([COLOUR_NAME[lam], f"{cell:,.0f}", num(r), num(r * cell, 3), num(r * cell / 50.0)])
+    out.append(("repeats-plain", table(["Light", "Slits apart (nm)", "Reading", "Light through one slit (nm of width)",
+                                        "As a multiple of the slit's own width"], rows)))
+    rows = []
+    for lam in WAVELENGTHS:
+        for gap in REPEAT_GAPS[lam]:
+            scans = [runs.scan(SlitCase(lam, "p", gap, 50.0, cell_nm=cell).roomy()) for cell in LINE_REPEATS]
+            rows.append([COLOUR_NAME[lam], f"{gap:.0f}", "Light through one slit (nm of width)"]
+                        + [num(s.mean * c, 3) for s, c in zip(scans, LINE_REPEATS)])
+            rows.append([COLOUR_NAME[lam], f"{gap:.0f}", "Swing"] + [num(s.swing) for s in scans])
+            rows.append([COLOUR_NAME[lam], f"{gap:.0f}", "Reading is highest over a"] + [s.brightest_over for s in scans])
+    out.append(("repeats-lines", table(["Light", "Gap (nm)", "Quantity"] + [f"Slits {c:,.0f} nm apart" for c in LINE_REPEATS],
+                                       rows, ["---", "--:", "---"] + ["--:"] * len(LINE_REPEATS))))
+    rows = []
+    for lam in NEAR_COLOURS:
+        s = runs.scan(SlitCase(lam, "p", 50.0, 50.0).roomy())
+        rows.append([f"Wavelength {lam:,.0f} nm, straight up", num(s.mean), num(s.swing), s.brightest_over])
+    for angle in ANGLES:
+        s = runs.scan(SlitCase(1050.0, "p", 50.0, 50.0, angle_deg=angle).roomy())
+        rows.append([f"Wavelength 1,050 nm, slanted {angle:.0f}° in the glass", num(s.mean), num(s.swing),
+                     s.brightest_over])
+    out.append(("colours-angles", table(["Light", "Mean reading", "Swing", "Reading is highest over a"], rows,
+                                        ["---", "--:", "--:", "---"])))
+    rows = []
+    for lam in WAVELENGTHS:
+        for gap in REPEAT_GAPS[lam]:
+            a, b = runs.scan(SlitCase(lam, "p", gap, 50.0)), runs.scan(SlitCase(lam, "p", gap, 50.0).roomy())
+            rows.append([COLOUR_NAME[lam], f"{gap:.0f}", num(a.mean, 4), num(b.mean, 4),
+                         f"{100 * (a.mean / b.mean - 1):+.2f} %", num(a.swing, 4), num(b.swing, 4),
+                         f"{100 * (a.swing / b.swing - 1):+.2f} %"])
+    out.append(("buffers", table(["Light", "Gap (nm)", "Mean reading, standard room", "Mean reading, more room",
+                                  "Difference", "Swing, standard room", "Swing, more room", "Difference"], rows)))
+    rows = []
+    for lam in WAVELENGTHS:
+        for gap in (50.0, 100.0):
+            x, c = line_response(runs, lam, gap)
+            xw, cw = line_response(runs, lam, gap, WIDE)
+            def at(xs, cs, where):
+                return f"{100 * cs[list(xs).index(where)]:+.0f} %"
+            rows.append([COLOUR_NAME[lam], f"{gap:.0f}"] + [at(xs, cs, w) for w in (0.0, 150.0, 300.0, 600.0)
+                                                           for xs, cs in ((x, c), (xw, cw))])
+    out.append(("wide-line", table(["Light", "Gap (nm)"] + [f"Line {w} nm from the slit, slits {c} apart"
+                                                            for w in (0, 150, 300, 600) for c in ("1,200 nm", "2,400 nm")],
                                    rows)))
 
     # 8. one line

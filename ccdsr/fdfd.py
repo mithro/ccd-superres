@@ -2,10 +2,10 @@
 
 This is the first piece of level 4 of the simulation chain: it solves
 Maxwell's equations exactly, up to the grid spacing, on a small
-cross-section. It handles one case: structures that do not change along the
-third direction, lit by light whose electric field points along that
-direction (the "s" polarisation of the other modules). The field ``E`` then
-obeys
+cross-section of structures that do not change along the third direction.
+The first entry point, :func:`solve`, is for light whose electric field
+points along that direction (the "s" polarisation of the other modules).
+The field ``E`` then obeys
 
     d2E/dx2 + d2E/dz2 + k0^2 * eps(x, z) * E = source,
 
@@ -71,7 +71,8 @@ class Field:
     def flow_x(self, ix):
         """Power flowing in +x through the column ``ix``, per unit length in z."""
         d = (self.e[ix + 1, :] - self.e[ix - 1, :]) / (2 * self.spacing_nm)
-        return np.imag(np.conj(self.e[ix, :]) * d) / self.k0
+        weight = 1.0 if self.inv_eps is None else self.inv_eps[ix, :]
+        return np.imag(np.conj(self.e[ix, :]) * weight * d) / self.k0
 
 
 def solve(eps, source, wavelength_nm, spacing_nm, pml_cells=40):

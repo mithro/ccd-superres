@@ -2,7 +2,9 @@
 
 These are the small calculations behind ``docs/research/ordinary-light-routes.md``.
 Every function is a first estimate from a simple model: nothing here has been
-checked by a wave calculation or a measurement. Lengths are in nanometres
+checked by a measurement, and only the slit over fine lines by a wave
+calculation (``ccdsr/slit_waves.py``, which found the amount of light a slit
+passes to be less simple than ``slit_light`` assumes). Lengths are in nanometres
 unless a name says otherwise.
 
 The page's central point is that detail finer than the wavelength exists only

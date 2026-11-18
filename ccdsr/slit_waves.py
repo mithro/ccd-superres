@@ -83,9 +83,19 @@ class SlitCase:
     film_metal: str | complex = "aluminium"
     line_metal: str | complex = "copper"
     glass_index: float = GLASS
-    below_nm: float = 300.0            #: glass between the lamp side's absorbing layer and the lines
-    above_nm: float = 150.0            #: silicon between the film and the far absorbing layer
+    #: Glass between the lamp side's absorbing layer and the lines, silicon
+    #: between the film and the far absorbing layer, and the thickness of
+    #: the absorbing layers in grid cells. The defaults are checked for a
+    #: 1,200 nm cell with light straight on (answers within 0.2 %). Other
+    #: cells and slanted light can send light out at shallow angles, which
+    #: needs more room: use ``roomy()``.
+    below_nm: float = 300.0
+    above_nm: float = 150.0
     pml_cells: int = 40
+
+    def roomy(self):
+        """The same case with deeper buffers and absorbing layers, safe for any cell and angle tried."""
+        return replace(self, below_nm=600.0, above_nm=600.0, pml_cells=int(round(200.0 / self.spacing_nm)))
 
     def index_of(self, metal):
         return metal_index(metal, self.wavelength_nm) if isinstance(metal, str) else complex(metal)
@@ -137,6 +147,7 @@ def layout(case):
         repeat = case.cell_nm if case.single_line else case.period_nm
         if abs(case.cell_nm / repeat - round(case.cell_nm / repeat)) > 1e-9:
             raise ValueError("the cell must hold a whole number of periods")
+        _cells(case.shift_nm, h)                  # a shift off the grid would change the lines' width
         offset = (x - case.shift_nm + repeat / 2) % repeat - repeat / 2
         eps[np.abs(offset) < width / 2, z0:z1] = case.index_of(case.line_metal) ** 2
 
@@ -206,12 +217,17 @@ def balance(case):
     return {"reflected": 1 - up, "into_silicon": into, "absorbed": up - into}
 
 
-def default_shifts(period_nm, steps=4):
+def default_shifts(period_nm, steps=4, spacing_nm=2.5):
     """Line positions from "line under the slit" to "space under the slit".
 
     With light arriving straight on, the picture is symmetric about the
-    slit, so half a period is enough.
+    slit, so half a period is enough. At least ``steps`` equal steps are
+    used, and more if that is needed for every position to fall on the grid.
     """
+    while abs(period_nm / 2 / steps / spacing_nm - round(period_nm / 2 / steps / spacing_nm)) > 1e-9:
+        steps += 1
+        if steps > 64:
+            raise ValueError("half the period is not a whole number of grid cells")
     return np.linspace(0.0, period_nm / 2, steps + 1)
 
 
@@ -267,7 +283,7 @@ def scan(case, shifts_nm=None):
     if case.period_nm is None:
         raise ValueError("a scan needs lines")
     if shifts_nm is None:
-        shifts_nm = (default_shifts(case.period_nm) if case.angle_deg == 0
+        shifts_nm = (default_shifts(case.period_nm, spacing_nm=case.spacing_nm) if case.angle_deg == 0
                      else np.arange(8) * case.period_nm / 8)
     shifts = np.asarray(shifts_nm, dtype=float)
     return ScanResult(case=case, shifts_nm=shifts,

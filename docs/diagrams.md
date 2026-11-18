@@ -294,8 +294,8 @@ The figures on the [slit waves](slit-waves.md) page come from
 [`docs/diagrams/make_slit_wave_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_slit_wave_diagrams.py),
 which also writes that page's tables to
 [`results/slit-waves/tables.md`](https://github.com/mithro/ccd-superres/blob/main/results/slit-waves/tables.md).
-With `--rerun` it repeats all 1,911 wave runs, which takes about an hour
-on four processor cores:
+With `--rerun` it repeats all 2,222 wave runs, which takes about two
+hours on four processor cores:
 
 ```
 python docs/diagrams/make_slit_wave_diagrams.py

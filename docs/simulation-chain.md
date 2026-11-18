@@ -194,7 +194,8 @@ wavelength. It has been used twice: for side light in the slot
 ([slot waves](slot-waves.md)) and for a slit in a metal film over fine
 lines ([slit waves](slit-waves.md)). The second use is the first check
 of a level 0 claim by level 4: the rate at which detail finer than the
-wavelength fades with the gap was confirmed within 10 % to 40 %.
+wavelength fades with the gap was confirmed within 4 % from a gap of
+100 nm outward, and found uneven closer in.
 
 All processing is offline and may use graphics cards and hundreds of cores,
 so every level is built to run as many independent jobs: tiles of surface,

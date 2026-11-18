@@ -871,3 +871,40 @@ all references and links.
 numbers against its code (covered by review 16), the plan-status figure,
 and the pages as rendered. The corrections were checked by a strict build
 of the pages, not by a second review.*
+
+## Review 19: the wave check of the slit mask
+
+The [slit waves](slit-waves.md) page, the solver function
+`solve_periodic`, the module
+[`ccdsr/slit_waves.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slit_waves.py),
+its tests and the script that runs the study were reviewed on 18 November
+2026, before merging. The reviewer was given the code, the saved runs and
+the page, and not the author's view of them. It wrote its own reference
+calculation for stacks of flat layers, reran about 150 cross-sections with
+other settings, regenerated every table from the saved runs, and made 20
+deliberate mistakes in a copy of the code to see whether the tests noticed.
+
+It confirmed the solver against its own reference in both field
+directions, straight on and slanted (within 0.6 % to 2.8 %), the energy
+balance to five figures, the handling of slanted light to 13 figures,
+every table against the saved runs, the materials' values and the
+figures. The faults were in what the page concluded and in the tests.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Blocking | The count of "readings for the lines to stand five times above the noise" was for a far easier task than the routes study's counts, and the page compared the two, concluding that gaps to 150 nm were within the baseline scan. The definitions alone differ by thousands of times. | The comparison and the conclusion are removed. The column is renamed and its caption says what it is. The cost in readings is now stated only as a ratio to the simple model. |
+| 2 | Blocking | The amount of near-infrared light through a slit was a property of the 1,200 nm distance between slits, not of a slit: at the sensor's 1,120 nm pitch it is 4.2 times lower. It also changes with wavelength and lamp direction. The check at 2,400 nm could not show this. | Runs added at seven distances, five wavelengths and five directions (Tables 8, 10 and 11). "Close to the simple estimate" and the explanations given for it are withdrawn. |
+| 3 | Should fix | The blue swings, the red swing at 300 nm and the outer part of the response to one line also depend on the distance between slits. | Shown in Tables 10 and 16, and stated as results for this arrangement only. |
+| 4 | Should fix | "Fades over 37 nm to 40 nm, slightly kinder" depended on the range fitted. | Both fits are tabled. The claim is now the simple rate within 4 % from 100 nm outward, uneven closer in. |
+| 5 | Should fix | The strength quoted for near-infrared and red was for the 50 nm slit only, and "softness" read too much into a ratio. | Both slit widths are quoted, and the softness is called a way of comparing. |
+| 6 | Should fix | Five explanations were stated as fact without support, one of them wrong. | Removed or marked Judgement or Unverified. The page now says the wave result contradicts the shadow-sum assumption of the routes study's first test. |
+| 7 | Should fix | Six of 20 deliberate mistakes passed the tests, including the averaging mistake the page said had been found. | Six tests added: a metal film against the layer formula straight on and slanted, one repeat against two, two grid spacings, which position is bright, positions on the grid. The five planted mistakes rerun by the author now fail. |
+| 8 | Should fix | The room left round the structure was enough at 1,200 nm but not at other distances or for slanted light. | `roomy()` added and used for all such runs; the slanted runs were redone; Table 6 added. The runs at 2,400 nm keep the standard room and are stated as about 4 % low. |
+| 9 | Minor | Lines 75 nm and 150 nm wide were drawn one grid cell narrower at some positions. | Positions now always fall on the grid, with a test; those runs were redone. |
+| 10 | Minor | Sideways power flow unweighted for the field across; counts of runs disagreed; two sources not linked; terms unexplained; light at steep angles counted in the reading; a stale sentence in another module. | Fixed, or added to the limits. |
+
+*Table: findings of review 19. Not checked by the reviewer: the runs on
+the finer grid, the content of the cited papers beyond their records, and
+the claims about three dimensions, which the page marks as Judgement. The
+corrections were checked by the author's own reruns, the tests and a
+strict build of the pages, not by a second review.*
