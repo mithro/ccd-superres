@@ -710,3 +710,34 @@ features on the 20 nm grid against a finer one, the 10 µm gap and the
 the other polarisation, the inside of the backlight model, and the figures
 in their published form. The corrections were checked by the tests and a
 strict build of the pages, not by a second review.*
+
+## Review 15: the front page and sidebar grouped into sections
+
+The [front page](index.md) listed every page in one long table, and the
+sidebar showed the same 25 pages as one flat list. The pages are now grouped
+into seven sections, in the table and in the sidebar alike, and the sidebar
+uses shorter page names. No page was moved, so every address is unchanged.
+The review was done on 18 November 2026, before the change was merged.
+
+The reviewer was given the change and the pages, not the reasons for the
+grouping. It compared the old and new lists of pages and table rows, read
+the opening of every page to judge where it belongs, built the pages with
+warnings treated as errors, and checked that all 1,144 links between pages
+in the built site lead to a file that exists.
+
+It confirmed that all 25 pages appear exactly once, that no table row was
+lost, that the build has no warnings and that no link is broken.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Gap | The section "Calibration and testing" holds one page. | Kept, because the calibration and test stage of the [project plan](plan.md) will add pages to it. |
+| 2 | Gap | The section "Reference" was described as look-up pages, but also holds the review record and the diagrams page. | The description now says look-up pages and project records. |
+| 3 | Wording | "The parts that run today" suggested the lighting pages have no running code. They do. | The description now names the calculator, the explorers and the simulator. |
+| 4 | Wording | Nine pages had one name in the table and another in the sidebar. | The table uses the sidebar names. |
+| 5 | Wording | The sidebar name "Satellite and astronomy multi-frame" had no noun. | Renamed "Multi-frame imaging in astronomy". |
+
+*Table: findings of review 15. Not checked by the reviewer: how the sidebar
+looks in a browser and at phone width, links to a place within a page,
+links to other sites, and the text of the table rows against the pages they
+describe. The corrections were checked by a strict build of the pages, not
+by a second review.*
