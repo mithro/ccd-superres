@@ -248,6 +248,18 @@ python docs/diagrams/make_backlight_diagrams.py
 | [`backlight-spectrum`](diagrams/backlight-spectrum.svg) | Share of light that crosses the chip and that a pixel catches, and their product, against wavelength | Flat-layer estimate in [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) with the silicon table of Green (2008) |
 | [`backlight-sharpness`](diagrams/backlight-sharpness.svg) | Finest line width against gap for near-infrared light from behind and for the visible best case | Analytic model in [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) with the depth factor of [`ccdsr/backlight.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/backlight.py) |
 
+## Figures for the routes that keep ordinary light
+
+The figures on the page of
+[routes to 100 nm that keep ordinary light](research/ordinary-light-routes.md)
+come from
+[`docs/diagrams/make_ordinary_light_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_ordinary_light_diagrams.py),
+which also prints the numbers of that page's tables. It takes about a
+minute; `--fast` skips the two simulations:
+
+```
+python docs/diagrams/make_ordinary_light_diagrams.py
+
 ## Slot wave figures
 
 The figures on the [slot waves](slot-waves.md) page come from
@@ -261,6 +273,18 @@ python docs/diagrams/make_slot_wave_diagrams.py
 
 | Figure | Shows | Source of the numbers |
 |---|---|---|
+| [`olr-fading`](diagrams/olr-fading.svg) | Share of a pattern's strength left against distance from the chip, for three line widths | The "matt" blur of [`ccdsr/resolution.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/resolution.py) and the wave formula in [`ccdsr/near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/near_contact.py) |
+| [`olr-oversampling`](diagrams/olr-oversampling.svg) | Finest line width against the number of readings, for six combinations of distance and edge softness | Analytic model, through `finest_line` in [`ccdsr/near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/near_contact.py) |
+| [`olr-stacks`](diagrams/olr-stacks.svg) | Four sensor faces above the same chip, with the distance to the sensing plane | Illustrative; heights to one scale |
+| [`olr-distance-softness`](diagrams/olr-distance-softness.svg) | Map of finest line width against distance and edge softness | Analytic model, as above |
+| [`olr-silicon-survival`](diagrams/olr-silicon-survival.svg) | Contrast a fine pattern keeps inside silicon, and the depth light reaches, against wavelength | `silicon_pattern_survival` in [`ccdsr/near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/near_contact.py), with the silicon table of Green (2008) |
+| [`olr-level1-near-contact`](diagrams/olr-level1-near-contact.svg) | Reconstructions of bars 100 nm wide at three settings | Simulation level 1 in one dimension, fixed seed |
+| [`olr-slit-layout`](diagrams/olr-slit-layout.svg) | Top view of pixels each carrying a slit in a different direction | Illustrative |
+| [`olr-slit-demo`](diagrams/olr-slit-demo.svg) | A layout of 100 nm lines and its reconstruction from three kinds of pixel, at the baseline number of readings and at 116 times as many | A small two-dimensional solver in the script, fixed seed |
+| [`olr-contact-zone`](diagrams/olr-contact-zone.svg) | Air gap across the sensor for domed and tilted sensor faces | Geometry of a sphere on a flat |
+| [`olr-light-paths`](diagrams/olr-light-paths.svg) | Three ways to light a chip in near contact | Illustrative |
+| [`olr-ranking`](diagrams/olr-ranking.svg) | Line width each shortlisted route could reach | Clean line widths with the baseline scan, from Table 21 of the page; estimates |
+
 | [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
 | [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
 

@@ -39,6 +39,7 @@ link here the first time they use a term that is not explained on the spot.
 | Cramér-Rao bound | The smallest error that any method could reach when estimating a quantity from noisy data. It is worked out from how strongly the data change when the quantity changes. |
 | Deconvolution | Undoing a known blur by computation. |
 | Degeneracy | A change to the unknowns that leaves every measurement unchanged, so that no amount of data can detect it. |
+| Delayering | Removing a chip's upper layers, by polishing or etching, until a chosen layer is exposed at the surface. |
 | Die | The bare piece of silicon that is the sensor chip itself, without its package. |
 | Diffraction | The spreading of light into a fan of directions when it meets fine structure. Finer structure sends light out at steeper angles. |
 | Diffraction pattern (hologram) | The pattern of ripples that coherent light forms on the sensor after leaving the surface. It holds the detail of the surface in scrambled form. |
@@ -48,9 +49,11 @@ link here the first time they use a term that is not explained on the spot.
 | Dither | A small amount of noise, present or added on purpose, that stops rounding from hiding changes smaller than one step of the readout. In astronomy the word also means a small deliberate shift of the camera between exposures, so that the pixel grid lands in a different place each time. |
 | Diversity | Measurements that differ in kind, such as a different gap, lighting direction or light pattern, and not only in position. Phase recovery needs it. |
 | Drizzle | The standard astronomical way of combining shifted frames into a picture on a finer grid: each input pixel is shrunk and laid onto the fine grid at its measured position, and overlaps are averaged. See [multi-frame reconstruction](research/multi-frame-reconstruction.md#3-combining-many-undersampled-frames). |
+| Edge softness | The width over which a pixel's response falls from full to nothing at its edge. A sharp edge lets a wide pixel still register detail much finer than itself. |
 | Electromagnetic solver | A program that calculates how light behaves from the basic equations of electricity and magnetism. Slow, and as exact as the description of the materials it is given. |
 | Evanescent wave | Light that carries detail finer than the wavelength. It clings to the surface and fades within a fraction of a wavelength, so it never reaches a distant detector. |
 | Exposure | The time during which a pixel adds up light for one reading. |
+| Fade length | The height above a surface over which detail finer than the wavelength loses most of its strength (falls by a factor of 2.7). For lines 100 nm wide it is about 35 nm. |
 | Far field | Far enough from the surface, many wavelengths, that only ordinary travelling light is left. |
 | Feature | A detail on the surface, such as a line of wiring on a chip. |
 | Fly scan | Recording while the object or sensor moves continuously, in place of stopping for each recording. |
@@ -86,8 +89,8 @@ link here the first time they use a term that is not explained on the spot.
 | Line time | The time a sensor takes to read one row of pixels, 18.9 millionths of a second for the IMX219. |
 | Line width | The width of one line of a pattern. With lines and spaces of equal width it is half the period. |
 | Linear | Said of a model in which doubling the cause doubles the reading. Such problems can be solved in one pass. |
-| Map drift | An autofocus method: two pictures are made from two halves of the recording, and the shift between them says how wrong the assumed focus is, and in which direction. |
 | Lucky imaging | Taking thousands of very short exposures through the unsteady atmosphere and keeping, or weighting most heavily, the sharpest ones. |
+| Map drift | An autofocus method: two pictures are made from two halves of the recording, and the shift between them says how wrong the assumed focus is, and in which direction. |
 | Mask (coded mask) | A layer with a fine pattern of clear and dark, or thick and thin, areas, placed in the light path so that the recorded pattern keeps fine detail. |
 | Maximum likelihood | Fitting that gives each reading the weight it deserves from the known statistics of its noise, instead of treating all readings alike. |
 | Microlens | The tiny lens built on top of each pixel of a sensor to gather light into it. |
@@ -98,13 +101,15 @@ link here the first time they use a term that is not explained on the spot.
 | Mixed states (modes) | Treating one recording as the sum of a few different patterns added in brightness, to model blur from movement, vibration or impure colour. |
 | Motion blur | Smearing caused by the sensor moving while a pixel is adding up light. |
 | Nanometre (nm) | A thousandth of a micrometre, a millionth of a millimetre. 100 nm is roughly a thousandth of the width of a human hair. |
+| Near contact | Sensor and chip closer than about 100 nm over some area, so that the sensor reads detail finer than the wavelength before it fades. |
 | Near field | Within a fraction of a wavelength of the surface, where detail finer than the wavelength can still be picked up. |
-| Noise | Random variation in the readings that does not come from the surface. Averaging many readings reduces it. |
 | Near-infrared | Light just beyond red, with a wavelength of about 0.75 µm to 1.4 µm. The eye cannot see it; silicon sensors respond to the shorter part, and silicon lets the longer part through. |
+| Noise | Random variation in the readings that does not come from the surface. Averaging many readings reduces it. |
 | Noise floor | The level below which a signal is lost in the noise. |
 | Numerical aperture (NA) | A number that says how steep an angle is: the sine of the angle measured from straight ahead, times the refractive index of the medium. In air it lies between 0 and 1. |
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
 | Ordinary light | Steady light from a room, a lamp or a plain light-emitting diode, with no property the method relies on beyond being there. The baseline of this project ([design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). The opposite is special lighting. |
+| Oversampling | Taking many more readings of each patch of the surface than the picture has points, so that noise averages down and fine positions are filled in. |
 | Parsec | The astronomers' unit of distance to the stars: 3.26 light years, or about 31 million million km. At 1 parsec, an angle of one second of arc spans one astronomical unit. |
 | Period | The distance over which a regular pattern repeats. Lines and spaces each 100 nm wide have a period of 200 nm. |
 | Phase | Where a wave is in its cycle. Sensors record brightness only, so phase has to be worked out by computation. |
@@ -149,8 +154,8 @@ link here the first time they use a term that is not explained on the spot.
 | Sinusoid | A smooth, regular wave. A sinusoidal pattern of brightness rises and falls evenly, with no sharp edges. |
 | Sparse | Made of few, well-separated features. |
 | Spatial frequency | Fineness of detail, counted as repeats per unit length. One divided by the period. |
-| Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Special lighting | Light built for the method: laser beams, beam pairs, patterns, speckle, pulses or switched colours. Not assumed in this project; the reading of where the line falls is Table 4.11a of the [design](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes). |
+| Speckle | The grainy random pattern coherent light makes after passing through or bouncing off something rough. |
 | Spectral width | The spread of wavelengths in a light source. A narrow spread means a pure colour and a long coherence length. |
 | Specular reflection | The mirror reflection of a beam: the part that leaves a surface at the same angle it arrived. |
 | Stage | Used in two senses: a step of the staged path (stages A to D of the main line of work, or stage 0 to stage 4 of the laser route), and the moving platform that carries a sample or the sensor. |
@@ -167,6 +172,7 @@ link here the first time they use a term that is not explained on the spot.
 | Twin (simulated twin) | A simulation of a measurement procedure, run with known hidden values to show that the procedure recovers them before it is tried on hardware. |
 | Ultraviolet | Light with a wavelength shorter than about 400 nm, which the eye cannot see. |
 | View factor | The share of the light leaving one surface that lands directly on another, fixed by geometry alone. |
+| Walls between pixels | Glass-filled trenches that some sensors have between neighbouring pixels through the depth of the silicon, to stop light and charge crossing. Sensor makers call it deep trench isolation. |
 | Wavelength | The length of one cycle of a light wave: about 400 nm for violet, 550 nm for green, 650 nm for red. Light cannot easily carry detail finer than this. |
 | Well conditioned | Said of a calculation in which small errors in the data cause only small errors in the answer. |
 | Wiener filter | A standard way to undo a known blur that holds back where the noise would otherwise be amplified. |

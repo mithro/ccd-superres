@@ -64,6 +64,7 @@ What other imaging fields already know, and what carries over to this instrument
 | [Beamforming and array processing](research/beamforming.md) | Deep research study B2: what treating the pixels as an array of receivers gives, which sharper array methods work on brightness-only readings, how beam directions should be chosen, and how far self-calibration carries over to pixel gains and pixel response | Study for review |
 | [Multi-frame imaging in astronomy](research/multi-frame-reconstruction.md) | Deep research study B3: how scanning cameras handle motion smear, how many shifted frames are combined and at what noise cost, how well shifts are measured, how pictures are recovered without measured positions, and twelve ideas new to the project | Study for review |
 | [Ptychography and lensless imaging](research/ptychography.md) | Deep research item B4: the finest detail anyone has shown without a lens, how coarse pixels have been got round, what the reconstruction needs from the data, and what stage 2 needs | Research study for review |
+| [Routes to 100 nm with ordinary light](research/ordinary-light-routes.md) | Scouting study: every route found that could picture features of about 100 nm without special lighting, what more readings buy on each, what each costs, and a ranked shortlist for the simulator | Study for review |
 
 ## Calibration and testing
 
@@ -140,6 +141,7 @@ Radar and synthetic aperture <research/synthetic-aperture-radar>
 Beamforming and array processing <research/beamforming>
 Multi-frame imaging in astronomy <research/multi-frame-reconstruction>
 Ptychography and lensless imaging <research/ptychography>
+Routes to 100 nm with ordinary light <research/ordinary-light-routes>
 ```
 
 ```{toctree}
