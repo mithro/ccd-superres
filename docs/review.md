@@ -710,3 +710,89 @@ features on the 20 nm grid against a finer one, the 10 µm gap and the
 the other polarisation, the inside of the backlight model, and the figures
 in their published form. The corrections were checked by the tests and a
 strict build of the pages, not by a second review.*
+
+## Review 15: the front page and sidebar grouped into sections
+
+The [front page](index.md) listed every page in one long table, and the
+sidebar showed the same 25 pages as one flat list. The pages are now grouped
+into seven sections, in the table and in the sidebar alike, and the sidebar
+uses shorter page names. No page was moved, so every address is unchanged.
+The review was done on 18 November 2026, before the change was merged.
+
+The reviewer was given the change and the pages, not the reasons for the
+grouping. It compared the old and new lists of pages and table rows, read
+the opening of every page to judge where it belongs, built the pages with
+warnings treated as errors, and checked that all 1,144 links between pages
+in the built site lead to a file that exists.
+
+It confirmed that all 25 pages appear exactly once, that no table row was
+lost, that the build has no warnings and that no link is broken.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Gap | The section "Calibration and testing" holds one page. | Kept, because the calibration and test stage of the [project plan](plan.md) will add pages to it. |
+| 2 | Gap | The section "Reference" was described as look-up pages, but also holds the review record and the diagrams page. | The description now says look-up pages and project records. |
+| 3 | Wording | "The parts that run today" suggested the lighting pages have no running code. They do. | The description now names the calculator, the explorers and the simulator. |
+| 4 | Wording | Nine pages had one name in the table and another in the sidebar. | The table uses the sidebar names. |
+| 5 | Wording | The sidebar name "Satellite and astronomy multi-frame" had no noun. | Renamed "Multi-frame imaging in astronomy". |
+
+*Table: findings of review 15. Not checked by the reviewer: how the sidebar
+looks in a browser and at phone width, links to a place within a page,
+links to other sites, and the text of the table rows against the pages they
+describe. The corrections were checked by a strict build of the pages, not
+by a second review.*
+
+## Review 16: the scouting study of routes to 100 nm that keep ordinary light
+
+The [routes that keep ordinary light](research/ordinary-light-routes.md)
+page, its code
+([`ccdsr/near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/near_contact.py)),
+its tests
+([`tests/test_near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/tests/test_near_contact.py)),
+its figure script
+([`docs/diagrams/make_ordinary_light_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_ordinary_light_diagrams.py))
+and its eleven figures were reviewed on 15 November 2026, before merging.
+The reviewer was given the material and not the author's conclusions. It
+recomputed every table from the code, derived the fading formula and the
+smearing inside silicon again, reran the two simulations with other
+settings, deliberately broke the code in several places to see whether
+the tests noticed, searched the literature for the slit mask, compared the
+cited claims with the abstracts, and built the pages.
+
+It confirmed the numbers in every table, the formulas, the links and the
+build. It did not confirm the ranking or several of the conclusions
+drawn from the numbers. The page's first-placed route changed as a
+result.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The two-dimensional test of the slit mask was run with 116 times the baseline scan, and the page did not say so. With the baseline scan, open pixels with walls at 100 nm nearly fail. | The test is run and reported at both numbers of readings, with a fourth arrangement (slits at the same distance and softness as the open pixels) and the score of a blank picture. |
+| 2 | Error | Every "finest line" was the width at which the pattern equals the noise. A clean picture needs 25 times the readings. | Line widths are given as just detectable and as clean throughout, and the conclusions quote the clean figures. |
+| 3 | Error | The case for bare-silicon pixels with walls rested on near-infrared light. In that light a pattern of 100 nm lines cannot travel inside silicon, and the pixel records about 1.4 % of it. | Section 3.2 derives this. The route is paired with red light through a thinned chip and is ranked second. The slit mask, which does not have the problem, is ranked first. |
+| 4 | Error | A slit mask lit by a lamp behind the sensor gives a signal of at most about 2 % of the reading. | Stated in Table 15 and Table 17. The slit mask is paired with a lamp behind the chip. |
+| 5 | Error | The contrast with a lamp behind the sensor left out the reflection of the sensor's own face. It is 0.19, not 0.23, and depends strongly on the gap. | The function and its test are corrected, and the dependence on the gap is stated. |
+| 6 | Error | The "matt" model and the wave formula were said to agree within a factor of two. For near-infrared light they differ by up to 3.4 times, and the readings needed differ about fivefold. | Table 2 gives the ratios, Table 7 gives the wave formula's readings beside the matt model's, and the opening says how far the models differ. |
+| 7 | Error | The slit with a tomographic reconstruction was described as not found in the literature. It was published in 1997 and 2001 with millimetre waves. | Cited as OL27 and OL28, in millimetres and then scaled, and the claim of novelty is narrowed to a fixed slit on every pixel. |
+| 8 | Error | Section 7.1 gave a gain of 1.7 from knowing the two materials, taken from the wrong row of the comparison, and called repeat distances line widths. | The section now quotes what the comparison measured, a lower error, and marks the gain as a judgement. |
+| 9 | Error | The readings needed by tiny scatterers were given as a hundred million. The page's own figures give about 40,000. | Corrected, and the verdict changed. |
+| 10 | Gap | The conclusion on trading readings for distance quoted the column for a perfectly sharp edge without saying so. | The conclusion states the edge assumed and what a soft edge costs. |
+| 11 | Gap | The lamp brightness that the reading count assumes was not stated. | Table 7a gives the lamp needed for each light path. |
+| 12 | Gap | Smaller pixels were dismissed. A pixel of half the width needs 4 to 16 times fewer readings. | Stated in section 2.4 and Table 20. |
+| 13 | Gap | The smearing inside silicon was an upper bound, and the quarter-power law holds only for lines parallel to a pixel edge. | Table 11 gives both bounds, and Table 5 gives the law for detail fine in both directions. |
+| 14 | Gap | The level 1 reading counts, in one dimension, could not be compared with the estimates. | The conversion is given under Table 12. |
+| 15 | Gap | The tests did not notice six deliberate breaks in the code. | Pins added for Bethe's law, the cut-off of a round hole, the refractive index in the fading formula, the default face of the sensor, the oversampling power, a value of the table of openings, the smearing by hand, the margin, the wave formula and the lamp. |
+| 16 | Wording | Seven statements claimed more than the evidence: "each has a workable candidate", "only a near-infrared lamp", "from failing to working", "reach the target in every model", "every instrument", "no claim rests on a single unread source", and the caption of Figure 6. | Each is replaced by what the tables show. |
+| 17 | Wording | Against the documentation standard: units and prose inside cells of four tables, a label ("Simulated") that is not one of the shared labels, "level 0" not explained, two unlabelled claims, five mentions without links, a skipped reference key, a wrong running time in the script, and figures that changed on every run. | Tables 4, 16, 17 and 21 are rebuilt, the label is "Estimate (simulated)", the terms table explains the levels, labels and links are added, the skipped key is noted, and the figures are now written the same on every run. |
+| 18 | Wording | Labels overlapped in four figures, and two bars of the ranking figure had widths that came from no table. | Labels moved; the caption says which bars mark a single value. |
+
+*Table: findings of review 16. The reviewer's twenty findings are grouped
+here into eighteen rows. Not checked by the reviewer: any of the physics
+against a full electromagnetic calculation, the cited papers beyond their
+abstracts, the mechanics of near contact, and the figures in their
+published form. A first wave calculation of a pixel's edge was started
+during the corrections and did not finish, so nothing from it is used.
+The corrections were extensive: they changed the ranking, added tables
+7a, 10b and 17a and the sources OL27 and OL28, and rewrote the opening.
+They were checked by the tests and a strict build of the pages, not by a
+second review, so the corrected page as a whole is less well reviewed
+than the first draft was.*

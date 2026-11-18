@@ -35,6 +35,16 @@ See the [backlight page](backlight.md).
    :members:
 ```
 
+## Near contact under ordinary light
+
+The estimates behind the study of
+[routes to 100 nm that keep ordinary light](research/ordinary-light-routes.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.near_contact
+   :members:
+```
+
 ## Waves in the slot, and a small wave solver
 
 See the [slot waves page](slot-waves.md).
