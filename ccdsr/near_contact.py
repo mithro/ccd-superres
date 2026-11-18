@@ -60,7 +60,8 @@ def fade_length_nm(period_nm, wavelength_nm=450.0, index=1.0):
 
 
 def finest_line(distance_nm, edge_fwhm_nm=0.0, readings=13_000.0, opening_nm=None,
-                snr_single=50.0, pitch_nm=1120.0, light_share=None):
+                snr_single=50.0, pitch_nm=1120.0, light_share=None, margin=1.0,
+                gap_model="diffuse", wavelength_nm=550.0):
     """Finest line width (half the finest period) the level 0 model gives.
 
     A thin wrapper around :func:`ccdsr.resolution.recoverable_period` with the
@@ -71,16 +72,23 @@ def finest_line(distance_nm, edge_fwhm_nm=0.0, readings=13_000.0, opening_nm=Non
     on the pixel; the model takes the light as proportional to it, which suits
     a slit. ``light_share`` overrides that with the share of an open pixel's
     light that actually gets through (use it for a small round hole).
+
+    ``margin`` is how many times stronger than the noise the pattern has to
+    be. The default of 1 is the level 0 criterion, the point at which the
+    pattern can just be told from noise; 5 is a rule of thumb for a picture
+    that looks clean. ``gap_model="collimated"`` replaces the matt blur by
+    the wave formula for light of ``wavelength_nm`` arriving straight on.
     """
-    snr = snr_single
+    snr = snr_single / margin
     if light_share is not None:
         opening = pitch_nm if opening_nm is None else opening_nm
         # recoverable_period scales the signal-to-noise by opening / pitch; undo
         # that and apply the square root of the true share of the light instead.
-        snr = snr_single * math.sqrt(light_share) * pitch_nm / opening
+        snr = snr_single / margin * math.sqrt(light_share) * pitch_nm / opening
     period = recoverable_period(readings, distance_nm, pitch_nm=pitch_nm, snr_single=snr,
                                 edge_sigma_nm=edge_fwhm_nm * FWHM_TO_SIGMA,
-                                aperture_nm=opening_nm)
+                                aperture_nm=opening_nm, gap_model=gap_model,
+                                wavelength_nm=wavelength_nm)
     return period / 2
 
 
@@ -120,8 +128,8 @@ def readings_needed(target_line_nm, distance_nm, edge_fwhm_nm=0.0, **kw):
     return hi
 
 
-def silicon_pattern_survival(period_nm, wavelength_nm):
-    """Share of a fine light pattern's contrast that survives inside silicon.
+def silicon_pattern_survival(period_nm, wavelength_nm, both_sides=False):
+    """Share of a fine light pattern's contrast that survives inside silicon, at best.
 
     A pattern of period ``p`` that has entered the pixel's silicon is the sum
     of light going straight down and light bent sideways. The two drift out of
@@ -130,7 +138,12 @@ def silicon_pattern_survival(period_nm, wavelength_nm):
     as the light goes deeper. The pixel adds up what is absorbed at every
     depth. Light is absorbed as ``exp(-z / L)`` with the absorption depth
     ``L``, and the average of the drifting pattern with that weight is
-    ``1 / sqrt(1 + (rate * L)^2)``.
+    ``1 / sqrt(1 + (rate * L)^2)``. That is the case of light bent to one
+    side only, where the pattern slides sideways as it goes down. Light
+    arriving straight on is bent to both sides equally; the pattern then
+    fades and reverses in place, and its average is the smaller
+    ``1 / (1 + (rate * L)^2)``, returned with ``both_sides=True``. The first
+    is therefore an upper bound.
 
     Returns 0 for patterns too fine to travel in silicon at all
     (``p < w / n``). Assumes a weak pattern on a bright background and a pixel
@@ -142,7 +155,8 @@ def silicon_pattern_survival(period_nm, wavelength_nm):
     inside = straight**2 - 1 / period**2
     rate = 2 * np.pi * (straight - np.sqrt(np.maximum(inside, 0.0)))          # per nm
     depth = 1000.0 / absorption_per_um(wavelength_nm)                         # nm
-    return np.where(inside <= 0, 0.0, 1 / np.sqrt(1 + (rate * depth) ** 2))
+    kept = 1 / (1 + (rate * depth) ** 2)
+    return np.where(inside <= 0, 0.0, kept if both_sides else np.sqrt(kept))
 
 
 def absorption_depth_nm(wavelength_nm):
@@ -212,18 +226,42 @@ def contact_band_wedge(rise_nm, over_um, max_gap_nm, pitch_nm=1120.0, rows=2464)
 def through_sensor_contrast(reflect_a, reflect_b, wavelength_nm=1050.0, face_pass=None):
     """Contrast between two chip materials when the lamp shines through the sensor.
 
-    The lamp's light crosses the pixel once on its way to the chip, and the
-    part the chip reflects crosses it again. With so little absorbed on each
-    crossing, a pixel's reading is proportional to ``1 + T R``: 1 for the
-    lamp's own crossing, ``R`` for the chip's reflectance, and ``T`` for the
-    share of light that gets out through the sensor's face and back in. With
-    a bare silicon face and an air gap ``T`` is the square of the face's
-    transmission. The contrast returned is the difference of the two readings
-    divided by their mean.
+    The lamp's light crosses the pixel once on its way to the chip. The
+    sensor's own face reflects a share ``F`` of it straight back through the
+    pixel, and the chip reflects a share ``R`` of what got out, of which a
+    share gets back in. With so little absorbed on each crossing, a pixel's
+    reading is proportional to ``1 + F + T R``, where ``T`` is the share that
+    passes the face twice. For a bare silicon face ``F`` is the reflectance
+    of silicon against air and ``T`` is ``(1 - F)^2``. The contrast returned
+    is the difference of the two readings divided by their mean.
+
+    This treats the face and the chip as separate mirrors. In near contact
+    the gap is far thinner than the wavelength and the two reflect as one
+    stack, so the true value depends strongly on the gap: take the result as
+    good to a factor of two at best.
+
+    ``face_pass`` sets ``T`` directly and takes the face as not reflecting.
     """
     if face_pass is None:
         n, _ = silicon_nk(wavelength_nm)
-        face_pass = (1 - ((n - 1) / (n + 1)) ** 2) ** 2
-    a = 1 + face_pass * reflect_a
-    b = 1 + face_pass * reflect_b
+        face = ((n - 1) / (n + 1)) ** 2
+        face_pass = (1 - face) ** 2
+    else:
+        face = 0.0
+    a = 1 + face + face_pass * reflect_a
+    b = 1 + face + face_pass * reflect_b
     return abs(a - b) / ((a + b) / 2)
+
+
+def lamp_needed_mw_per_cm2(light_share, wavelength_nm, electrons=2500.0, frames_per_s=30.0,
+                           pitch_nm=1120.0):
+    """Lamp brightness at the chip needed to fill a reading, in mW per square cm.
+
+    ``light_share`` is the share of the light falling on one pixel's area
+    that ends up detected. A reading of ``electrons`` in each frame then
+    needs ``electrons * frames_per_s / light_share`` photons a second on an
+    area of one pixel, each carrying ``h c / wavelength`` of energy.
+    """
+    photon_j = 6.626e-34 * 2.998e8 / (wavelength_nm * 1e-9)
+    area_cm2 = (pitch_nm * 1e-7) ** 2
+    return electrons * frames_per_s / light_share * photon_j / area_cm2 * 1e3

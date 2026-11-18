@@ -2,7 +2,7 @@
 
 Run from the repository root:
 
-    python docs/diagrams/make_ordinary_light_diagrams.py          # everything, about 3 minutes
+    python docs/diagrams/make_ordinary_light_diagrams.py          # everything, several minutes
     python docs/diagrams/make_ordinary_light_diagrams.py --fast   # skip the two simulations
 
 Writes SVG (used by the page) and PNG copies next to this file, with the
@@ -27,8 +27,10 @@ from scipy.special import k1
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from ccdsr import level1 as l1  # noqa: E402
+from ccdsr.backlight import silicon_nk  # noqa: E402
 from ccdsr.near_contact import (absorption_depth_nm, contact_band_wedge,  # noqa: E402
                                 contact_zone_sphere, fade_length_nm, finest_line, hole_light,
+                                lamp_needed_mw_per_cm2,
                                 near_field_transfer, oversampling_exponent, readings_needed,
                                 silicon_pattern_survival, slit_light, through_sensor_contrast)
 
@@ -54,7 +56,7 @@ plt.rcParams.update({
     "font.family": "DejaVu Sans", "font.size": 10, "text.color": INK,
     "axes.labelcolor": INK2, "axes.edgecolor": INK2, "xtick.color": INK2,
     "ytick.color": INK2, "figure.facecolor": SURFACE, "axes.facecolor": SURFACE,
-    "savefig.facecolor": SURFACE, "svg.fonttype": "path",
+    "savefig.facecolor": SURFACE, "svg.fonttype": "path", "svg.hashsalt": "olr",
 })
 
 BASE = 13_000.0          # readings per pixel area in the baseline scan (design, section 5.2)
@@ -63,7 +65,8 @@ FPS = 30.0               # baseline frame rate
 
 def save(fig, name):
     for ext in ("svg", "png"):
-        fig.savefig(OUT / f"olr-{name}.{ext}", dpi=160, bbox_inches="tight")
+        meta = {"Date": None} if ext == "svg" else None
+        fig.savefig(OUT / f"olr-{name}.{ext}", dpi=160, bbox_inches="tight", metadata=meta)
     plt.close(fig)
 
 
@@ -89,9 +92,7 @@ def fading():
                 label=f"lines {period // 2} nm wide (repeat {period} nm), light from all directions")
     ax.plot(d, near_field_transfer(200, d, 450.0), color=RED, lw=1.4, ls="--",
             label="lines 100 nm wide, blue light straight on (wave formula)")
-    ax.axhline(0.02, color=GRID, lw=1)
-    ax.text(1195, 0.023, "1 part in 50: one baseline reading can just see it", ha="right",
-            fontsize=8, color=INK2)
+    ax.axhline(0.02, color=INK2, lw=0.8, ls=":", label="1 part in 50: what a single reading can just see")
     ax.set_yscale("log")
     ax.set_ylim(1e-6, 2)
     ax.set_xlim(0, 1200)
@@ -118,14 +119,17 @@ def distance_softness_map():
     c1 = ax.contour(dist, soft, z[BASE], levels=[100], colors=[INK], linewidths=2.2)
     c2 = ax.contour(dist, soft, z[BASE * 1000], levels=[100], colors=[RED], linewidths=2.0,
                     linestyles="--")
-    ax.clabel(c1, fmt="100 nm, baseline scan", fontsize=8)
-    ax.clabel(c2, fmt="100 nm, 1,000 times more readings", fontsize=8)
+    from matplotlib.lines import Line2D
+    ax.legend([Line2D([], [], color=INK, lw=2.2), Line2D([], [], color=RED, lw=2, ls="--")],
+              ["lines of 100 nm, baseline scan", "lines of 100 nm, 1,000 times more readings"],
+              loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=False, fontsize=8.5)
     marks = [(300, 300, "top layers stripped,\nbaseline pixel", "s"),
              (100, 100, "bare silicon face,\nwalls between pixels", "o"),
-             (50, 30, "metal mask with\nslits, touching", "^")]
+             (50, 30, "metal mask with slits,\n50 nm away", "^")]
     for x, y, label, m in marks:
         ax.plot(x, y, m, color=ORANGE, ms=9, mec=INK, zorder=5)
-        ax.annotate(label, (x, y), textcoords="offset points", xytext=(9, 6), fontsize=8.5)
+        ax.annotate(label, (x, y), textcoords="offset points", xytext=(10, -22 if y < 300 else 6),
+                    fontsize=8.5)
     ax.set_xlabel("distance from features to the sensing plane (nm)")
     ax.set_ylabel("softness of the pixel's edge (nm, full width at half height)")
     save(fig, "distance-softness")
@@ -148,8 +152,7 @@ def oversampling():
     fig, ax = plt.subplots(figsize=(9.2, 5.2))
     for d, s, label, colour, ls in CASES:
         ax.plot(n, [finest_line(d, s, x) for x in n], color=colour, lw=2, ls=ls, label=label)
-    ax.axhline(100, color=RED, lw=1.2)
-    ax.text(1.3e2, 104, "target: lines 100 nm wide", color=RED, fontsize=8.5)
+    ax.axhline(100, color=RED, lw=1.2, label="target: lines 100 nm wide")
     ax.axvline(BASE, color=GRID, lw=1.2)
     ax.text(BASE * 1.15, 12, "baseline scan", fontsize=8.5, color=INK2, rotation=90, va="bottom")
     ax.set_xscale("log")
@@ -245,9 +248,12 @@ def silicon_survival():
     ax2.plot(w, [absorption_depth_nm(x) / 1000 for x in w], color=INK2, lw=1.2, ls="--")
     ax2.set_yscale("log")
     ax2.set_ylabel("depth the light reaches in silicon (µm, dashed)")
-    for x, name in ((405, "violet"), (450, "blue"), (530, "green"), (630, "red"), (850, "near-infrared")):
+    names = ((405, "violet"), (450, "blue"), (530, "green"), (630, "red"), (850, "near-infrared"))
+    for x, _ in names:
         ax.axvline(x, color=GRID, lw=0.8)
-        ax.text(x + 4, 0.96, name, fontsize=8, color=INK2, rotation=90, va="top")
+    top = ax.secondary_xaxis("top")
+    top.set_xticks([x for x, _ in names])
+    top.set_xticklabels([n for _, n in names], fontsize=8.5)
     save(fig, "silicon-survival")
 
 
@@ -263,11 +269,8 @@ def contact_zone():
     wedge = (x + 1840) * 1e3 * 1000 / 3.68e6
     ax.plot(x, np.maximum(wedge, 1), color=PURPLE, lw=2, ls="--",
             label="flat sensor tilted to rise 1,000 nm across its length")
-    ax.axhspan(1, 100, color=AQUA, alpha=0.15, lw=0)
-    ax.text(-1800, 45, "within 100 nm of the chip", fontsize=8.5, color=INK2)
-    ax.axhline(5000, color=GRID, lw=1)
-    ax.text(1800, 5600, "above 5,000 nm light can get in from the side", ha="right", fontsize=8,
-            color=INK2)
+    ax.axhspan(1, 100, color=AQUA, alpha=0.15, lw=0, label="within 100 nm of the chip")
+    ax.axhline(5000, color=INK2, lw=0.8, ls=":", label="above this line light can get in from the side")
     ax.set_yscale("log")
     ax.set_ylim(1, 3e4)
     ax.set_xlabel("position across the sensor (µm); the sensor is 3,680 µm long")
@@ -283,16 +286,16 @@ def light_paths():
     fig, axes = plt.subplots(1, 3, figsize=(11.0, 4.2))
     titles = ["Lamp behind the chip", "Lamp behind the sensor", "Light from the side"]
     for ax, title in zip(axes, titles):
-        ax.set_xlim(0, 10)
+        ax.set_xlim(0, 11.6)
         ax.set_ylim(-2.4, 7.4)
         ax.axis("off")
         ax.set_title(title, fontsize=10, weight="bold")
         ax.add_patch(Rectangle((0.5, 3.0), 9, 2.0, facecolor=SILICON, edgecolor=INK2))
-        ax.text(5, 4.3, "sensor", ha="center", fontsize=9)
+        ax.text(9.65, 4.3, "sensor", ha="left", va="center", fontsize=8.5)
         ax.add_patch(Rectangle((0.5, 3.0), 9, 0.5, facecolor="#b9b8b0", edgecolor=INK2, lw=0.5))
-        ax.text(5, 3.25, "pixels", ha="center", va="center", fontsize=7.5)
+        ax.text(9.65, 3.25, "pixels", ha="left", va="center", fontsize=8.5)
         ax.add_patch(Rectangle((0.5, 0.6), 9, 2.2, facecolor=SAMPLE, edgecolor=INK2))
-        ax.text(5, 1.3, "chip", ha="center", fontsize=9)
+        ax.text(9.65, 1.3, "chip", ha="left", va="center", fontsize=8.5)
         for xm, wm in ((1.4, 1.0), (3.6, 0.6), (5.2, 1.3), (7.6, 0.8)):
             ax.add_patch(Rectangle((xm, 2.55), wm, 0.25, facecolor=METAL, edgecolor="none"))
     ax = axes[0]
@@ -344,6 +347,8 @@ def level1_near_contact():
     truth = l1.bar_contrast(surface, groups[3], dx)
     print("\nLevel 1 in one dimension, bars 100 nm wide (repeat 200 nm). True contrast %.2f." % truth)
     print("readings of each pixel-sized stretch:", [round(f * per_frame) for f in L1_FRAMES])
+    print("the same per 100 nm cell, as readings of a pixel-sized patch in two dimensions:",
+          [round(f * per_frame * 1120 / 100) for f in L1_FRAMES])
     table = {}
     for gap, fwhm in L1_CASES:
         row = []
@@ -454,50 +459,75 @@ def _solve(kernels, readings, weights, lam, iterations=400):
     return x
 
 
+SLIT_LEVELS = (("the baseline scan, 13,000 readings", BASE), ("116 times the baseline, 1.5 million readings", BASE * 116))
+
+
 def slit_demo():
-    """Pixels behind narrow slits at several angles, against open pixels."""
-    rng = np.random.default_rng(3)
+    """Pixels behind narrow slits at several angles, against open pixels.
+
+    Each arrangement is given the same number of readings of each
+    pixel-sized patch, shared equally between twelve kinds of pixel, and is
+    run at the baseline scan and at 116 times it. The same blur model makes
+    the readings and inverts them, the grid repeats at its edges, and the
+    lines sit exactly on the grid, all of which flatter every arrangement.
+    """
     n, dx, cell = 256, 20.0, 5                       # 5.12 um square, lines 100 nm wide
-    truth = _layout(n, cell, rng)
-    electrons = 2500.0 * 40                          # 40 readings of 2,500 electrons at every position
+    truth = _layout(n, cell, np.random.default_rng(3))
     angles = np.arange(0, 180, 15)
     setups = {
-        "Slits 100 nm wide at 12 angles,\n50 nm away, metal edge soft over 30 nm":
+        "Slits 100 nm wide at 12 angles,\n50 nm away, edge soft over 30 nm":
             [(_kernel_ft(n, dx, 1120, 100, a, 30, 50), 0.5) for a in angles],
+        "Slits 100 nm wide at 12 angles,\n100 nm away, edge soft over 100 nm":
+            [(_kernel_ft(n, dx, 1120, 100, a, 100, 100), 0.5) for a in angles],
         "Open pixels with walls,\n100 nm away, edge soft over 100 nm":
             [(_kernel_ft(n, dx, 1120, 1120, 0, 100, 100), 1.0)] * 12,
         "Baseline pixels, layers stripped,\n300 nm away, edge soft over 300 nm":
             [(_kernel_ft(n, dx, 1120, 1120, 0, 300, 300), 1.0)] * 12,
     }
-    fig, axes = plt.subplots(1, 4, figsize=(12.5, 3.9))
+    shown = [0, 2, 3]
+    fig, axes = plt.subplots(2, 4, figsize=(12.5, 7.4))
     view = slice(60, 180)
-    axes[0].imshow(truth[view, view], cmap="gray", vmin=0, vmax=1.2, interpolation="nearest")
-    axes[0].set_title("True layout, lines 100 nm wide", fontsize=9)
-    print("\nSlits at several angles, two dimensions: error of the picture (rms, reflectance units)")
+    blank = np.full_like(truth, truth.mean())
+    print("\nSlits at several angles, two dimensions. A blank picture scores rms %.3f, wrong side %.0f %%"
+          % (np.sqrt(np.mean((blank - truth) ** 2)), 100 * np.mean((blank > 0.6) != (truth > 0.6))))
     scores = {}
-    for ax, (name, parts) in zip(axes[1:], setups.items()):
-        kernels, readings, weights = [], [], []
-        for kern, polar in parts:
-            kern = kern * polar                      # a slit passes half the unpolarised light
-            clean = electrons * np.fft.ifft2(kern * np.fft.fft2(truth)).real
-            noisy = rng.poisson(np.maximum(clean, 0)) + rng.normal(0, 2.0 * math.sqrt(40), clean.shape)
-            kernels.append(kern)
-            readings.append(noisy / electrons)
-            weights.append(1.0)
-        best = None
-        for lam in (1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8):
-            est = _solve(kernels, readings, weights, lam)
-            err = float(np.sqrt(np.mean((est - truth) ** 2)))
-            if best is None or err < best[0]:
-                best = (err, est, lam)
-        scores[name] = best[0]
-        print(f"  {name.splitlines()[0]:45s} rms error {best[0]:.3f} (smoothing {best[2]:g})")
-        ax.imshow(best[1][view, view], cmap="gray", vmin=0, vmax=1.2, interpolation="nearest")
-        ax.set_title(name, fontsize=8.5)
-    for ax in axes:
+    for row, (level_name, per_patch) in enumerate(SLIT_LEVELS):
+        rng = np.random.default_rng(11)
+        per_position = per_patch / (1120.0 / dx) ** 2          # readings at each grid position
+        electrons = 2500.0 * per_position / 12                  # per kind of pixel
+        axes[row, 0].imshow(truth[view, view], cmap="gray", vmin=0, vmax=1.2, interpolation="nearest")
+        axes[row, 0].set_title("True layout, lines 100 nm wide", fontsize=9)
+        axes[row, 0].set_ylabel(level_name, fontsize=8.5)
+        print(f"  {level_name}:")
+        col = 1
+        for k, (name, parts) in enumerate(setups.items()):
+            kernels, readings = [], []
+            for kern, polar in parts:
+                kern = kern * polar                  # a slit passes half the unpolarised light
+                clean = electrons * np.fft.ifft2(kern * np.fft.fft2(truth)).real
+                read = 2.0 * math.sqrt(max(per_position / 12, 1.0))
+                noisy = rng.poisson(np.maximum(clean, 0)) + rng.normal(0, read, clean.shape)
+                kernels.append(kern)
+                readings.append(noisy / electrons)
+            best = None
+            for lam in (1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8):
+                est = _solve(kernels, readings, [1.0] * len(kernels), lam)
+                err = float(np.sqrt(np.mean((est - truth) ** 2)))
+                if best is None or err < best[0]:
+                    best = (err, est, lam)
+            wrong = 100 * float(np.mean((best[1] > 0.6) != (truth > 0.6)))
+            scores[(name, per_patch)] = (best[0], wrong)
+            label = " ".join(name.split("\n"))
+            print(f"    {label:70s} rms {best[0]:.3f}  wrong side {wrong:4.1f} %  (smoothing {best[2]:g})")
+            if k in shown:
+                axes[row, col].imshow(best[1][view, view], cmap="gray", vmin=0, vmax=1.2,
+                                      interpolation="nearest")
+                axes[row, col].set_title(name, fontsize=8.5)
+                col += 1
+    for ax in axes.ravel():
         ax.set_xticks([])
         ax.set_yticks([])
-    axes[0].set_xlabel("area shown: 2.4 µm square", fontsize=8.5)
+    axes[1, 0].set_xlabel("area shown: 2.4 µm square", fontsize=8.5)
     save(fig, "slit-demo")
     return scores
 
@@ -533,14 +563,19 @@ def slit_layout():
 # ------------------------------------------------------------ 10. ranking
 
 ROUTES = [
-    # name, low, high (line width, nm), colour; in the order of the page's ranking
-    ("A. Bare-silicon pixels with walls,\nnearly touching", 80, 130, AQUA),
-    ("B. Metal mask with slits at many\nangles, nearly touching", 60, 110, AQUA),
-    ("D. Routes A or B at 150 to 250 nm,\nwith 30 to 3,000 times the readings", 100, 170, AQUA),
+    # name, low, high (line width, nm), colour; in the order of the page's ranking (Table 21).
+    # Low and high are clean line widths from the printed tables: B 66 nm (slit, 50 nm away) to
+    # 109 nm (100 nm away, edge 100 nm); A 79 nm (sharp, 50 nm away) to 127 nm (100 nm away, edge 100 nm);
+    # D 135 nm (sharp, 140 nm away) to 193 nm (250 nm away).
+    # Today: 527 nm clean (1,000 nm away, edge 300 nm).
+    # The last two bars mark a single value and are drawn a few per cent wide to be visible.
+    ("B. Metal mask with slits at many\nangles, nearly touching", 66, 109, AQUA),
+    ("A. Bare-silicon pixels with walls,\nnearly touching, red light", 79, 127, AQUA),
+    ("D. Routes A or B held at 140 to 250 nm\n(100 nm needs 25 to 15,000 times the readings)", 135, 193, AQUA),
     ("C. A tiny immersion lens per pixel\n(blue light, oil)", 100, 150, YELLOW),
     ("E. True picture near 170 nm, carried\nto 100 nm by elimination", 100, 170, PURPLE),
-    ("F. Colour and polarisation per cell:\nwidths measured, no picture", 92, 108, PURPLE),
-    ("Ordinary light today: sensor as sold,\ntouching", 432, 446, ORANGE),
+    ("F. Colour and polarisation per cell:\nwidths measured, no picture", 96, 104, PURPLE),
+    ("Ordinary light today: sensor as sold,\ntouching", 517, 537, ORANGE),
 ]
 
 
@@ -548,7 +583,8 @@ def ranking():
     fig, ax = plt.subplots(figsize=(9.4, 4.8))
     for i, (name, lo, hi, colour) in enumerate(ROUTES[::-1]):
         ax.barh(i, hi - lo, left=lo, color=colour, edgecolor=INK2, height=0.55)
-        ax.text(lo * 0.93, i, name, ha="right", va="center", fontsize=8.5)
+        ax.text(lo * 0.93, i, name, ha="right", va="center", fontsize=8.5, zorder=5,
+                bbox=dict(facecolor=fig.get_facecolor(), edgecolor="none", pad=1.5))
     ax.axvline(100, color=RED, lw=1.4)
     ax.text(101, len(ROUTES) - 0.45, "target", color=RED, fontsize=8.5)
     ax.set_xscale("log")
@@ -567,64 +603,129 @@ def ranking():
 
 # ----------------------------------------------------------------- tables
 
+def red_share(chip_um=5.0, pixel_um=3.0, wavelength_nm=630.0):
+    """Share of a red lamp's light detected through a thinned chip (Estimate).
+
+    Three silicon faces each pass ``1 - R`` (the chip's back, its front and the
+    sensor's face, taken as separate mirrors), the chip passes
+    ``exp(-thickness / depth)`` and the pixel absorbs ``1 - exp(-thickness / depth)``.
+    """
+    n, _ = silicon_nk(wavelength_nm)
+    face = 1 - ((n - 1) / (n + 1)) ** 2
+    depth_um = absorption_depth_nm(wavelength_nm) / 1000
+    return face**3 * math.exp(-chip_um / depth_um) * (1 - math.exp(-pixel_um / depth_um))
+
+
+RED_SHARE = red_share()
+
+
 def tables():
     print("Fade length (nm) of a pattern: period, in air at 450 nm, in oil (1.5) at 450 nm, in air at 1,050 nm")
     for p in (150, 200, 300, 400):
         print(f"  {p}: {fade_length_nm(p, 450):.0f}  {fade_length_nm(p, 450, 1.5):.0f}  {fade_length_nm(p, 1050):.0f}")
-    print("\nShare of a 200 nm repeat left after a distance: matt model, wave formula at 450 nm, at 1,050 nm")
+    print("\nShare of a 200 nm repeat left after a distance: matt model, wave formula at 450 nm, at 1,050 nm,"
+          " and matt divided by each")
     for d in (30, 50, 100, 140, 200, 300, 1000):
-        print(f"  {d:5d} nm: {float(matt(200, d)):.2g}  {float(near_field_transfer(200, d, 450)):.2g}"
-              f"  {float(near_field_transfer(200, d, 1050)):.2g}")
+        m, b, r = float(matt(200, d)), float(near_field_transfer(200, d, 450)), float(near_field_transfer(200, d, 1050))
+        print(f"  {d:5d} nm: {m:.2g}  {b:.2g}  {r:.2g}   ratios {m / b:.2f} {m / r:.2f}")
     softs = (0, 30, 50, 100, 150, 300)
-    print("\nFinest line (nm), baseline 13,000 readings. Columns: edge softness", softs)
-    for d in (0, 30, 50, 100, 140, 200, 300, 500, 1000):
-        print(f"  {d:5d}: " + " ".join(f"{finest_line(d, s):5.0f}" for s in softs))
-    print("Finest line (nm), 1,000 times more readings")
-    for d in (0, 30, 50, 100, 140, 200, 300, 500, 1000):
-        print(f"  {d:5d}: " + " ".join(f"{finest_line(d, s, BASE * 1000):5.0f}" for s in softs))
+    dists = (0, 30, 50, 100, 140, 200, 300, 500, 1000, 3000)
+    for title, kw in (("just detectable (signal equals noise), baseline 13,000 readings", {}),
+                      ("clean (signal five times noise), baseline readings", {"margin": 5}),
+                      ("just detectable, 1,000 times more readings", {"readings": BASE * 1000}),
+                      ("clean, 1,000 times more readings", {"readings": BASE * 1000, "margin": 5})):
+        print(f"\nFinest line (nm), {title}. Columns: edge softness {softs}")
+        for d in dists:
+            print(f"  {d:5d}: " + " ".join(f"{finest_line(d, s, **kw):5.0f}" for s in softs))
+    print("\nFinest line (nm), sharp edge, wave formula for light straight on:"
+          " detectable and clean at 630 nm, detectable and clean at 1,050 nm, clean readings needed"
+          " for 100 nm lines at 630 nm")
+    for d in (50, 100, 140, 200, 300):
+        out = []
+        for w in (630.0, 1050.0):
+            kw = dict(gap_model="collimated", wavelength_nm=w)
+            out.append(f"{finest_line(d, 0, **kw):5.0f} {finest_line(d, 0, margin=5, **kw):5.0f}")
+        need = readings_needed(100, d, 0, margin=5, gap_model="collimated", wavelength_nm=630.0)
+        print(f"  {d:5d}: " + "  ".join(out) + f"   {need:.2g}")
     print("\nGain from 1,000 times more readings (factor), and power law exponent")
     for d, s in ((0, 0), (50, 30), (100, 100), (140, 100), (200, 100), (300, 300), (1000, 300), (3000, 300)):
         e = oversampling_exponent(d, s)
         print(f"  distance {d:5d}, edge {s:3d}: x{1000 ** e:.2f}  exponent {e:.3f}")
-    print("\nReadings needed for 100 nm lines; and hours over each point at 30 frames per second")
-    for d in (30, 50, 100, 140, 200, 250, 300, 400):
-        row = []
-        for s in (0, 50, 100, 150):
-            r = readings_needed(100, d, s)
-            row.append(f"{r:9.2g} ({r / FPS / 3600:8.2g} h)")
-        print(f"  {d:4d}: " + "  ".join(row))
-    print("\nPattern kept inside silicon without walls: wavelength, depth (nm), periods 150/200/300/400")
+    print("\nReadings needed for 100 nm lines, and hours over each point at 30 frames per second")
+    for title, kw in (("detectable, matt model", {}), ("clean, matt model", {"margin": 5}),
+                      ("clean, wave formula at 1,050 nm", {"margin": 5, "gap_model": "collimated",
+                                                           "wavelength_nm": 1050.0})):
+        print(f" {title}; columns: edge sharp, soft over 50, 100, 150 nm")
+        for d in (30, 50, 100, 140, 200, 250, 300, 400):
+            row = []
+            for s in (0, 50, 100, 150):
+                r = readings_needed(100, d, s, **kw)
+                row.append(f"{r:9.2g} ({r / FPS / 3600:8.2g} h)")
+            print(f"  {d:4d}: " + "  ".join(row))
+    print(f"  edge soft over 300 nm at 140 nm, detectable: {readings_needed(100, 140, 300):.2g}")
+    print("  pixels half the size (560 nm), 200 nm away, edge 100 nm, detectable:"
+          f" {readings_needed(100, 200, 100, pitch_nm=560.0):.3g} against {readings_needed(100, 200, 100):.3g}")
+    print("\nPattern kept inside silicon without walls, at best (and for light straight on):"
+          " wavelength, depth (nm), periods 150/200/300/400")
     for w in (405, 450, 530, 630, 850, 1050):
         print(f"  {w}: depth {absorption_depth_nm(w):9.0f}  " +
-              " ".join(f"{float(silicon_pattern_survival(p, w)):.2f}" for p in (150, 200, 300, 400)))
+              " ".join(f"{float(silicon_pattern_survival(p, w)):.2f} ({float(silicon_pattern_survival(p, w, True)):.2f})"
+                       for p in (150, 200, 300, 400)))
     print("\nLight through openings, as a share of an open pixel's light")
-    for w in (450, 1050):
+    for w in (450, 630, 1050):
         print(f"  holes at {w} nm (50, 100, 200 nm):", " ".join(f"{hole_light(d, w):.1e}" for d in (50, 100, 200)))
     print("  slits (50, 100, 200 nm):", " ".join(f"{slit_light(d):.3f}" for d in (50, 100, 200)))
-    print("\nFinest line (nm) behind openings at 50 nm distance, metal edge soft over 30 nm, baseline readings")
+    print("\nFinest line (nm) behind openings at 50 nm distance, metal edge soft over 30 nm:"
+          " detectable and clean at baseline, detectable at 1,000x")
     for name, opening, share in (("open sharp pixel", None, None),
                                  ("slit 100 nm", 100, slit_light(100)),
                                  ("slit 50 nm", 50, slit_light(50)),
                                  ("hole 100 nm, blue", 100, hole_light(100, 450)),
                                  ("hole 200 nm, blue", 200, hole_light(200, 450)),
                                  ("hole 200 nm, near-infrared", 200, hole_light(200, 1050))):
-        print(f"  {name:28s}: {finest_line(50, 30, BASE, opening_nm=opening, light_share=share):6.0f}"
-              f"   with 1,000x readings: {finest_line(50, 30, BASE * 1000, opening_nm=opening, light_share=share):6.0f}")
+        kw = dict(opening_nm=opening, light_share=share)
+        print(f"  {name:28s}: {finest_line(50, 30, BASE, **kw):6.0f} {finest_line(50, 30, BASE, margin=5, **kw):6.0f}"
+              f" {finest_line(50, 30, BASE * 1000, **kw):6.0f}")
     print("\nZone held within a given gap: domed sensor (diameter um, pixels)")
     for radius in (0.1, 1.0, 10.0):
         for gap in (50, 100):
             dia, px = contact_zone_sphere(radius, gap)
-            print(f"  radius {radius:5.1f} m, gap <= {gap:3d} nm: {dia:6.0f} um, {px:9.0f} pixels")
-    for rise in (300, 1000, 3000):
-        width, px = contact_band_wedge(rise, 3680, 100)
-        print(f"  wedge rising {rise} nm over 3,680 um: band {width:6.0f} um wide, {px:9.0f} pixels")
+            print(f"  radius {radius:5.1f} m, gap <= {gap:3d} nm: {dia:6.0f} um, {px:9.0f} pixels;"
+                  f" sag over 3,680 um: {(1.84e6) ** 2 / (2 * radius * 1e9):.0f} nm")
+    for gap in (50, 100):
+        width, px = contact_band_wedge(1000, 3680, gap)
+        print(f"  wedge rising 1,000 nm over 3,680 um, gap <= {gap}: band {width:6.0f} um wide, {px:9.0f} pixels")
     print("\nLamp through the sensor: contrast between metal (0.95) and bare silicon (0.31) at 1,050 nm:"
           f" {through_sensor_contrast(0.95, 0.31):.2f}")
+    print("Lamp brightness at the chip for 2,500 electrons a reading at 30 frames a second (mW per cm2):")
+    for name, share, w in (("near-infrared through a 500 um chip, open pixel", 8e-4, 1050),
+                           ("the same behind a 100 nm slit", 8e-4 * slit_light(100), 1050),
+                           ("red through a chip thinned to 5 um, open pixel", RED_SHARE, 630),
+                           ("the same behind a 100 nm slit", RED_SHARE * slit_light(100), 630)):
+        print(f"  {name}: {lamp_needed_mw_per_cm2(share, w):.2g}")
+    print(f"  share of a red lamp's light detected through a 5 um chip: {RED_SHARE:.3f}")
     print("Incoherent lens limit: contrast left at a 200 nm repeat")
     for name, cutoff in (("air, 450 nm", 450 / 2), ("oil 1.5, 450 nm", 450 / 3), ("index 2.0, 450 nm", 450 / 4)):
         x = cutoff / 200
         mtf = 0.0 if x >= 1 else 2 / math.pi * (math.acos(x) - x * math.sqrt(1 - x * x))
         print(f"  {name:18s}: finest repeat {cutoff:.0f} nm, contrast at 200 nm repeat {mtf:.2f}")
+    n1050 = float(silicon_nk(1050)[0])
+    fade_si = fade_length_nm(200, 1050, index=n1050)
+    cut = next(w for w in range(600, 900) if w / float(silicon_nk(w)[0]) > 200)
+    print(f"A 200 nm repeat inside silicon: travels for wavelengths below {cut} nm; at 1,050 nm the wavelength"
+          f" inside silicon is {1050 / n1050:.0f} nm, the pattern fades over {fade_si:.0f} nm, which is"
+          f" {100 * fade_si / 3000:.1f} % of a 3,000 nm pixel, costing {(3000 / fade_si) ** 2:.0f} times the readings")
+    print("Slit mask with the lamp behind the sensor: the chip's share of the reading is at most"
+          f" {100 * slit_light(100) / 2:.1f} %, costing up to {(2 / slit_light(100)) ** 2:.0f} times the readings")
+    for d, s in ((50, 30), (100, 30), (100, 100)):
+        kw = dict(opening_nm=100, light_share=slit_light(100))
+        print(f"  slit 100 nm, {d} nm away, edge {s} nm: detectable {finest_line(d, s, **kw):.0f} nm,"
+              f" clean {finest_line(d, s, margin=5, **kw):.0f} nm")
+    print(f"Clean picture of 170 nm lines 300 nm away with a sharp edge: {readings_needed(170, 300, 0, margin=5):.2g} readings")
+    print("Other derived figures: slope for 50 nm row offset 1 in %.1f; exposure for 50 nm at 8.4 um/s %.1f ms;"
+          " change in strength for 5 nm at 200 nm repeat %.0f %%; scatterer readings for a share of 1e-4 at"
+          " signal-to-noise 50: %.0f" % (1120 / 50, 50 / 8.4, 100 * (1 - float(near_field_transfer(200, 5, 450))),
+                                         (1 / (1e-4 * 50)) ** 2))
 
 
 if __name__ == "__main__":

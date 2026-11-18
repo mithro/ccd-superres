@@ -280,10 +280,10 @@ python docs/diagrams/make_slot_wave_diagrams.py
 | [`olr-silicon-survival`](diagrams/olr-silicon-survival.svg) | Contrast a fine pattern keeps inside silicon, and the depth light reaches, against wavelength | `silicon_pattern_survival` in [`ccdsr/near_contact.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/near_contact.py), with the silicon table of Green (2008) |
 | [`olr-level1-near-contact`](diagrams/olr-level1-near-contact.svg) | Reconstructions of bars 100 nm wide at three settings | Simulation level 1 in one dimension, fixed seed |
 | [`olr-slit-layout`](diagrams/olr-slit-layout.svg) | Top view of pixels each carrying a slit in a different direction | Illustrative |
-| [`olr-slit-demo`](diagrams/olr-slit-demo.svg) | A layout of 100 nm lines and its reconstruction from three kinds of pixel | A small two-dimensional solver in the script, fixed seed |
+| [`olr-slit-demo`](diagrams/olr-slit-demo.svg) | A layout of 100 nm lines and its reconstruction from three kinds of pixel, at the baseline number of readings and at 116 times as many | A small two-dimensional solver in the script, fixed seed |
 | [`olr-contact-zone`](diagrams/olr-contact-zone.svg) | Air gap across the sensor for domed and tilted sensor faces | Geometry of a sphere on a flat |
 | [`olr-light-paths`](diagrams/olr-light-paths.svg) | Three ways to light a chip in near contact | Illustrative |
-| [`olr-ranking`](diagrams/olr-ranking.svg) | Line width each shortlisted route could reach | Ranges from the tables of the page; estimates |
+| [`olr-ranking`](diagrams/olr-ranking.svg) | Line width each shortlisted route could reach | Clean line widths with the baseline scan, from Table 21 of the page; estimates |
 
 | [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
 | [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
