@@ -3,7 +3,7 @@
 Run from the repository root:
 
     python docs/diagrams/make_oversampling_diagrams.py            # figures from the stored runs
-    python docs/diagrams/make_oversampling_diagrams.py --rerun    # run the study again first (about 15 minutes)
+    python docs/diagrams/make_oversampling_diagrams.py --rerun    # run the study again first (about 8 minutes)
 
 The runs are stored in ``results/oversampling/runs.json`` with their tables
 in ``results/oversampling/tables.md``. Figures are written next to this
@@ -30,7 +30,7 @@ from ccdsr import oversampling as ov  # noqa: E402
 
 OUT = Path(__file__).resolve().parent
 STORE = ROOT / "results" / "oversampling"
-SEEDS = (0, 1, 2, 3, 4)
+SEEDS = tuple(range(10))
 FRAMES = (1, 4, 16, 64, 256, 1024, 4096)
 SOFT = "optics.edge_sigma_nm=127.4"       # the baseline pixel's soft edges (0.3 µm full width)
 
@@ -48,13 +48,19 @@ STUDY = [
      "fine_layout", ["least-squares"], [SOFT, "noise.read_e=10"], ("same-time",)),
     ("coarse-cells", "Gap 300 nm, baseline pixel, surface of 240 nm cells", "random_layout",
      ["least-squares", "two-materials"], [SOFT], ("more-time",)),
+    ("coarse-cells-200", "Gap 200 nm, baseline pixel, surface of 240 nm cells", "random_layout",
+     ["least-squares", "two-materials"], [SOFT, "optics.gap_nm=200"], ("more-time",)),
+    ("coarse-cells-400", "Gap 400 nm, baseline pixel, surface of 240 nm cells", "random_layout",
+     ["least-squares", "two-materials"], [SOFT, "optics.gap_nm=400"], ("more-time",)),
+    ("coarse-cells-b", "Gap 300 nm, baseline pixel, surface of 240 nm cells with another random filling",
+     "random_layout_b", ["least-squares", "two-materials"], [SOFT], ("more-time",)),
 ]
 
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#dddcd6"
 COLOURS = {"least-squares": "#2a78d6", "wiener": "#eb6834", "two-materials": "#1baf7a", "narrow-opening": "#eda100"}
 WAY_STYLE = {"more-time": "-", "same-time": "--", "repeat": ":"}
 WAY_LABEL = {"more-time": "more frames, same light in each (longer scan)",
-             "same-time": "more frames in the same time (less light in each)",
+             "same-time": "the same total light cut into more frames",
              "repeat": "more frames with the sensor held still (plain averaging)"}
 
 
@@ -130,13 +136,13 @@ def figure_ways(runs):
                   label=WAY_LABEL[way])
         right.plot(x, error, WAY_STYLE[way], color=COLOURS["least-squares"], marker="o", ms=3.5, lw=1.4)
     _axes(left, "finest line width recovered (nm)")
-    _log_y(left, [200, 300, 400, 500, 700])
+    _log_y(left, [200, 300, 400, 500, 700, 1000, 1400])
     left.axhline(280, color=INK2, lw=0.8, ls=(0, (1, 3)))
-    left.text(left.get_xlim()[0] * 1.15, 274, "lines of half the pixel width average out inside each pixel",
+    left.text(left.get_xlim()[0] * 1.15, 272, "lines of half the pixel width average out inside each pixel",
               fontsize=7.5, color=INK2, va="top")
     _axes(right, "error against the true surface (rms, reflectance)")
-    left.set_ylim(190, 760)
-    left.legend(frameon=False, fontsize=8, loc="lower left")
+    left.set_ylim(190, 1500)
+    left.legend(frameon=False, fontsize=8, loc="center right", bbox_to_anchor=(1.0, 0.7))
     fig.suptitle("Three ways of taking more readings: least squares, gap 300 nm, surface of 100 nm cells "
                  "(lower is better)", x=0.01, ha="left", fontsize=10.5, color=INK)
     fig.tight_layout()

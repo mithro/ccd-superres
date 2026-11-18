@@ -407,9 +407,10 @@ sample count.
 
 The same law now shows in reconstructions and not only in the formula. The
 [oversampling](oversampling.md) page runs level 1 at 3 to 11,292 readings of
-each point: at a gap of 300 nm, 256 times more readings sharpen the finest
-line by 1.4 times, and only when the extra readings land on new positions
-(Simulated, level 1, one dimension).
+each point. At a gap of 300 nm, once the positions inside a pixel are all
+filled, 64 times more readings sharpen the finest line by 1.4 times, and a
+sensor held still gains nothing from any number of readings (Simulated,
+level 1, one dimension).
 
 Two things could genuinely move these curves, and both are parameters of the
 simulator rather than assumptions baked into it:

@@ -41,18 +41,16 @@ WAYS = ("more-time", "same-time", "repeat")
 FRAMES = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
 REFERENCE_FRAMES = 64          # "same-time" gives every level the light of this many full frames
 COHERENCE_SHARE = 0.5          # a band counts as recovered from this agreement with the truth
+BAND_HALF_WIDTH = 1.09        # the level 0 rule judges a period over a band this far either side
+MIN_WAVES = 3                  # a band of periods must hold at least this many waves of the surface
 
 
 def readings_per_point(frames: l1.Frames1D) -> float:
     """Average number of readings whose pixel covers a point of the surface.
 
-    The test surfaces repeat end to end, so every pixel of every frame lies
-    on the surface and the figure is the number of readings times the pixel
-    pitch divided by the length of the surface. A pixel with a narrow
-    opening is counted by its pitch, so that the figure does not change with
-    the opening.
+    See :func:`ccdsr.level1.readings_per_point`, which this calls.
     """
-    return float(frames.readings.size * frames.optics.pitch_nm / (frames.n_grid * frames.dx_nm))
+    return l1.readings_per_point(frames)
 
 
 def distinct_positions_per_pixel(frames: l1.Frames1D, cell_nm=None) -> float:
@@ -69,41 +67,76 @@ def distinct_positions_per_pixel(frames: l1.Frames1D, cell_nm=None) -> float:
     return float(cells.size * frames.optics.pitch_nm / length)
 
 
-def scan_for(way, n_frames, base: l1.Scan1D, base_noise: l1.Noise1D):
-    """The scan and noise settings for one oversampling level."""
+def scan_for(way, n_frames, base: l1.Scan1D, base_noise: l1.Noise1D, surface_px=None):
+    """The scan and noise settings for one oversampling level.
+
+    ``surface_px`` is the length of the repeating test surface in pixel
+    widths. It matters for ``repeat`` only. A sensor longer than the surface
+    laps it, and its far pixels then land between its near ones, so that
+    even a still sensor reads several places per pixel. To keep ``repeat``
+    as plain averaging the sensor is cut to the pixels that fit on the
+    surface once, and the number of frames is raised in proportion so that
+    the number of readings stays about the same. Position errors are
+    switched off too: a sensor that shakes is not held still.
+    """
     if way not in WAYS:
         raise ValueError(f"unknown way {way!r}; known: {WAYS}")
     scan = dataclasses.replace(base, n_frames=int(n_frames))
     noise = base_noise
     if way == "repeat":
-        scan = dataclasses.replace(scan, shift_px=0.0)
+        pixels = base.n_pixels if surface_px is None else max(1, min(base.n_pixels, int(surface_px)))
+        frames = max(1, int(round(n_frames * base.n_pixels / pixels)))
+        scan = dataclasses.replace(scan, shift_px=0.0, jitter_px=0.0, wander_px=0.0, n_pixels=pixels,
+                                   n_frames=frames)
     if way == "same-time":
         noise = dataclasses.replace(base_noise, full_e=base_noise.full_e * REFERENCE_FRAMES / n_frames)
     return scan, noise
+
+
+def period_bands(n_grid, dx_nm, bands=28, longest_nm=8000.0, min_waves=MIN_WAVES):
+    """The bands of periods used by :func:`recovered_period`, as ``(low, high)`` frequencies.
+
+    The bands are equal steps of about 18 % in period from ``longest_nm``
+    down to four grid cells. A surface of finite length holds only certain
+    waves (one, two, three ... periods along its length), and a band with
+    too few of them gives an unsteady answer, so neighbouring bands are
+    joined until each holds at least ``min_waves``.
+    """
+    freq = np.fft.rfftfreq(n_grid, dx_nm)
+    edges = np.geomspace(1.0 / longest_nm, 1.0 / (4 * dx_nm), bands + 1)
+    out, low = [], edges[0]
+    for high in edges[1:]:
+        if np.count_nonzero((freq >= low) & (freq < high)) >= min_waves:
+            out.append((float(low), float(high)))
+            low = high
+    return out
 
 
 def recovered_period(estimates, truth, dx_nm, bands=28, longest_nm=8000.0):
     """Finest period down to which the reconstructions agree with the truth.
 
     The estimates (one per run) and the truth are split into waves. In each
-    band of periods, the part of the estimates that is in step with the
-    truth is divided by the geometric mean of the two strengths, which gives
-    1 for a perfect copy and about 0 for noise. The answer is the short end
-    of the last band, going from long periods to short, that still reaches
-    ``COHERENCE_SHARE``; ``inf`` if not even the longest band does. Unlike
-    the finest bar group, this is a continuous measure, and it works on any
-    surface with detail at all periods.
+    band of periods (:func:`period_bands`), the part of the estimates that
+    is in step with the truth is divided by the geometric mean of the two
+    strengths, which gives 1 for a perfect copy and about 0 for noise. The
+    answer is the short end of the last band, going from long periods to
+    short, that still reaches ``COHERENCE_SHARE``; ``inf`` if not even the
+    longest band does.
+
+    What the measure cannot do: it asks for agreement of a half, not
+    for a faithful copy, so a reconstruction that is partly right in a band
+    (for instance from readings too far apart to fix that period, helped by
+    the smoothing) can pass. Mistakes that are the same in every run are not
+    averaged away by having several runs. It moves in steps of one band, and
+    with five runs neighbouring steps are not told apart reliably.
     """
     truth = np.asarray(truth, dtype=float)
     t = np.fft.rfft(truth - truth.mean())
     e = np.array([np.fft.rfft(np.asarray(x, dtype=float) - np.mean(x)) for x in estimates])
     freq = np.fft.rfftfreq(truth.size, dx_nm)
-    edges = np.geomspace(1.0 / longest_nm, 1.0 / (4 * dx_nm), bands + 1)
     finest = math.inf
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in period_bands(truth.size, dx_nm, bands, longest_nm):
         pick = (freq >= lo) & (freq < hi)
-        if not pick.any():
-            continue
         cross = np.sum((e[:, pick] * np.conj(t[pick])).real)
         power = math.sqrt(np.sum(np.abs(e[:, pick]) ** 2) * e.shape[0] * np.sum(np.abs(t[pick]) ** 2))
         if power == 0 or cross / power < COHERENCE_SHARE:
@@ -116,13 +149,25 @@ def noise_limit_period(optics: l1.Optics1D, scan: l1.Scan1D, noise: l1.Noise1D, 
                        contrast=0.8, mean=0.6):
     """Level 0 estimate of the finest period the noise allows, for a line scan.
 
-    The same rule as :func:`ccdsr.resolution.recoverable_period`, in one
-    dimension: a period ``L`` is judged over half a period of surface, which
-    holds ``n * L / (2 p)`` readings, and counts as recoverable when the
-    wave left after blurring stands above the noise of their average. The
-    noise of one reading is photon noise at the mean brightness plus read
-    noise. This is a rule of thumb for scale, not a prediction of what a
-    particular reconstruction shows.
+    The same kind of rule as :func:`ccdsr.resolution.recoverable_period`,
+    in one dimension: a period ``L`` is judged over half a period of
+    surface, which holds ``n * L / (2 p)`` readings, and counts as
+    recoverable when the wave left after blurring stands above the noise of
+    their average. The wave has half the ``contrast`` between the two
+    materials as its height, and the noise of one reading is photon noise
+    at the ``mean`` brightness plus read noise (the design's version takes
+    full contrast and a fixed signal-to-noise).
+
+    A pixel wipes out patterns that repeat a whole number of times across
+    its opening, so the wave can sink below the noise, come back and sink
+    again as the period shrinks. Two choices deal with that, both made to
+    match :func:`recovered_period`. The strength of the wave is taken as
+    its rms over a band of periods 18 % wide, so that a blind period of no
+    width does not count as a failure. And the answer is the first period,
+    going from coarse to fine, at which the wave sinks below the noise:
+    detail beyond a failed band is not counted. It does not look at where the readings fall, so it is
+    the same for a sensor held still. A rule of thumb for scale, not a
+    prediction of what a particular reconstruction shows.
     """
     from scipy.optimize import brentq
 
@@ -133,19 +178,23 @@ def noise_limit_period(optics: l1.Optics1D, scan: l1.Scan1D, noise: l1.Noise1D, 
 
     def margin(log_period):
         period = math.exp(log_period)
-        h = abs(complex(l1.transfer(np.array([1.0 / period]), optics, smear, scan.code)[0]))
+        around = period * np.geomspace(1 / BAND_HALF_WIDTH, BAND_HALF_WIDTH, 15)
+        h = math.sqrt(float(np.mean(np.abs(l1.transfer(1.0 / around, optics, smear, scan.code)) ** 2)))
         n_cell = n_per_point * period / (2 * optics.pitch_nm)
         return math.log(h * 0.5 * contrast * light / sigma * math.sqrt(n_cell) + 1e-300)
 
-    lo, hi = math.log(10.0), math.log(1e9)
-    if margin(hi) < 0:
+    grid = np.linspace(math.log(1e9), math.log(10.0), 6000)       # coarse to fine, steps of 0.3 %
+    values = np.array([margin(g) for g in grid])
+    if values[0] < 0:
         return math.inf
-    if margin(lo) > 0:
-        return math.exp(lo)
-    return math.exp(brentq(margin, lo, hi))
+    below = np.nonzero(values < 0)[0]
+    if below.size == 0:
+        return math.exp(grid[-1])
+    k = int(below[0])
+    return math.exp(brentq(margin, grid[k], grid[k - 1]))
 
 
-SMOOTHNESS_LADDER = tuple(10.0 ** -k for k in range(0, 9))
+SMOOTHNESS_LADDER = tuple(10.0 ** -k for k in range(-2, 9))
 TUNING_SEEDS = (1000, 1001, 1002)   # the smoothing is chosen on runs that are not scored
 TUNED_OPTIONS = ("smoothness", "noise_to_signal")
 
@@ -158,9 +207,10 @@ def tuned(approach: ap.Approach, scene, optics, scan, noise, seeds=TUNING_SEEDS)
     one number of readings. Here the strength (the option ``smoothness`` or
     ``noise_to_signal``) is tried over a ladder of powers of ten on separate
     runs and the one with the lowest median error against the true surface
-    is kept. The truth is used to choose, so the result is the best this
-    method can do, which an instrument would have to approach by another
-    rule (for instance from its measured noise). Approaches with neither
+    is kept. The truth is used to choose, so the result is close to the
+    lowest error this method can reach, which an instrument would have to
+    approach by another rule (for instance from its measured noise). It is
+    the error that is made small, not the finest period recovered. Approaches with neither
     option are returned unchanged. Returns ``(approach, strength or None)``.
     """
     import inspect
@@ -202,7 +252,7 @@ def sweep(approach: ap.Approach, scene_name="random_layout", ways=WAYS, frames=F
     records = []
     for way in ways:
         for n in frames:
-            scan, noise = scan_for(way, n, base_scan, base_noise)
+            scan, noise = scan_for(way, n, base_scan, base_noise, scene.surface.size * scene.dx_nm / optics.pitch_nm)
             approach, smoothness = tuned(given, scene, optics, scan, noise, tuning_seeds) if tune else (given, None)
             estimates, errors, finest = [], [], []
             first = None
@@ -222,12 +272,13 @@ def sweep(approach: ap.Approach, scene_name="random_layout", ways=WAYS, frames=F
                     finest.append(math.inf if scores["finest_period_nm"] is None else scores["finest_period_nm"])
             per_point = readings_per_point(first)
             records.append({
-                "approach": approach.name, "smoothness": smoothness, "scene": scene.name, "way": way, "frames": int(n),
+                "approach": approach.name, "smoothness": smoothness, "scene": scene.name, "way": way,
+                "level": int(n), "frames": int(scan.n_frames), "pixels": int(scan.n_pixels),
                 "readings_per_point": per_point,
                 "distinct_positions_per_pixel": distinct_positions_per_pixel(first),
                 "light_per_reading_e": float(noise.full_e),
                 "light_per_point_e": float(noise.full_e * per_point),
-                "scan_time": float(n / REFERENCE_FRAMES if way != "same-time" else 1.0),
+                "scan_time": float(scan.n_frames / REFERENCE_FRAMES if way != "same-time" else 1.0),
                 "rms_error": float(np.median(errors)),
                 "recovered_period_nm": recovered_period(estimates, scene.surface, scene.dx_nm),
                 "finest_bar_period_nm": (float(np.percentile(finest, 50, method="higher")) if finest else None),
@@ -254,7 +305,7 @@ def tables_markdown(records, seeds, first=1):
         number += 1
         bars = any(r["finest_bar_period_nm"] is not None for r in records
                    if (r["approach"], r["scene"], r["way"]) == (approach, scene, way))
-        head = ["Frames", "Readings per point", "Different positions per pixel", "Light per reading (electrons)",
+        head = ["Frames", "Pixels", "Readings per point", "Different positions per pixel", "Light per reading (electrons)",
                 "Scan time (relative)", "Smoothing chosen", "Error (rms, reflectance)", "Finest period recovered (nm)"]
         if bars:
             head.append("Finest bar period shown (nm)")
@@ -263,7 +314,7 @@ def tables_markdown(records, seeds, first=1):
         for r in records:
             if (r["approach"], r["scene"], r["way"]) != (approach, scene, way):
                 continue
-            row = [f"{r['frames']:,}", f"{r['readings_per_point']:,.1f}", f"{r['distinct_positions_per_pixel']:,.0f}",
+            row = [f"{r['frames']:,}", f"{r['pixels']:,}", f"{r['readings_per_point']:,.1f}", f"{r['distinct_positions_per_pixel']:,.0f}",
                    f"{r['light_per_reading_e']:,.0f}", f"{r['scan_time']:.3g}",
                    "as given" if r["smoothness"] is None else f"{r['smoothness']:.0e}", f"{r['rms_error']:.3f}",
                    _nm(r["recovered_period_nm"])]
@@ -273,7 +324,9 @@ def tables_markdown(records, seeds, first=1):
             lines.append("| " + " | ".join(row) + " |")
         lines += ["", f"*Table O{number}. Approach `{approach}` on scene `{scene}`, readings added the `{way}` way. "
                       f"Simulated, level 1; median of {len(seeds)} runs, and the period recovered is taken over all "
-                      f"{len(seeds)} together. The last column is a level 0 rule of thumb (Derived here).*", ""]
+                      f"{len(seeds)} together. The smoothing is the one with the lowest error on separate runs. "
+                      f"The last column is a level 0 rule of thumb (Derived here), which does not look at where "
+                      f"the readings fall.*", ""]
     return "\n".join(lines)
 
 

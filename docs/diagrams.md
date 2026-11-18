@@ -292,7 +292,7 @@ python docs/diagrams/make_slot_wave_diagrams.py
 
 The figures on the [oversampling](oversampling.md) page come from
 [`docs/diagrams/make_oversampling_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_oversampling_diagrams.py).
-With `--rerun` it repeats the study behind them, which takes about 15
+With `--rerun` it repeats the study behind them, which takes about 8
 minutes:
 
 ```

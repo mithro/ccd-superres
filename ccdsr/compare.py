@@ -161,9 +161,7 @@ def run_one(approach: ap.Approach, scene_name, condition: ap.Condition, seed):
     record["seconds"] = time.perf_counter() - started
     record["warnings"] = sorted({str(w.message)[:120] for w in caught})
     record["readings"] = int(frames.readings.size)
-    # readings of each point of the surface, counted by pixel pitch (see ccdsr.oversampling)
-    record["readings_per_point"] = float(frames.readings.size * frames.optics.pitch_nm
-                                         / (frames.n_grid * frames.dx_nm))
+    record["readings_per_point"] = l1.readings_per_point(frames)
     record.update(score(scene, frames, estimate, positions, believed))
     return record
 

@@ -127,6 +127,7 @@ METHOD_LABELS = {
 SCENE_LABELS = {
     "bars": "Bar groups",
     "random_layout": "Random two-material layout",
+    "random_layout_b": "Random two-material layout, another filling",
     "fine_layout": "Random two-material layout, 100 nm cells",
     "isolated_lines": "Isolated narrow lines",
     "soft_ramps": "Smooth waves of many reflectances",

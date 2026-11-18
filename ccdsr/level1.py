@@ -176,6 +176,20 @@ def smooth_wander(n_frames, length_frames, rng):
     return path / np.sqrt(np.mean(path**2))
 
 
+def readings_per_point(frames: "Frames1D") -> float:
+    """Average number of readings whose pixel covers a point of the surface.
+
+    The test surfaces repeat end to end, so every pixel of every frame lies
+    on the surface and the figure is the number of readings times the pixel
+    pitch divided by the length of the surface. A pixel with a narrow
+    opening is counted by its pitch, so that the figure does not change with
+    the opening. The same scan therefore gives a larger figure on a shorter
+    test surface. For a real single pass over a long surface it is the
+    pixels along the scan divided by the movement per frame in pixels.
+    """
+    return float(frames.readings.size * frames.optics.pitch_nm / (frames.n_grid * frames.dx_nm))
+
+
 def sample_positions(scan: Scan1D, pitch_nm, rng=None):
     """Centre of every pixel in every frame, on the surface."""
     frame = scan.start_nm + np.arange(scan.n_frames) * scan.shift_px * pitch_nm

@@ -67,6 +67,16 @@ def _random_layout():
     return Scene("random_layout", surface, DX_NM, (), (0.2, 1.0))
 
 
+@scene("random_layout_b")
+def _random_layout_b():
+    """The same as ``random_layout`` with a different random filling, to see what depends on the filling."""
+    rng = np.random.default_rng(20261118)
+    cells = rng.integers(0, 2, 80)
+    margin = np.full(150, 0.2)
+    surface = np.concatenate([margin, np.repeat(np.where(cells == 1, 1.0, 0.2), 12), margin])
+    return Scene("random_layout_b", surface, DX_NM, (), (0.2, 1.0))
+
+
 @scene("fine_layout")
 def _fine_layout():
     """Two materials in cells 100 nm wide, filled at random (fixed seed).
