@@ -51,6 +51,7 @@ How light reaches the sensor, how much of it, and what can be placed in its way.
 |---|---|---|
 | [Side light: first estimate](light-entry.md) | A rough estimate of how much ordinary light gets under the sensor from the side, and what that does to the picture | First estimate: straight rays with a simple wave limit |
 | [Side light with waves](slot-waves.md) | Side light worked out with waves, what a feature on the chip does to it, and the two ways of lighting compared, including how more readings trade against sharpness | Simulated, two dimensions |
+| [A slit over fine lines, with waves](slit-waves.md) | The wave check of the slit mask: a slit in a metal film held 20 nm to 300 nm over lines 100 nm wide, lit from behind the chip, in three colours and both field directions | Simulated, two dimensions |
 | [Near-infrared backlight](backlight.md) | A rough estimate for lighting the chip from behind with plain near-infrared light: how much light is detected and how sharp the shadow of the metal can be | First estimate, flat layers only |
 | [Filters, gratings and optical elements](optical-elements.md) | What can be added in the light, in the gap or on the sensor face, the limits for 100 nm features on silicon, the use of randomness, and the optical reasoning behind the staged plan | Exploration for review |
 
@@ -129,6 +130,7 @@ oversampling
 
 Side light: first estimate <light-entry>
 Side light with waves <slot-waves>
+A slit over fine lines, with waves <slit-waves>
 Near-infrared backlight <backlight>
 Filters, gratings and optical elements <optical-elements>
 ```

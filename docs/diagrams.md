@@ -288,6 +288,28 @@ python docs/diagrams/make_slot_wave_diagrams.py
 | [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
 | [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
 
+## Slit wave figures
+
+The figures on the [slit waves](slit-waves.md) page come from
+[`docs/diagrams/make_slit_wave_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_slit_wave_diagrams.py),
+which also writes that page's tables to
+[`results/slit-waves/tables.md`](https://github.com/mithro/ccd-superres/blob/main/results/slit-waves/tables.md).
+With `--rerun` it repeats all 2,222 wave runs, which takes about two
+hours on four processor cores:
+
+```
+python docs/diagrams/make_slit_wave_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`slit-waves-layout`](diagrams/slit-waves-layout.svg) | The cross-section to scale: chip glass with copper lines, air gap, aluminium film with a slit, sensor silicon | Illustrative, to scale |
+| [`slit-waves-swing`](diagrams/slit-waves-swing.svg) | Swing of the reading against gap for lines 100 nm wide, wave calculation against the simple model, three colours | Grid wave solver, saved in [`results/slit-waves/readings.json`](https://github.com/mithro/ccd-superres/blob/main/results/slit-waves/readings.json) |
+| [`slit-waves-field`](diagrams/slit-waves-field.svg) | Field strength in the cross-section with a line and with a space under the slit | Grid wave solver, four runs made when the figure is drawn |
+| [`slit-waves-light`](diagrams/slit-waves-light.svg) | Mean reading against gap over lines and over plain glass | Saved runs, as above |
+| [`slit-waves-periods`](diagrams/slit-waves-periods.svg) | Swing against gap for lines 60 nm to 200 nm wide | Saved runs, as above |
+| [`slit-waves-single-line`](diagrams/slit-waves-single-line.svg) | Change in the reading against the position of one line | Saved runs, as above |
+
 ## Oversampling figures
 
 The figures on the [oversampling](oversampling.md) page come from

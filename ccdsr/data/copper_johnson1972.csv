@@ -1,0 +1,34 @@
+# Refractive index n and extinction coefficient k of copper at room temperature.
+# Source: P. B. Johnson and R. W. Christy, Physical Review B 6, 4370-4379 (1972), doi:10.1103/PhysRevB.6.4370,
+# as tabulated in the refractiveindex.info database
+# (file database/data/main/Cu/nk/Johnson.yml, public domain, CC0 1.0), copied on 18 November 2026.
+# Only the rows from 0.3 to 1.5 micrometres are kept.
+# Measured on thin evaporated films; the narrow wires of a chip may differ.
+wavelength_um,n,k
+0.30090,1.4000,1.6790
+0.31070,1.3800,1.7290
+0.32040,1.3800,1.7830
+0.33150,1.3400,1.8210
+0.34250,1.3600,1.8640
+0.35420,1.3700,1.9160
+0.36790,1.3600,1.9750
+0.38150,1.3300,2.0450
+0.39740,1.3200,2.1160
+0.41330,1.2800,2.2070
+0.43050,1.2500,2.3050
+0.45090,1.2400,2.3970
+0.47140,1.2500,2.4830
+0.49590,1.2200,2.5640
+0.52090,1.1800,2.6080
+0.54860,1.0200,2.5770
+0.58210,0.7000,2.7040
+0.61680,0.3000,3.2050
+0.65950,0.2200,3.7470
+0.70450,0.2100,4.2050
+0.75600,0.2400,4.6650
+0.82110,0.2600,5.1800
+0.89200,0.3000,5.7680
+0.98400,0.3200,6.4210
+1.08800,0.3600,7.2170
+1.21600,0.4800,8.2450
+1.39300,0.6000,9.4390

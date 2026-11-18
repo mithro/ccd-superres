@@ -1179,7 +1179,7 @@ Four questions for a decision, in addition to items 12 and 13 of
 | Limit | Consequence |
 |---|---|
 | The blur model is the design's "matt" model, which is built from rays | Below about a wavelength it is an extrapolation. Table 2 shows it gives 1.5 to 3.4 times more strength than the simple wave formula, and Table 7 that this changes the readings needed about fivefold |
-| No full electromagnetic calculation was run | Edge sharpness with walls, slit behaviour, light passing the sensor's wiring, and the pattern inside the pixel are all unconfirmed. A first attempt with the repository's wave solver did not finish in the time available and is not reported |
+| No full electromagnetic calculation was run | Edge sharpness with walls, slit behaviour, light passing the sensor's wiring, and the pattern inside the pixel are all unconfirmed. A first attempt with the repository's wave solver did not finish in the time available and is not reported. Since this study, the slit over 100 nm lines has been calculated: see [a slit over fine lines, with waves](../slit-waves.md) |
 | The level 0 model is for long lines parallel to a pixel edge | Detail fine in both directions gains less from readings (Table 5) |
 | The level 1 runs are in one dimension | Their reading counts need the conversion given under Table 12 |
 | The two-dimensional test assumes known positions, equal gains, no drift, a layout that repeats at its borders, the same model for making and solving the readings, and smoothing chosen against the truth | It shows the principle of the slit mask and the order of the arrangements, not its robustness or its absolute scores |
