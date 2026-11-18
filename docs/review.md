@@ -796,3 +796,46 @@ The corrections were extensive: they changed the ranking, added tables
 They were checked by the tests and a strict build of the pages, not by a
 second review, so the corrected page as a whole is less well reviewed
 than the first draft was.*
+
+## Review 17: oversampling as a central axis
+
+The [oversampling](oversampling.md) page, its code
+([`ccdsr/oversampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/oversampling.py)),
+the stored study, the tests and figures, the new panel of the interactive
+explorer, the readings of each point in the comparison tables, and the
+matching changes to the design and plan were reviewed on 18 November 2026,
+before merging. The reviewer was given the material and not the author's
+conclusions. It reran every stored record, recomputed the page's tables,
+repeated the main cases with other noise, other random fillings of the test
+surface, other gaps and a shorter sensor, derived the level 0 rule again,
+and broke the code in 21 ways in a copy to see whether the tests noticed.
+
+It confirmed that all stored numbers reproduce exactly, that every table
+entry matched the stored runs, that the gap and narrow-opening findings hold
+with other noise, and that the rerun of the first comparison differs from
+the earlier one only by the new column. Its findings were about conclusions
+stronger than the evidence and about one case distorted by the test
+surface.
+
+| No. | Severity | What was found | What was done |
+|--:|---|---|---|
+| 1 | Error | The page said more readings help only where they land on new positions. Its own tables showed the positions all filled from 176 readings, with the gain continuing after that. | Reworded: new positions matter until they are filled, after which the gain comes from total light and is slow. The design sentence changed to match. |
+| 2 | Error | The column for a sensor held still was produced by the sensor being longer than the repeating test surface: its far pixels landed between its near ones. With a sensor that fits on the surface the still case gains nothing at any number of readings. | The still case now uses only the pixels that fit on the surface once, with position errors switched off. The study was rerun and the column replaced. |
+| 3 | Error | The finding that knowing the two materials outweighs any number of readings did not hold with other noise, on another random filling, or at a gap of 400 nm. | The study now includes gaps of 200 nm and 400 nm and a second filling. The finding is stated with those limits, with the reviewer's less favourable cases beside it, and the plan item softened. |
+| 4 | Gap | The measure of the finest period recovered can report periods finer than the readings support, and its coarse bands held one or no wave of the surface. | Bands are joined until each holds at least three waves. The page states what the measure cannot do. A stricter measure is a next step in the plan. |
+| 5 | Gap | "Differences of two steps are significant" was not shown; repeats with other noise moved results by a step in half the cases. | Removed. The study uses ten runs in place of five, and the page says one step is not a difference. |
+| 6 | Gap | The range of smoothing strengths tried was too short at the strong end for the two-materials method, and the choice makes the error small, not the finest period. | Range extended a hundredfold at the strong end; the page says what is made small. |
+| 7 | Gap | The level 0 rule returned whichever of several answers its solver met first, which produced a jump in the tables. | It now takes the first failure going from coarse to fine, judged over a band as the measure is. |
+| 8 | Gap | The "same time" way was not what its table said (the step between frames is kept, so the surface is covered more times), its first rows put far more light in a reading than a pixel holds, and the conclusion ignored read noise. | Table and finding reworded with those conditions. |
+| 9 | Gap | The comparison with the design's best-case table was called agreement; the two calculations differ in several ways. | Now "the same scale and order", with the differences listed. |
+| 10 | Wording | The flat stretches were put down to the pixel's blind periods alone; the stepped measure contributes. | Both stated. |
+| 11 | Gap | 15 of 21 deliberate breakages passed the tests. | Six tests added or strengthened, with exact values for the position count, the level 0 rule, the pass mark of the measure and the choice of smoothing. |
+| 12 | Gap | In the explorer, the still case was not still when shake was set, and the chart can be empty on smooth surfaces without saying why. | The still case switches shake off; the help text says the chart can be empty. |
+| 13 | Wording | Running time overstated; one table cell without a source; the surface's plain margins not mentioned; the readings of each point depend on the length of the test surface, which was not said; a formula written twice. | All corrected; the formula now lives in one place. |
+
+*Table: findings of review 17. Not checked by the reviewer: the explorer's
+page in a browser and its screenshot, the figures by eye, the full test
+suite, the noisy-sensor case beyond one other set of runs, the gap and
+narrow-opening cases on other surfaces, and anything in two dimensions. The
+corrections were checked by the tests, a rerun of the study and a strict
+build of the pages, not by a second review.*

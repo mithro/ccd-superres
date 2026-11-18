@@ -101,6 +101,18 @@
       </div>
     </section>
     <section class="card">
+      <div class="head">
+        <h2>More readings of each point: what they buy</h2>
+        <div class="tools"><button id="sweep" type="button">Run with these settings</button></div>
+      </div>
+      <div id="status-sweep" class="status" role="status">Press the button to rerun the ticked methods at 1 to 512 frames, with every other setting as on the left. It takes from a few seconds to a minute.</div>
+      <div class="two">
+        <div><canvas id="plot-sweep-period" height="280"></canvas></div>
+        <div><canvas id="plot-sweep-error" height="280"></canvas></div>
+      </div>
+      <p class="help">Each point of a curve is one number of frames. Solid: more frames with the same light in each, so the scan takes longer. Dashed: more frames in the same total time, so each has less light. Dotted: more frames with the sensor held still, which read the same places again and only average the noise. The finest period recovered is the shortest repeat distance down to which the reconstructions agree with the true surface; a curve stops where nothing was recovered. The strength of the smoothing is chosen afresh for every point, using the true surface, so each curve is close to the lowest error its method can reach. On a surface with little fine detail the left chart can be empty. Methods that solve positions are left out. The chart does not follow the settings by itself: press the button again after a change.</p>
+    </section>
+    <section class="card">
       <h2>How much of each detail size survives the blur</h2>
       <canvas id="plot-blur" height="260"></canvas>
       <p class="help">1 means a pattern repeating at that distance reaches the readings at full strength, 0 means it is wiped out. Vertical marks are the bar groups of the test surface.</p>

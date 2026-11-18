@@ -35,6 +35,8 @@ main[hidden] { display: none; }
 .results { min-width: 0; }
 .card.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
 .card.two > div { min-width: 0; }
+.card > .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.card > .two > div { min-width: 0; }
 .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .tools { display: flex; gap: 6px; flex-wrap: wrap; }
 .help { color: var(--fg2); font-size: 12.5px; margin: 4px 0 8px; }

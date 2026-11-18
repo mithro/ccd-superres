@@ -293,20 +293,20 @@
 
 *Table R21. Combinations that were refused, with the reason.*
 
-| Approach | Readings used per run | Runs that gave a warning |
-|---|---:|---:|
-| `shift-and-add` | 12,800 | 0 of 240 |
-| `wiener` | 12,800 | 0 of 240 |
-| `least-squares` | 12,800 | 0 of 240 |
-| `least-squares-light-smoothing` | 12,800 | 0 of 240 |
-| `least-squares-planned-positions` | 12,800 | 0 of 240 |
-| `position-solving` | 12,800 | 0 of 240 |
-| `smooth-path-position-solving` | 12,800 | 0 of 240 |
-| `two-materials` | 12,800 | 0 of 180 |
-| `two-materials-position-solving` | 12,800 | 0 of 180 |
-| `narrow-opening` | 12,800 | 0 of 240 |
-| `fast-scan-short-pulse` | 1,984 | 0 of 240 |
-| `fast-scan-continuous-light` | 1,984 | 0 of 240 |
-| `fast-scan-coded-light` | 1,984 | 0 of 240 |
+| Approach | Readings used per run | Readings of each point of the surface | Runs that gave a warning |
+|---|---:|---:|---:|
+| `shift-and-add` | 12,800 | 194 to 569 | 0 of 240 |
+| `wiener` | 12,800 | 194 to 569 | 0 of 240 |
+| `least-squares` | 12,800 | 194 to 569 | 0 of 240 |
+| `least-squares-light-smoothing` | 12,800 | 194 to 569 | 0 of 240 |
+| `least-squares-planned-positions` | 12,800 | 194 to 569 | 0 of 240 |
+| `position-solving` | 12,800 | 194 to 569 | 0 of 240 |
+| `smooth-path-position-solving` | 12,800 | 194 to 569 | 0 of 240 |
+| `two-materials` | 12,800 | 194 to 569 | 0 of 180 |
+| `two-materials-position-solving` | 12,800 | 194 to 569 | 0 of 180 |
+| `narrow-opening` | 12,800 | 194 to 569 | 0 of 240 |
+| `fast-scan-short-pulse` | 1,984 | 30 to 88 | 0 of 240 |
+| `fast-scan-continuous-light` | 1,984 | 30 to 88 | 0 of 240 |
+| `fast-scan-coded-light` | 1,984 | 30 to 88 | 0 of 240 |
 
-*Table R22. Data used by each approach, and solver warnings.*
+*Table R22. Data used by each approach, and solver warnings. The readings of each point are the readings times the pixel spacing divided by the length of the test surface, so they differ between surfaces of different length; the range over the scenes is given. How the result changes with this number is the subject of the oversampling page.*

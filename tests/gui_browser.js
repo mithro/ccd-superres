@@ -31,6 +31,14 @@ function check(condition, what) { if (!condition) throw new Error("failed: " + w
   check(await page.locator("#setup svg rect").count() > 10, "setup diagram is drawn");
   check((await page.inputValue("#file")).includes('method = "least_squares"'), "approach file text");
 
+  // The oversampling chart runs on request and draws both curves.
+  await page.click("#sweep");
+  await page.waitForFunction(() => document.getElementById("status-sweep").textContent.startsWith("Updated"), null, { timeout: 120000 });
+  for (const id of ["plot-sweep-period", "plot-sweep-error"]) check(await drawn(id) > 2000, id + " is drawn");
+  const swept = await page.evaluate(() => sweep.curves.map((c) => [c.way, c.rms_error.length, c.rms_error[0] > c.rms_error[9]]));
+  check(swept.length === 3 && swept.every((c) => c[1] === 10), "three ways, ten levels each");
+  check(swept[0][2], "more frames at new places lower the error");
+
   // A wider gap makes it worse; the slider and the number box stay in step.
   await set("#c-optics-gap_nm", 2000);
   check(await error() > usual + 0.03, "wider gap gives a larger error");

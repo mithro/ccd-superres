@@ -1,6 +1,6 @@
 "use strict";
 // Page logic of the interactive explorer. All numbers come from the Python simulator through
-// /api/describe, /api/run and /api/run2d; nothing is computed here except how to draw them.
+// /api/describe, /api/run, /api/run2d and /api/oversampling; nothing is computed here except how to draw them.
 
 const $ = (id) => document.getElementById(id);
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -500,6 +500,34 @@ function showZooms() {
   }));
 }
 
+// ---------------------------------------------------------------- oversampling
+
+let sweep = null;         // the last answer of /api/oversampling
+const WAY_DASH = { "more-time": [], "same-time": [6, 4], "repeat": [2, 3] };
+
+function drawSweep() {
+  if (!sweep) return;
+  const all = (key) => sweep.curves.flatMap((c) => c[key]).filter((v) => v !== null && isFinite(v));
+  const xs = all("readings_per_point"), x0 = Math.min(...xs) / 1.2, x1 = Math.max(...xs) * 1.2;
+  const seen = new Set(), legend = [];
+  for (const c of sweep.curves) if (!seen.has(c.method)) { seen.add(c.method); legend.push({ label: c.label, color: methodColor(c.method) }); }
+  const xticks = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000];
+  const draw = (canvas, key, ylabel, scale) => {
+    const [g, w, h] = prepare($(canvas));
+    const ys = all(key).map((v) => v * scale);
+    const a = axes(g, w, h, { x0, x1, y0: 0, y1: (ys.length ? Math.max(...ys) : 1) * 1.08, logx: true, xticks,
+      xformat: (v) => thousands(v), xlabel: "readings of each point of the surface", ylabel, legend });
+    a.clip();
+    for (const c of sweep.curves)
+      line(g, a, c.readings_per_point, c[key].map((v) => (v === null ? null : v * scale)), methodColor(c.method), 1.8, WAY_DASH[c.way]);
+    g.restore();
+  };
+  draw("plot-sweep-period", "recovered_period_nm", "finest period recovered (nm)", 1);
+  draw("plot-sweep-error", "rms_error", "error against the true surface (rms)", 1);
+}
+
+function showSweep(out) { sweep = out; drawSweep(); }
+
 let shownScene = null;
 function show1(out) {
   last = out;
@@ -676,12 +704,14 @@ async function start() {
 
   run1 = makeRunner("/api/run", () => state, show1, $("status"));
   run2 = makeRunner("/api/run2d", () => state2, show2, $("status-2d"));
+  const runSweep = makeRunner("/api/oversampling", () => state, showSweep, $("status-sweep"));
+  $("sweep").addEventListener("click", runSweep);
   $("tab-1d").addEventListener("click", () => selectTab("1d"));
   $("tab-2d").addEventListener("click", () => selectTab("2d"));
   surfaceInteraction();
   let resizeTimer = null;
-  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(redraw1, 100); });
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { redraw1(); drawSetup(); });
+  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { redraw1(); drawSweep(); }, 100); });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { redraw1(); drawSetup(); drawSweep(); });
 
   syncAll();
   changed1();

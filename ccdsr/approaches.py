@@ -67,6 +67,30 @@ def _random_layout():
     return Scene("random_layout", surface, DX_NM, (), (0.2, 1.0))
 
 
+@scene("random_layout_b")
+def _random_layout_b():
+    """The same as ``random_layout`` with a different random filling, to see what depends on the filling."""
+    rng = np.random.default_rng(20261118)
+    cells = rng.integers(0, 2, 80)
+    margin = np.full(150, 0.2)
+    surface = np.concatenate([margin, np.repeat(np.where(cells == 1, 1.0, 0.2), 12), margin])
+    return Scene("random_layout_b", surface, DX_NM, (), (0.2, 1.0))
+
+
+@scene("fine_layout")
+def _fine_layout():
+    """Two materials in cells 100 nm wide, filled at random (fixed seed).
+
+    The cell is the width of the features the project is after
+    (REQ-3), so the surface holds detail down to a period of 200 nm.
+    """
+    rng = np.random.default_rng(20261115)
+    cells = rng.integers(0, 2, 200)
+    margin = np.full(150, 0.2)
+    surface = np.concatenate([margin, np.repeat(np.where(cells == 1, 1.0, 0.2), 5), margin])
+    return Scene("fine_layout", surface, DX_NM, (), (0.2, 1.0))
+
+
 @scene("isolated_lines")
 def _isolated_lines():
     """Seven narrow bright lines, 200 nm wide, at uneven spacings on a dark surface."""

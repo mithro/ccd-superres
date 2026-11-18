@@ -240,6 +240,10 @@ Cautions on reading these.
 
 ## Full results
 
+The last table lists the readings of each point of the surface that each
+approach used ([REQ-24](design.md#requirements)). How a result changes with
+that number is the subject of the [oversampling](oversampling.md) page.
+
 ```{include} ../results/level1-first/tables.md
 ```
 

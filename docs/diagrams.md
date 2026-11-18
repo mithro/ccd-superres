@@ -288,6 +288,22 @@ python docs/diagrams/make_slot_wave_diagrams.py
 | [`slot-waves-reach`](diagrams/slot-waves-reach.svg) | How far side light travels along the slot, and the reading at the middle of the sensor from waves and from rays, against gap | Mode solution in [`ccdsr/slot_modes.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/slot_modes.py) |
 | [`slot-waves-scatter`](diagrams/slot-waves-scatter.svg) | The mark a line on the chip leaves in the pixel readings under skimming light | Grid wave solver, saved in [`results/edge-scatter/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/edge-scatter/runs.json) |
 
+## Oversampling figures
+
+The figures on the [oversampling](oversampling.md) page come from
+[`docs/diagrams/make_oversampling_diagrams.py`](https://github.com/mithro/ccd-superres/blob/main/docs/diagrams/make_oversampling_diagrams.py).
+With `--rerun` it repeats the study behind them, which takes about 8
+minutes:
+
+```
+python docs/diagrams/make_oversampling_diagrams.py
+```
+
+| Figure | Shows | Source of the numbers |
+|---|---|---|
+| [`oversampling-ways`](diagrams/oversampling-ways.svg) | Finest line recovered and error against readings per point for three ways of taking more readings | Level 1 runs through [`ccdsr/oversampling.py`](https://github.com/mithro/ccd-superres/blob/main/ccdsr/oversampling.py), saved in [`results/oversampling/runs.json`](https://github.com/mithro/ccd-superres/blob/main/results/oversampling/runs.json) |
+| [`oversampling-gaps`](diagrams/oversampling-gaps.svg) | Finest line recovered against readings per point for three gaps and four approaches | The same |
+
 ## Beamforming study figures
 
 The figures on the [beamforming and array processing](research/beamforming.md)

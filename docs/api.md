@@ -100,6 +100,15 @@ See [comparing approaches](comparison.md).
    :members:
 ```
 
+## Oversampling
+
+See [oversampling](oversampling.md).
+
+```{eval-rst}
+.. automodule:: ccdsr.oversampling
+   :members:
+```
+
 ## Interactive explorer
 
 See the [interactive explorer](interactive-explorer.md).

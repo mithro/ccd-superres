@@ -15,6 +15,7 @@ link here the first time they use a term that is not explained on the spot.
 | Astronomical unit (AU) | The distance from the Earth to the Sun, about 150 million km. Used for sizes inside a star system. |
 | Autofocus | Working out from the recorded data alone how the instrument's assumed path, gap or timing was wrong, and correcting it. The name comes from radar. |
 | Band (cut-off) | The band is the range of detail sizes a method can carry, from coarse to fine. The cut-off is the finest detail in the band. Detail beyond the cut-off does not reach the sensor. |
+| Band (of periods) | On the [oversampling](oversampling.md) page: a narrow range of repeat distances, used to ask down to what fineness a reconstruction still agrees with the true surface. |
 | Bayer filter | The pattern of red, green and blue filters laid over the pixels of a colour sensor, one colour per pixel. |
 | Beam pair | Two beams from the same laser reaching the surface from different sides at the same time. Where they cross they form fringes. |
 | Beam splitter | A part-silvered mirror that divides one beam of light into two. |
@@ -109,7 +110,7 @@ link here the first time they use a term that is not explained on the spot.
 | Numerical aperture (NA) | A number that says how steep an angle is: the sine of the angle measured from straight ahead, times the refractive index of the medium. In air it lies between 0 and 1. |
 | Open pixel | A pixel with nothing in front of it to limit the directions it sees. |
 | Ordinary light | Steady light from a room, a lamp or a plain light-emitting diode, with no property the method relies on beyond being there. The baseline of this project ([design, section 4.11](design.md#411-no-special-lighting-what-ordinary-light-can-reach-and-where-the-work-goes)). The opposite is special lighting. |
-| Oversampling | Taking many more readings of each patch of the surface than the picture has points, so that noise averages down and fine positions are filled in. |
+| Oversampling | Taking many more readings of each patch of the surface than the picture has points, so that noise averages down and fine positions are filled in. See [oversampling](oversampling.md). |
 | Parsec | The astronomers' unit of distance to the stars: 3.26 light years, or about 31 million million km. At 1 parsec, an angle of one second of arc spans one astronomical unit. |
 | Period | The distance over which a regular pattern repeats. Lines and spaces each 100 nm wide have a period of 200 nm. |
 | Phase | Where a wave is in its cycle. Sensors record brightness only, so phase has to be worked out by computation. |
@@ -127,6 +128,7 @@ link here the first time they use a term that is not explained on the spot.
 | Ptychography | A method that scans a sample under coherent light, records many overlapping brightness patterns, and computes a sharp picture, including phase, from the overlap. |
 | Pulse | A short flash of light. |
 | Push-broom | A camera with one line of pixels that builds a picture line by line as it is carried over the scene, like a broom pushed across a floor. |
+| Readings per point | The number of readings whose pixel covered a given point of the surface: the measure of oversampling. In a single pass it is the number of pixels along the scan times the number of frames taken while the sensor moves one pixel. |
 | Read noise | The noise the sensor's electronics add to every reading, even in the dark. |
 | Readout scheme | The order and timing in which a sensor's pixels are exposed and read. |
 | Reconstruction | Computing the picture of the surface from the recorded readings. |

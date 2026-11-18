@@ -40,6 +40,7 @@ The calculator, the explorers and the simulator that run today, and how to use t
 | [Interactive explorer](interactive-explorer.md) | A page with a control for every setting that reruns the real simulator: setup, raw readings, reconstructions of several methods side by side, and scores. Started with `python -m ccdsr.gui` | First version, level 1 in one and two dimensions |
 | [Simulation level 1](level1.md) | The first simulator: blur, sample, add noise, reconstruct. Worked example and cross-checks against the formulas | One and two dimensions and position estimation implemented |
 | [Reconstruction by elimination](constrained-reconstruction.md) | Using the simulator to test candidate surfaces and positions and rule out the physically impossible: material limits, layout rules and a smooth sensor path | First version in one dimension |
+| [Oversampling](oversampling.md) | What taking more readings of each point of the surface buys and costs: result against readings per point for three ways of taking more, three gaps and four approaches | Simulated, level 1, one dimension |
 | [Comparing approaches](comparison.md) | How an approach is written as one short file, and the first comparison: 13 approaches on 4 surfaces under 6 conditions, 10 runs each | First version, level 1 in one dimension |
 
 ## Lighting and optics
@@ -118,6 +119,7 @@ interactive-explorer
 Simulation level 1 <level1>
 constrained-reconstruction
 comparison
+oversampling
 ```
 
 ```{toctree}

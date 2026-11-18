@@ -161,6 +161,7 @@ def run_one(approach: ap.Approach, scene_name, condition: ap.Condition, seed):
     record["seconds"] = time.perf_counter() - started
     record["warnings"] = sorted({str(w.message)[:120] for w in caught})
     record["readings"] = int(frames.readings.size)
+    record["readings_per_point"] = l1.readings_per_point(frames)
     record.update(score(scene, frames, estimate, positions, believed))
     return record
 
@@ -256,13 +257,20 @@ def tables_markdown(comparison: Comparison, records):
         lines += [f"| `{a}` | `{s}` | {why.split(': ', 1)[-1]} |" for a, s, why in refused]
         lines += ["", f"*Table R{number}. Combinations that were refused, with the reason.*", ""]
     number += 1
-    lines += ["| Approach | Readings used per run | Runs that gave a warning |", "|---|---:|---:|"]
+    lines += ["| Approach | Readings used per run | Readings of each point of the surface | Runs that gave a warning |",
+              "|---|---:|---:|---:|"]
     for a in comparison.approaches:
         mine = [r for r in records if r["approach"] == a.name and "refused" not in r]
         if mine:
             warned = sum(bool(r["warnings"]) for r in mine)
-            lines.append(f"| `{a.name}` | {mine[0]['readings']:,} | {warned} of {len(mine)} |")
-    lines += ["", f"*Table R{number}. Data used by each approach, and solver warnings.*", ""]
+            per_point = sorted({round(r["readings_per_point"]) for r in mine if "readings_per_point" in r})
+            shown = "" if not per_point else f"{per_point[0]:,}" if len(per_point) == 1 \
+                else f"{per_point[0]:,} to {per_point[-1]:,}"
+            lines.append(f"| `{a.name}` | {mine[0]['readings']:,} | {shown} | {warned} of {len(mine)} |")
+    lines += ["", f"*Table R{number}. Data used by each approach, and solver warnings. The readings of each point "
+                  "are the readings times the pixel spacing divided by the length of the test surface, so they "
+                  "differ between surfaces of different length; the range over the scenes is given. How the "
+                  "result changes with this number is the subject of the oversampling page.*", ""]
     return "\n".join(lines)
 
 
