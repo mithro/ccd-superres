@@ -18,7 +18,10 @@ The main things this document establishes:
   steep slant from several sides and let a computer untangle the result
   (sections 4.6 and 4.7).
 - **Special lighting is not assumed (REQ-6), so the main line of work uses
-  ordinary light, and under ordinary light 100 nm is out of reach.** The
+  ordinary light, and under ordinary light 100 nm is out of reach with the
+  sensor a micrometre from the chip, and with the baseline pixel at any
+  distance. Routes that bring a sharp edge to within about 100 nm of the
+  features might reach it (Table 4.11e; unconfirmed estimates).** The
   finest true picture is about as fine as the distance from the chip's
   features to the light-sensitive silicon: lines of about 1 µm for the
   sensor as sold. Computation adds position solving, detection and
@@ -1110,8 +1113,8 @@ worse, by an amount that is not yet known.
 | Distance from features to silicon (nm) | Finest period, ideally sharp pixel (nm) | The same with 1,000 times more readings (nm) | Finest period, baseline pixel (nm) | Line width for the baseline pixel (nm) | What that distance means in practice |
 |--:|--:|--:|--:|--:|---|
 | 0 | 37 | 7 | 281 | 141 | Not physically possible. Shown as the floor set by the pixel alone |
-| 50 | 106 | 57 | 298 | 149 | Not achievable by this project (section 4.6) |
-| 100 | 160 | 96 | 322 | 161 | Not achievable by this project |
+| 50 | 106 | 57 | 298 | 149 | Near contact. Judged not achievable in section 4.6; taken up again as routes A and B of Table 4.11e, which are hardware and wait for the gate |
+| 100 | 160 | 96 | 322 | 161 | Near contact, as the row above |
 | 140 | 200 | 124 | 344 | 172 | The distance at which an ideally sharp pixel would reach the target. Needs the layers stripped from the pixel, features at the very top of the chip, and the gap and its wedge held to tens of nanometres |
 | 300 | 339 | 225 | 438 | 219 | The setting simulation level 1 has used so far. Layers stripped, sensor almost touching |
 | 1,000 | 837 | 601 | 877 | 439 | Roughly the thickness of the layers on an unmodified pixel (Estimate; section 5.3 gives "a micrometre or two, to be measured"), so the sensor as sold, touching a chip with its features at the surface |
@@ -1127,7 +1130,12 @@ contrast, signal-to-noise of 50 per reading, 13,000 readings per pixel area
 (the baseline scan of section 5.2) except in the third column. "Baseline
 pixel" has edges soft over 0.3 µm (full width at half height), the design's
 starting value in section 5.1, which is an Assumption until a pixel is
-measured. The line width is half the period. The
+measured. The line width is half the period. Every figure is "just
+detectable": the pattern is as strong as the noise. A clean picture, with
+the pattern five times the noise, needs 25 times the readings at the same
+width, or is coarser with the same readings
+([routes that keep ordinary light](research/ordinary-light-routes.md#31-how-close-and-how-sharp),
+Tables 10a and 10b). The
 [simulation chain](simulation-chain.md#where-each-level-is-valid) trusts
 this blur model for dimensions of several micrometres or more. Ray tracing
 (level 2) is itself only indicative below 10 µm, so the rows from 300 nm to
@@ -1139,17 +1147,35 @@ fit, 480 nm bars with a narrowed pixel opening or known materials, and
 
 These conclusions are Derived from Table 4.11b.
 
-- **The 100 nm target is out of reach of ordinary light.** With an ideally
+- **The 100 nm target is out of reach of ordinary light at a micrometre
+  from the chip, and of the baseline pixel at any distance.** With an ideally
   sharp pixel it would need the silicon within about 140 nm of the
   features. With the baseline pixel it is out of reach at any distance,
   because the pixel's own soft edges stop it at lines of about 140 nm even
   at zero distance (about 110 nm with a thousand times more readings). Finished chips also carry protective layers thicker
   than 100 nm (section 4.6), and features on lower layers lie deeper still.
+- **The softness of the pixel's edge is now the most important
+  assumption.** The 0.3 µm of the baseline pixel is a starting value and
+  not a measurement. The
+  [routes study](research/ordinary-light-routes.md#31-how-close-and-how-sharp)
+  finds that with an edge sharp to within 100 nm, held 100 nm from the
+  features, lines of 100 nm become just detectable with the baseline scan
+  (Estimate there, level 0; Table 10a). In that study's words the finding
+  is about the micrometre and not about the light. Routes that change the
+  edge and the distance are set out below.
 - **More computation does not close the gap.** A thousand times more
   readings improves the finest period by a factor of about 1.2 to 1.8
   at every distance that can be built (compare the second and third
   columns from 50 nm down the table). The blur removes fine detail
-  faster than averaging can recover it (section 4.2).
+  faster than averaging can recover it (section 4.2). Close to the chip
+  that changes by degree: the
+  [routes study](research/ordinary-light-routes.md#2-oversampling-what-more-readings-buy)
+  estimates that a sharp pixel touching the surface would gain 5.6 times
+  from a thousand times more readings, and that for clean 100 nm lines
+  with a sharp edge readings can be traded for distance at a steep price:
+  2.6 times the baseline scan at 100 nm, 25 times at 140 nm and 770 times
+  at 200 nm, each multiplied by six for an edge soft over 100 nm (Estimate
+  there, level 0). That trade is route D of Table 4.11e.
 - **What the instrument can deliver as a true picture is a repeat distance
   of roughly the same size as the distance from features to silicon:**
   between about 0.6 and 1.5 times it over the range of practical interest.
@@ -1204,6 +1230,49 @@ flowchart LR
 arrows pass results forward. All of it is simulation until the gate of
 section 4.9.*
 
+**Routes that keep both the 100 nm goal and ordinary light (REQ-22).** A
+scouting study,
+[routes to 100 nm that keep ordinary light](research/ordinary-light-routes.md),
+looked for every way to keep both. Its starting point is that detail finer
+than the wavelength does not travel: it stays within a few tens of
+nanometres of the chip, whatever the light. So the routes that could
+reach a true picture of 100 nm lines with the baseline scan bring
+something sharp to within about 100 nm of the features, and holding it
+further off costs many times more readings (route D). Its ranked shortlist
+is below. The line widths are Estimates from the level 0 model, supported
+by level 1 runs, with no wave calculation behind them, and the models
+differ from each other by a factor of about five in the readings they ask
+for.
+
+| Rank | Route | Finest clean lines as a true picture, baseline scan (nm) | What it needs | Evidence so far |
+|--:|---|--:|---|---|
+| 1 | B. A metal mask of narrow slits at many angles on the sensor, in near contact, with a lamp behind the chip and a solve of the kind a medical scanner uses | 66 to 109 | A patterned metal film on the sensor, a chip with its upper layers removed, near contact. Works in any colour the chip passes. Whether a plain near-infrared lamp behind the chip is ordinary light is open (section 11, item 18) | Level 0, and a two-dimensional test that recovers most of a layout of 100 nm lines with the baseline scan at 50 nm |
+| 2 | A. Bare-silicon pixels with walls between them, in near contact | 79 to 127 | A stripped sensor with walls, red or bluer light, and so a chip thinned to a few micrometres: in near-infrared light a 100 nm pattern cannot travel inside silicon | Level 0, and level 1 in one dimension. The two-dimensional test needs about 100 times the baseline scan at 100 nm |
+| 3 | D. Route A or B held further off, at 140 nm to 250 nm, with 25 to 15,000 times the readings | 135 to 193 | As A or B, with three hours to months over each point and calibration to a few parts in a thousand | Level 0 and level 1 |
+| 4 | C. A tiny immersion lens on each pixel | 100 to 150, at a contrast of 14 % or less | Liquid on the chip, which is undecided (section 11, item 12), and lenses on the pixels, which gives up the lensless arrangement (REQ-1) | The textbook limit and published microscopes only |
+| 5 | E. A true picture near 170 nm, carried towards 100 nm by elimination | 217 | 24 times the baseline scan and knowledge of the materials; the result is an inferred picture | Level 1 at larger scale shows a lower error, not yet a finer line |
+| 6 | F. Colour and polarisation read for each cell | none | A model of regular patterns; gives widths in regular areas and no picture | Not simulated |
+
+*Table 4.11e. Routes that keep ordinary light, from Table 21 of the
+[routes study](research/ordinary-light-routes.md#9-ranked-shortlist),
+where each figure is derived. Judgement there, built on Estimates. "Clean"
+is a pattern five times the noise. The route letters are that study's and
+are not the stages A to D of the diagram above. Computing cost is not part
+of the ranking (REQ-23). What more readings buy on each route is in
+sections 2 and 9 of that page (REQ-24): a thousand times more readings
+make the lines 1.7, 1.5, 1.5 and 1.4 times finer on routes B, A, D and E.*
+
+Three things follow for this design (from summary points 5 and 8 of that
+study). Near contact needs four things that are not lighting: the layer of
+interest at the very top of the chip, a sensor face stripped to bare
+silicon or to a mask, a way of holding tens of nanometres, and a path for
+the light, of which the last is the weakest. A candidate exists for each,
+and none is proven for this use. All of them are hardware and wait for the
+gate (section 4.9), so what happens now is simulation. And every one of
+these routes waits for a wave calculation, which is computing and is item
+1c in the order of work below. Four questions that the routes raise are items 15 to 18 of
+section 11.
+
 **An unsolved problem that now matters more: getting ordinary light under
 the sensor.** The sensor covers the area it is looking at. Light can enter
 only from the side through the gap, through the chip from behind, or through
@@ -1257,6 +1326,7 @@ model the reconstruction has to use.
 | 1 | A rough estimate of how much ordinary light reaches the middle of the sensor at each gap. Done: [light entry](light-entry.md) | It showed that side light does not reach the middle of the sensor at gaps under about 5 µm, and does not give the best case of Table 4.11b at any gap |
 | 1a | How the chip is lit. A first estimate for plain near-infrared light through the chip from behind (done: [backlight](backlight.md)), then its unchecked points: doping of the chip's silicon, how open the metal of real chips is, the sensor's response near 1,050 nm. A wave calculation on a small cross-section (level 4, moved up from item 10): how far side light reaches, and what a feature does to it (done: [slot waves](slot-waves.md)) | It decides the light model that every item below has to use |
 | 1b | Further light models in level 1 beside "matt": directed light from behind the chip, where the metal's shadow crosses the gap as a wave; and light from the side, as a wave model of the slot in which a feature marks the readings over tens of micrometres ([slot waves](slot-waves.md)) | So that the items below can be run under both models until item 1a decides |
+| 1c | The near-contact routes of Table 4.11e, in the order of Table 22 of the [routes study](research/ordinary-light-routes.md#10-what-the-simulator-needs). First a wave calculation on a small cross-section (level 4): a slit in a metal film over 100 nm lines at gaps of 20 nm to 300 nm in both polarisations, then bare silicon with and without walls in red and near-infrared light, lit from behind the chip and from behind the sensor. Then level 1: edge softness, distance and readings as swept settings, and slit pixels at many angles in two dimensions, with the solve that turns readings from slits at many angles into a picture, as a medical scanner does | These confirm or rule out the shortlist in simulation, and decide between routes A and B. Whether a route then works in reality also depends on hardware that waits for the gate. Item 10 below is brought forward for these cases |
 | 2 | Test surfaces longer than the sensor, and a surface that does not repeat | Removes the largest known flaw of level 1 results |
 | 3 | Position solving, rotation, gap and wedge (the gap being larger at one side of the sensor than the other), and pixel-gain calibration in two dimensions, with a second scan direction; a coarse-to-fine search so that positions are not lost | The calibration that every later stage needs |
 | 4 | The pixel's response as an uncertain range, and its recovery from the scan itself | It matters as much as the distance below a micrometre |
@@ -2255,12 +2325,31 @@ Open questions, each for a decision on the requirements:
     which is read as neither giving way. Taken up as follows: section 4.11 is a statement
     of what has been examined so far and not a final limit; routes that
     have not been examined (changes to the sensor, masks, contact,
-    knowledge of the chip, readout control, heavier computation) are being
-    scouted under [plan](plan.md#b-research-and-data-collection) item B8;
+    knowledge of the chip, readout control, heavier computation) were
+    scouted under [plan](plan.md#b-research-and-data-collection) item B8,
+    with the result in Table 4.11e;
     and by REQ-23 no route is to be dropped because its calculations are
     heavy. Height (REQ-2) under ordinary light stays open: no height
     mechanism of section 4.5 has been shown to work at these distances
     (Unverified).
+15. Open, raised by the routes of Table 4.11e: is preparing the chip, by
+    removing layers down to the one of interest, acceptable? Without it no
+    route reaches features below the top layer.
+16. Open, raised by the same: is thinning the chip to a film a few
+    micrometres thick acceptable as well? Route A (bare-silicon pixels)
+    depends on it when lit from behind the chip, because it needs red or
+    bluer light. A red lamp behind the sensor has not been assessed.
+17. Open, raised by the same, and a sharper form of item 13: is a sensor in sliding near contact with the
+    chip acceptable at the hardware stage, with the wear that goes with
+    it? Routes A, B and D all hold the sensor within about 50 nm to 250 nm
+    of the features.
+18. Open, raised by the same, and a sharper form of item 12: does a plain
+    near-infrared lamp behind the chip count as ordinary light? Route B
+    (the slit mask) in its simplest form depends on it, as does the
+    [backlight](backlight.md) route.
+
+None of items 15 to 18 holds up work now: all of it is simulation until the
+gate of section 4.9 (REQ-15).
 
 ## 12. Where each claim comes from
 
@@ -2290,6 +2379,7 @@ as an estimate from the analytic model, and reported as a gap in this table.
 | 4.11 | Near-infrared light from behind the chip | **Estimate** from the flat-layer model on the [backlight](backlight.md) page, with silicon data from its cited source. Doping, metal coverage, the state of the chip's back face and the sensor's response are unchecked |
 | 4.11 | Side light with waves, and what a feature does to it | **Simulated**: mode solution and a small grid wave solver on the [slot waves](slot-waves.md) page, cross-checked against each other and against the ray estimate |
 | 4.11 | Light entry under the sensor | **Estimate** from a straight-ray model on the [light entry](light-entry.md) page; rays are not valid in so shallow a slot, so it shows scale only |
+| 4.11 | Routes that keep both the 100 nm goal and ordinary light (Table 4.11e) | **Judgement** built on **Estimates**, from the [routes study](research/ordinary-light-routes.md), Table 21. Level 0 model, supported by level 1 runs; no wave calculation yet |
 | 4.11 | What ordinary light can reach (Table 4.11b) and what computation adds (Table 4.11c) | **Estimate** from the analytic model `recoverable_period`, as a best case (matt model, even light from all directions). Unconfirmed below a few micrometres until a wave level checks it. The reading of "special lighting" in Table 4.11a is an **Assumption**. Results in Table 4.11c are simulated at level 1 on the pages linked there.  |
 | 4.8 | Motion blur is a box of length speed × exposure, passing at most $\Lambda/(\pi L)$ | **Derived here**; standard [Goodman] |
 | 4.8 | A coded exposure keeps motion blur reversible | [Raskar2006] |
