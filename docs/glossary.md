@@ -164,6 +164,7 @@ link here the first time they use a term that is not explained on the spot.
 | Stepped frequency | Measuring distance by combining measurements at many pure tones or colours, in place of timing a short pulse. |
 | Sub-pixel | Smaller than one pixel. |
 | Super-resolution | Recovering detail finer than the pixels by combining many readings taken at slightly different positions. |
+| Swing | On the [slit waves](slit-waves.md) page: how much a reading rises and falls as lines pass under a slit, as a share of the mean reading. 0 means the lines are not seen. |
 | Synthetic aperture | A large collecting opening built up by computation from many readings taken at different positions or angles. |
 | Talbot effect | The reappearance of a sharp copy of a grating's pattern at set distances behind it when it is lit by a parallel beam of one colour. |
 | Tile (patch) | A small square of the surface that is processed on its own, so that many can be processed at once. |

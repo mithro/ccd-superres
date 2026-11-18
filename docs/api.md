@@ -45,6 +45,16 @@ The estimates behind the study of
    :members:
 ```
 
+## A slit over fine lines
+
+See the [slit waves page](slit-waves.md). The wave solver it uses,
+`ccdsr.fdfd.solve_periodic`, is listed in the next section.
+
+```{eval-rst}
+.. automodule:: ccdsr.slit_waves
+   :members:
+```
+
 ## Waves in the slot, and a small wave solver
 
 See the [slot waves page](slot-waves.md).

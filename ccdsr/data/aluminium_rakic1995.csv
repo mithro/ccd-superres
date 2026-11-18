@@ -1,0 +1,32 @@
+# Refractive index n and extinction coefficient k of evaporated aluminium films.
+# Source: A. D. Rakic, Applied Optics 34, 4755-4767 (1995), doi:10.1364/AO.34.004755,
+# as tabulated in the refractiveindex.info database
+# (file database/data/main/Al/nk/Rakic.yml, public domain, CC0 1.0), copied on 18 November 2026.
+# Only the rows from 0.3 to 1.5 micrometres are kept.
+# Thin films on a real sensor may differ with how they are made.
+wavelength_um,n,k
+0.30996,0.2800,3.7081
+0.32628,0.3147,3.9165
+0.36466,0.3988,4.3957
+0.41328,0.5213,5.0008
+0.44280,0.6079,5.3676
+0.47687,0.7278,5.7781
+0.51660,0.8734,6.2418
+0.56357,1.0728,6.7839
+0.61993,1.3660,7.4052
+0.65225,1.5724,7.7354
+0.68881,1.8301,8.0601
+0.72932,2.1606,8.3565
+0.77491,2.6154,8.4914
+0.79478,2.7675,8.3866
+0.81569,2.7668,8.2573
+0.83774,2.6945,8.1878
+0.88561,2.2802,8.1134
+0.91166,1.9739,8.3058
+0.93928,1.6784,8.5970
+0.96863,1.4867,9.0655
+0.99988,1.4359,9.4939
+1.03320,1.3998,9.8914
+1.12710,1.3281,10.9690
+1.23990,1.3157,12.2450
+1.37760,1.3899,13.7840
